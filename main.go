@@ -7,6 +7,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -19,16 +21,35 @@ import (
 
 func main() {
 	config.InitConfig()
+
+	var handler http.Handler = ChanCreate()
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", 1),
-		Handler: nil,
+		Handler:   handler,
+		TLSConfig: nil,
+	}
+	// http
+	httpListener, err := net.Listen("tcp", ":8080")
+	if err != nil {
+		logger.Fatal(err.Error())
 	}
 	go func() {
-		logger.Info("server running...")
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		logger.Info("http server running...")
+		if err := srv.Serve(httpListener); err != nil && err != http.ErrServerClosed {
 			logger.Fatal(err.Error())
 		}
 	}()
+	// https
+	httpsListener, err := net.Listen("tcp", ":8081")
+	if err != nil {
+		logger.Fatal(err.Error())
+	}
+	go func() {
+		logger.Info("https server running...")
+		if err := srv.ServeTLS(httpsListener, "", ""); err != nil && err != http.ErrServerClosed {
+			logger.Fatal(err.Error())
+		}
+	}()
+
 	quit := make(chan os.Signal, 1)
 	// kill (no param) default send syscall.SIGTERM
 	// kill -2 is syscall.SIGINT
@@ -43,4 +64,21 @@ func main() {
 		logger.Fatalf("server forced to shutdown:%v", err)
 	}
 	logger.Info("server exit!")
+}
+
+// a channel (just for the fun of it)
+type Chan chan int
+
+func ChanCreate() Chan {
+	c := make(Chan)
+	go func(c Chan) {
+		for x := 0; ; x++ {
+			c <- x
+		}
+	}(c)
+	return c
+}
+
+func (ch Chan) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	io.WriteString(w, fmt.Sprintf("channel send #%d\n", <-ch))
 }
