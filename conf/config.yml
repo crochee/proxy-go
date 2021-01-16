@@ -1,0 +1,4 @@
+server:
+    port:
+        http: 8079
+        https: 8080

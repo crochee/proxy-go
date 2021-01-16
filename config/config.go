@@ -12,21 +12,16 @@ import (
 
 var Cfg *Config
 
-func InitConfig() {
-	// 环境变量获取
-	path, ok := os.LookupEnv("config")
-	if !ok {
-		path = "./conf/config.yml"
-	}
-	// 配置文件加载
-	configYaml, err := LoadYaml(path)
+// InitConfig init Config
+func InitConfig(path string) {
+	configYaml, err := loadYaml(path)
 	if err != nil {
 		panic(err)
 	}
 	Cfg = configYaml
 }
 
-func LoadYaml(path string) (*Config, error) {
+func loadYaml(path string) (*Config, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
