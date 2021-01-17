@@ -55,7 +55,7 @@ func (s *Server) Start() {
 				Handler:   s.handler,
 				TLSConfig: nil,
 			}
-			s.RLock()
+			s.Lock()
 			s.list = append(s.list, srv)
 			s.Unlock()
 			log := logger.FromContext(ctx)
@@ -73,7 +73,7 @@ func (s *Server) Start() {
 			default:
 				return
 			}
-			s.RLock()
+			s.Lock()
 			s.list = s.list[:len(s.list)-1]
 			s.Unlock()
 		})

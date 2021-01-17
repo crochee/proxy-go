@@ -50,12 +50,6 @@ func initContext() {
 	}
 	config.InitConfig(path)
 
-	// 日志初始化
-	logger.InitLogger(
-		logger.Enable(os.Getenv("enable-log") == "true"),
-		logger.Level(strings.ToUpper(os.Getenv("log-level"))),
-		logger.LogPath(os.Getenv("log-path")),
-	)
 }
 
 // a channel (just for the fun of it)
