@@ -77,8 +77,13 @@ func Director(request *http.Request) {
 			u = parsedURL
 		}
 	}
-	request.URL = u
-	request.RequestURI = u.RequestURI()
+	request.URL.Path = u.Path
+	request.URL.RawPath = u.RawPath
+	request.URL.RawQuery = u.RawQuery
+	request.RequestURI = "" // Outgoing request should not have RequestURI
+	request.Proto = "HTTP/1.1"
+	request.ProtoMajor = 1
+	request.ProtoMinor = 1
 
 	if _, ok := request.Header["User-Agent"]; !ok {
 		request.Header.Set("User-Agent", "")
