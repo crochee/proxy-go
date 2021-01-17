@@ -13,10 +13,18 @@ import (
 
 func TestInitConfig(t *testing.T) {
 	cf := &Config{
-		Server: Server{
-			Port: &Port{
-				Http:  8079,
-				Https: 8080,
+		Server: &Server{
+			Medata: []*Medata{
+				{
+					Name:   "server1",
+					Scheme: "http",
+					Port:   8079,
+				},
+				{
+					Name:   "server2",
+					Scheme: "https",
+					Port:   8080,
+				},
 			},
 		},
 	}

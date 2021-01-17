@@ -1,4 +1,8 @@
 server:
-    port:
-        http: 8079
-        https: 8080
+    medata:
+        - name: server1
+          scheme: http
+          port: 8079
+        - name: server2
+          scheme: https
+          port: 8080

@@ -5,14 +5,15 @@
 package config
 
 type Config struct {
-	Server Server `yaml:"server,omitempty"`
+	Server *Server `yaml:"server,omitempty"`
 }
 
 type Server struct {
-	Port *Port `yaml:"port,omitempty"`
+	Medata []*Medata `yaml:"medata,omitempty"`
 }
 
-type Port struct {
-	Http  int `yaml:"http,omitempty"`
-	Https int `yaml:"https,omitempty"`
+type Medata struct {
+	Name   string `yaml:"name,omitempty"`
+	Scheme string `yaml:"scheme,omitempty"`
+	Port   int    `yaml:"port,omitempty"`
 }
