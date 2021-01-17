@@ -7,6 +7,7 @@ package config
 import (
 	"os"
 	"testing"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
@@ -16,14 +17,20 @@ func TestInitConfig(t *testing.T) {
 		Server: &Server{
 			Medata: []*Medata{
 				{
-					Name:   "server1",
-					Scheme: "http",
-					Port:   8079,
+					GraceTimeOut: 10 * time.Second,
+					Name:         "server1",
+					Scheme:       "http",
+					Port:         8120,
 				},
 				{
-					Name:   "server2",
-					Scheme: "https",
-					Port:   8080,
+					GraceTimeOut: 10 * time.Second,
+					Name:         "server2",
+					Scheme:       "https",
+					Port:         8121,
+					Tls: &TlsConfig{
+						Cert: "./conf/cert.pem",
+						Key:  "./conf/key.pem",
+					},
 				},
 			},
 		},

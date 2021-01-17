@@ -23,9 +23,9 @@ func main() {
 	// 日志初始化
 	ctx := logger.With(
 		context.Background(),
-		logger.Enable(os.Getenv("enable-log") == "true"),
-		logger.Level(strings.ToUpper(os.Getenv("log-level"))),
-		logger.LogPath(os.Getenv("log-path")),
+		logger.Enable(os.Getenv("enable_log") == "true"),
+		logger.Level(strings.ToUpper(os.Getenv("log_level"))),
+		logger.LogPath(os.Getenv("log_path")),
 	)
 
 	ctx = ContextWithSignal(ctx)

@@ -6,6 +6,7 @@ package server
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"net/http"
@@ -20,11 +21,12 @@ import (
 type Server struct {
 	config   *config.Config
 	pool     *safe.Pool
-	list     []*http.Server
+	list     map[string]*http.Server
 	handler  http.Handler
 	stopChan chan struct{}
 	ctx      context.Context
-	sync.RWMutex
+	lock     sync.RWMutex
+	wg       sync.WaitGroup
 }
 
 // New returns an initialized Server.
@@ -32,7 +34,7 @@ func New(ctx context.Context, routinesPool *safe.Pool, cf *config.Config, handle
 	return &Server{
 		config:   cf,
 		pool:     routinesPool,
-		list:     make([]*http.Server, 0, len(cf.Server.Medata)),
+		list:     make(map[string]*http.Server, len(cf.Server.Medata)),
 		handler:  handler,
 		stopChan: make(chan struct{}, 1),
 		ctx:      ctx,
@@ -49,48 +51,36 @@ func (s *Server) Start() {
 		s.Stop()
 	}
 	for _, medata := range s.config.Server.Medata {
-		s.pool.GoCtx(func(ctx context.Context) {
-			srv := &http.Server{
-				Addr:      fmt.Sprintf(":%d", medata.Port),
-				Handler:   s.handler,
-				TLSConfig: nil,
-			}
-			s.Lock()
-			s.list = append(s.list, srv)
-			s.Unlock()
-			log := logger.FromContext(ctx)
-			switch medata.Scheme {
-			case "http":
-				log.Info("http server running...")
-				if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-					log.Error(err.Error())
-				}
-			case "https":
-				log.Info("https server running...")
-				if err := srv.ListenAndServeTLS("", ""); err != nil && err != http.ErrServerClosed {
-					log.Error(err.Error())
-				}
-			default:
-				return
-			}
-			s.Lock()
-			s.list = s.list[:len(s.list)-1]
-			s.Unlock()
-		})
+		s.wg.Add(1)
+		go func(m *config.Medata) {
+			s.listen(m)
+			s.wg.Done()
+		}(medata)
 	}
 }
 
 // Wait blocks until the server shutdown.
 func (s *Server) Wait() {
+	s.wg.Wait()
 	<-s.stopChan
 }
 
 // Stop stops the server.
 func (s *Server) Stop() {
-	for _, srv := range s.list {
-		s.pool.GoCtx(func(ctx context.Context) {
-			Shutdown(ctx, srv)
-		})
+	for name, srv := range s.list {
+		s.wg.Add(1)
+		var graceTimeOut time.Duration
+		for _, medata := range s.config.Server.Medata {
+			if medata.Name == name {
+				graceTimeOut = medata.GraceTimeOut
+			}
+		}
+		ctx, cancel := context.WithTimeout(s.ctx, graceTimeOut)
+		go func(ctx context.Context, server *http.Server) {
+			Shutdown(ctx, server)
+			s.wg.Done()
+		}(ctx, srv)
+		cancel()
 	}
 	s.stopChan <- struct{}{}
 	logger.FromContext(s.ctx).Info("server stopped")
@@ -132,4 +122,54 @@ func Shutdown(ctx context.Context, server *http.Server) {
 	// We expect Close to fail again because Shutdown most likely failed when trying to close a listener.
 	// We still call it however, to make sure that all connections get closed as well.
 	_ = server.Close()
+}
+
+func (s *Server) listen(m *config.Medata) {
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%d", m.Port),
+		Handler: s.handler,
+	}
+	s.lock.Lock()
+	s.list[m.Name] = srv
+	s.lock.Unlock()
+	log := logger.FromContext(s.ctx)
+	switch m.Scheme {
+	case "http":
+		log.Infof("http server medata:%+v running...", m)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Error(err.Error())
+		}
+	case "https":
+		log.Infof("https server medata:%+v running...", m)
+		srv.TLSConfig = &tls.Config{
+			Certificates:       make([]tls.Certificate, 1),
+			ServerName:         m.Name,
+			InsecureSkipVerify: true,
+		}
+		if m.Tls != nil {
+			certPEMBlock, err := m.Tls.Cert.Read()
+			if err != nil {
+				logger.Error(err.Error())
+				break
+			}
+			keyPEMBlock, err := m.Tls.Key.Read()
+			if err != nil {
+				logger.Error(err.Error())
+				break
+			}
+			certificate, err := tls.X509KeyPair(certPEMBlock, keyPEMBlock)
+			if err != nil {
+				log.Error(err.Error())
+				break
+			}
+			srv.TLSConfig.Certificates = append(srv.TLSConfig.Certificates, certificate)
+		}
+		if err := srv.ListenAndServeTLS("", ""); err != nil && err != http.ErrServerClosed {
+			log.Error(err.Error())
+		}
+	default:
+	}
+	s.lock.Lock()
+	delete(s.list, m.Name)
+	s.lock.Unlock()
 }

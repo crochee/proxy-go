@@ -2,7 +2,12 @@ server:
     medata:
         - name: server1
           scheme: http
-          port: 8079
+          port: 8120
+          grace_time_out: 10s
         - name: server2
           scheme: https
-          port: 8080
+          port: 8121
+          tls:
+            cert: ./conf/cert.pem
+            key: ./conf/key.pem
+          grace_time_out: 10s
