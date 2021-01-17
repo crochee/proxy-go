@@ -11,3 +11,7 @@ server:
             cert: ./conf/cert.pem
             key: ./conf/key.pem
           grace_time_out: 10s
+middleware:
+    replaceHost:
+        scheme: http
+        host: 127.0.0.1:8150

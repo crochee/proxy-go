@@ -6,6 +6,7 @@ package config
 
 import (
 	"os"
+	"proxy-go/config/dynamic"
 	"testing"
 	"time"
 
@@ -32,6 +33,12 @@ func TestInitConfig(t *testing.T) {
 						Key:  "./conf/key.pem",
 					},
 				},
+			},
+		},
+		Middleware: &dynamic.Middleware{
+			ReplaceHost: &dynamic.ReplaceHost{
+				Scheme: "http",
+				Host:   "127.0.0.1:8150",
 			},
 		},
 	}

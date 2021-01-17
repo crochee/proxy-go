@@ -7,11 +7,13 @@ package config
 import (
 	"time"
 
+	"proxy-go/config/dynamic"
 	"proxy-go/ptls"
 )
 
 type Config struct {
-	Server *Server `yaml:"server,omitempty"`
+	Server     *Server             `yaml:"server,omitempty"`
+	Middleware *dynamic.Middleware `yaml:"middleware,omitempty"`
 }
 
 type Server struct {

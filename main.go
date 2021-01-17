@@ -14,6 +14,7 @@ import (
 
 	"proxy-go/config"
 	"proxy-go/logger"
+	"proxy-go/router"
 	"proxy-go/safe"
 	"proxy-go/server"
 )
@@ -31,8 +32,10 @@ func main() {
 	ctx = ContextWithSignal(ctx)
 	pool := safe.NewPool(ctx)
 
-	var handler http.Handler = ChanCreate()
-
+	handler, err := router.Route(ctx)
+	if err != nil {
+		logger.FromContext(ctx).Fatalf("build route failed.Error:%v", err)
+	}
 	srv := server.New(ctx, pool, config.Cfg, handler)
 
 	srv.Start()
