@@ -149,30 +149,34 @@ func (s *Server) listen(m *config.Medata) {
 			log.Error(err.Error())
 		}
 	case "https":
-		log.Infof("https server medata:%+v running...", m)
+		if m.Tls == nil {
+			log.Error("https haven't tls")
+			break
+		}
+
+		certPEMBlock, err := m.Tls.Cert.Read()
+		if err != nil {
+			logger.Error(err.Error())
+			break
+		}
+		keyPEMBlock, err := m.Tls.Key.Read()
+		if err != nil {
+			logger.Error(err.Error())
+			break
+		}
+		certificate, err := tls.X509KeyPair(certPEMBlock, keyPEMBlock)
+		if err != nil {
+			log.Error(err.Error())
+			break
+		}
+
 		srv.TLSConfig = &tls.Config{
-			Certificates:       make([]tls.Certificate, 1),
+			Certificates:       []tls.Certificate{certificate},
 			ServerName:         m.Name,
 			InsecureSkipVerify: true,
 		}
-		if m.Tls != nil {
-			certPEMBlock, err := m.Tls.Cert.Read()
-			if err != nil {
-				logger.Error(err.Error())
-				break
-			}
-			keyPEMBlock, err := m.Tls.Key.Read()
-			if err != nil {
-				logger.Error(err.Error())
-				break
-			}
-			certificate, err := tls.X509KeyPair(certPEMBlock, keyPEMBlock)
-			if err != nil {
-				log.Error(err.Error())
-				break
-			}
-			srv.TLSConfig.Certificates = append(srv.TLSConfig.Certificates, certificate)
-		}
+
+		log.Infof("https server medata:%+v running...", m)
 		if err := srv.ListenAndServeTLS("", ""); err != nil && err != http.ErrServerClosed {
 			log.Error(err.Error())
 		}

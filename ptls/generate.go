@@ -35,8 +35,7 @@ func DefaultCertificate() (*tls.Certificate, error) {
 }
 
 func GenerateSelfSignedCertKey(host string, alternateIPs []net.IP, alternateDNS []string) ([]byte, []byte, error) {
-	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
-	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
+	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -70,17 +69,14 @@ func GenerateSelfSignedCertKey(host string, alternateIPs []net.IP, alternateDNS 
 	template.DNSNames = append(template.DNSNames, alternateDNS...)
 
 	var derBytes []byte
-	if derBytes, err = x509.CreateCertificate(rand.Reader,
-		&template,
-		&template,
-		&privateKey.PublicKey,
-		privateKey); err != nil {
+	if derBytes, err = x509.CreateCertificate(rand.Reader, &template, &template,
+		&privateKey.PublicKey, privateKey); err != nil {
 		return nil, nil, err
 	}
 
 	// Generate cert
 	var certBuffer bytes.Buffer
-	if err := pem.Encode(&certBuffer, &pem.Block{
+	if err = pem.Encode(&certBuffer, &pem.Block{
 		Type:  "CERTIFICATE",
 		Bytes: derBytes,
 	}); err != nil {
@@ -89,7 +85,7 @@ func GenerateSelfSignedCertKey(host string, alternateIPs []net.IP, alternateDNS 
 
 	// Generate key
 	var keyBuffer bytes.Buffer
-	if err := pem.Encode(&keyBuffer, &pem.Block{
+	if err = pem.Encode(&keyBuffer, &pem.Block{
 		Type:  "RSA PRIVATE KEY",
 		Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
 	}); err != nil {

@@ -57,9 +57,9 @@ func (l LogPath) Apply(log *Logger) {
 
 type Enable bool
 
-func (e Enable) Apply(l *Logger) {
+func (e Enable) Apply(log *Logger) {
 	if !e {
-		l = nil
+		log = (*Logger)(nil)
 	}
 }
 
@@ -77,9 +77,9 @@ func FromContext(ctx context.Context) *Logger {
 		return nil
 	}
 
-	logger, ok := ctx.Value(loggerKey{}).(*Logger)
+	l, ok := ctx.Value(loggerKey{}).(*Logger)
 	if !ok {
 		return nil
 	}
-	return logger
+	return l
 }
