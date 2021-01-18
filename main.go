@@ -6,9 +6,6 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"strings"
 
@@ -29,7 +26,7 @@ func main() {
 		logger.LogPath(os.Getenv("log_path")),
 	)
 
-	ctx = ContextWithSignal(ctx)
+	ctx = server.ContextWithSignal(ctx)
 	pool := safe.NewPool(ctx)
 
 	handler, err := router.Route(ctx)
@@ -42,7 +39,7 @@ func main() {
 	defer srv.Close()
 
 	srv.Wait()
-	logger.FromContext(ctx).Info("Shutting down")
+	logger.FromContext(ctx).Info("shutting down")
 }
 
 func initContext() {
@@ -52,22 +49,4 @@ func initContext() {
 		path = "./conf/config.yml"
 	}
 	config.InitConfig(path)
-
-}
-
-// a channel (just for the fun of it)
-type Chan chan int
-
-func ChanCreate() Chan {
-	c := make(Chan)
-	go func(c Chan) {
-		for x := 0; ; x++ {
-			c <- x
-		}
-	}(c)
-	return c
-}
-
-func (ch Chan) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	io.WriteString(w, fmt.Sprintf("channel send #%d\n", <-ch))
 }
