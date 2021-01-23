@@ -1,17 +1,11 @@
 server:
     medata:
-        - name: server1
+        - server_name: proxy
           scheme: http
           port: 8120
-          grace_time_out: 10s
-        - name: server2
-          scheme: https
-          port: 8121
-          tls:
-            cert: ./conf/cert.pem
-            key: ./conf/key.pem
-          grace_time_out: 10s
-middleware:
-    replaceHost:
-        scheme: http
-        host: 127.0.0.1:8150
+          grace_time_out: 15s
+          mode: Random
+          path: /obs/
+          location_list:
+            - proxy_pass: http://127.0.0.1:8150/v1/
+              weight: 1

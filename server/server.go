@@ -9,7 +9,9 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
+	"proxy-go/config/dynamic"
 	"sync"
 	"time"
 
@@ -52,7 +54,7 @@ func (s *Server) Start() {
 	}
 	for _, medata := range s.config.Server.Medata {
 		s.wg.Add(1)
-		go func(m *config.Medata) {
+		go func(m *dynamic.Medata) {
 			s.listen(m)
 			s.wg.Done()
 		}(medata)
@@ -133,56 +135,57 @@ func Shutdown(ctx context.Context, server *http.Server) {
 	_ = server.Close()
 }
 
-func (s *Server) listen(m *config.Medata) {
-	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", m.Port),
-		Handler: s.handler,
-	}
-	s.lock.Lock()
-	s.list[m.Name] = srv
-	s.lock.Unlock()
+func (s *Server) listen(m *dynamic.Medata) {
 	log := logger.FromContext(s.ctx)
+	addr := fmt.Sprintf(":%d", m.Port)
+	ln, err := net.Listen("tcp", addr)
+	if err != nil {
+		log.Error(err.Error())
+		return
+	}
+	srv := &http.Server{Handler: s.handler}
 	switch m.Scheme {
 	case "http":
 		log.Infof("http server medata:%+v running...", m)
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Error(err.Error())
-		}
 	case "https":
 		if m.Tls == nil {
 			log.Error("https haven't tls")
-			break
+			return
 		}
-
 		certPEMBlock, err := m.Tls.Cert.Read()
 		if err != nil {
 			logger.Error(err.Error())
-			break
+			return
 		}
 		keyPEMBlock, err := m.Tls.Key.Read()
 		if err != nil {
 			logger.Error(err.Error())
-			break
+			return
 		}
 		certificate, err := tls.X509KeyPair(certPEMBlock, keyPEMBlock)
 		if err != nil {
 			log.Error(err.Error())
-			break
+			return
 		}
 
-		srv.TLSConfig = &tls.Config{
+		ln = tls.NewListener(ln, &tls.Config{
 			Certificates:       []tls.Certificate{certificate},
 			ServerName:         m.Name,
 			InsecureSkipVerify: true,
-		}
-
+		})
 		log.Infof("https server medata:%+v running...", m)
-		if err := srv.ListenAndServeTLS("", ""); err != nil && err != http.ErrServerClosed {
-			log.Error(err.Error())
-		}
 	default:
 	}
-	s.lock.Lock()
-	delete(s.list, m.Name)
-	s.lock.Unlock()
+	go func() {
+		s.lock.Lock()
+		s.list[m.Name] = srv
+		s.lock.Unlock()
+		if err := srv.Serve(ln); err != nil {
+			log.Error(err.Error())
+		}
+		s.lock.Lock()
+		delete(s.list, m.Name)
+		s.lock.Unlock()
+	}()
+
 }

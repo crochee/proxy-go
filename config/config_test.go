@@ -5,50 +5,37 @@
 package config
 
 import (
-	"os"
-	"proxy-go/config/dynamic"
 	"testing"
 	"time"
 
-	"gopkg.in/yaml.v3"
+	"proxy-go/config/dynamic"
 )
 
 func TestInitConfig(t *testing.T) {
 	cf := &Config{
 		Server: &Server{
-			Medata: []*Medata{
+			Medata: []*dynamic.Medata{
 				{
-					GraceTimeOut: 10 * time.Second,
-					Name:         "server1",
+					Name:         "proxy",
 					Scheme:       "http",
 					Port:         8120,
-				},
-				{
-					GraceTimeOut: 10 * time.Second,
-					Name:         "server2",
-					Scheme:       "https",
-					Port:         8121,
-					Tls: &TlsConfig{
-						Cert: "./conf/cert.pem",
-						Key:  "./conf/key.pem",
+					Tls:          nil,
+					GraceTimeOut: 15 * time.Second,
+					Mode:         "Random",
+					Path:         "/obs/",
+					LocationList: []*dynamic.Location{
+						{
+							ProxyPass: "http://127.0.0.1:8150/v1/",
+							Weight:    1,
+						},
 					},
+					Middleware: nil,
 				},
 			},
 		},
-		Middleware: &dynamic.Middleware{
-			ReplaceHost: &dynamic.ReplaceHost{
-				Scheme: "http",
-				Host:   "127.0.0.1:8150",
-			},
-		},
 	}
-
-	file, err := os.Create("../conf/config.yml")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer file.Close()
-	if err = yaml.NewEncoder(file).Encode(cf); err != nil {
-		t.Fatal(err)
+	y := Json{path: "../conf/config.json"}
+	if err := y.Encode(cf); err != nil {
+		t.Error(err)
 	}
 }

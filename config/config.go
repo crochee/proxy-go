@@ -5,31 +5,48 @@
 package config
 
 import (
-	"os"
+	"fmt"
+	"strings"
 
-	"gopkg.in/yaml.v3"
+	"path/filepath"
+
+	"proxy-go/config/dynamic"
 )
+
+type Config struct {
+	Server *Server `json:"server,omitempty" yaml:"server,omitempty"`
+}
+
+type Server struct {
+	Medata []*dynamic.Medata `json:"medata,omitempty" yaml:"medata,omitempty"`
+}
 
 var Cfg *Config
 
 // InitConfig init Config
 func InitConfig(path string) {
-	configYaml, err := loadYaml(path)
+	config, err := loadConfig(path)
 	if err != nil {
 		panic(err)
 	}
-	Cfg = configYaml
+	Cfg = config
 }
 
-func loadYaml(path string) (*Config, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
+type LoadConfig interface {
+	Decode() (*Config, error)
+	Encode(*Config) error
+}
+
+func loadConfig(path string) (*Config, error) {
+	var lc LoadConfig
+	ext := filepath.Ext(path)
+	switch strings.ToLower(ext) {
+	case ".json":
+		lc = Json{path: path}
+	case ".yml", ".yaml":
+		lc = Yml{path: path}
+	default:
+		return nil, fmt.Errorf("unsupport config extension %s", ext)
 	}
-	defer file.Close()
-	var config Config
-	if err = yaml.NewDecoder(file).Decode(&config); err != nil {
-		return nil, err
-	}
-	return &config, nil
+	return lc.Decode()
 }

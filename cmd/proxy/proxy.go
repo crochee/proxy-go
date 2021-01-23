@@ -91,7 +91,7 @@ func setup(ctx context.Context) error {
 	ctx = server.ContextWithSignal(ctx)
 	pool := safe.NewPool(ctx)
 
-	handler, err := router.Route(ctx)
+	handler, err := router.Route(ctx, config.Cfg)
 	if err != nil {
 		logger.FromContext(ctx).Fatalf("build route failed.Error:%v", err)
 		return err

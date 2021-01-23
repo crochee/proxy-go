@@ -3,8 +3,7 @@ module proxy-go
 go 1.15
 
 require (
-	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
-	github.com/russross/blackfriday/v2 v2.1.0 // indirect
+	github.com/json-iterator/go v1.1.10
 	github.com/urfave/cli/v2 v2.3.0
 	go.uber.org/zap v1.16.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0

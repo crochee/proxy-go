@@ -12,14 +12,10 @@ import (
 	"proxy-go/middlewares"
 )
 
-func Route(ctx context.Context) (http.Handler, error) {
-	proxy, err := middlewares.BuildProxy(0)
+func Route(ctx context.Context, cfg *config.Config) (http.Handler, error) {
+	proxy, err := middlewares.BuildProxy(0, *cfg.Server.Medata[0])
 	if err != nil {
 		return nil, err
 	}
-	var rh http.Handler
-	if rh, err = middlewares.NewReplaceHost(ctx, proxy, *config.Cfg.Middleware.ReplaceHost); err != nil {
-		return nil, err
-	}
-	return middlewares.NewRecovery(ctx, rh)
+	return middlewares.NewRecovery(ctx, proxy)
 }

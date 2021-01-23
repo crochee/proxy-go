@@ -5,10 +5,9 @@
 package dynamic
 
 type Middleware struct {
-	ReplaceHost *ReplaceHost `yaml:"replaceHost,omitempty"`
+	Prefix *prefix `json:"prefix,omitempty" yaml:"prefix,omitempty"`
 }
 
-type ReplaceHost struct {
-	Scheme string `yaml:"scheme,omitempty"`
-	Host   string `yaml:"host,omitempty"`
+type prefix struct {
+	Path []string `json:"path,omitempty" yaml:"path,omitempty"`
 }
