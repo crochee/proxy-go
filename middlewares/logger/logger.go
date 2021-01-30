@@ -29,14 +29,16 @@ func (l *loggerHandler) ServeHTTP(writer http.ResponseWriter, request *http.Requ
 	start := time.Now().Local()
 	path := request.URL.Path
 	raw := request.URL.RawQuery
-	scheme := "http"
+	scheme := "HTTP"
 	proto := request.Proto
 	if request.TLS != nil {
-		scheme = "https"
+		scheme = "HTTPS"
 	}
 	if raw != "" {
 		path = path + "?" + raw
 	}
+	clientIp := clientIp(request)
+
 	crw := newCaptureResponseWriter(writer)
 
 	l.next.ServeHTTP(crw, request)
@@ -54,7 +56,7 @@ func (l *loggerHandler) ServeHTTP(writer http.ResponseWriter, request *http.Requ
 		latency,
 		scheme,
 		proto,
-		clientIp(request),
+		clientIp,
 		request.Method,
 		crw.Size(),
 		path,
