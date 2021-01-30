@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"proxy-go/config/dynamic"
 	"sync"
 	"time"
 
@@ -31,8 +30,8 @@ type Server struct {
 	wg       sync.WaitGroup
 }
 
-// New returns an initialized Server.
-func New(ctx context.Context, routinesPool *safe.Pool, cf *config.Config, handler http.Handler) *Server {
+// NewServer returns an initialized Server.
+func NewServer(ctx context.Context, routinesPool *safe.Pool, cf *config.Config, handler http.Handler) *Server {
 	return &Server{
 		config:   cf,
 		pool:     routinesPool,
@@ -43,6 +42,7 @@ func New(ctx context.Context, routinesPool *safe.Pool, cf *config.Config, handle
 	}
 }
 
+// Start Starts the server.
 func (s *Server) Start() {
 	go func() {
 		<-s.ctx.Done()
@@ -54,7 +54,7 @@ func (s *Server) Start() {
 	}
 	for _, medata := range s.config.Server.Medata {
 		s.wg.Add(1)
-		go func(m *dynamic.Medata) {
+		go func(m *config.Medata) {
 			s.listen(m)
 			s.wg.Done()
 		}(medata)
@@ -77,18 +77,13 @@ func (s *Server) Stop() {
 				graceTimeOut = medata.GraceTimeOut
 			}
 		}
-		var (
-			ctx    context.Context
-			cancel context.CancelFunc
-		)
+		ctx, cancel := context.WithCancel(s.ctx)
 		if graceTimeOut > 0 {
-			ctx, cancel = context.WithCancel(s.ctx)
-		} else {
-			ctx, cancel = context.WithTimeout(s.ctx, graceTimeOut)
+			ctx, cancel = context.WithTimeout(ctx, graceTimeOut)
 		}
 
 		go func(ctx context.Context, server *http.Server) {
-			Shutdown(ctx, server)
+			shutdown(ctx, server)
 			s.wg.Done()
 		}(ctx, srv)
 		cancel()
@@ -117,25 +112,7 @@ func (s *Server) Close() {
 	cancel()
 }
 
-func Shutdown(ctx context.Context, server *http.Server) {
-	err := server.Shutdown(ctx)
-	if err == nil {
-		return
-	}
-	if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-		logger.FromContext(ctx).Debugf("server failed to shutdown within deadline because: %s", err)
-		if err = server.Close(); err != nil {
-			logger.Error(err.Error())
-		}
-		return
-	}
-	logger.FromContext(ctx).Error(err.Error())
-	// We expect Close to fail again because Shutdown most likely failed when trying to close a listener.
-	// We still call it however, to make sure that all connections get closed as well.
-	_ = server.Close()
-}
-
-func (s *Server) listen(m *dynamic.Medata) {
+func (s *Server) listen(m *config.Medata) {
 	log := logger.FromContext(s.ctx)
 	addr := fmt.Sprintf(":%d", m.Port)
 	ln, err := net.Listen("tcp", addr)
@@ -187,5 +164,22 @@ func (s *Server) listen(m *dynamic.Medata) {
 		delete(s.list, m.Name)
 		s.lock.Unlock()
 	}()
+}
 
+func shutdown(ctx context.Context, server *http.Server) {
+	err := server.Shutdown(ctx)
+	if err == nil {
+		return
+	}
+	if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+		logger.FromContext(ctx).Debugf("server failed to shutdown within deadline because: %s", err)
+		if err = server.Close(); err != nil {
+			logger.Error(err.Error())
+		}
+		return
+	}
+	logger.FromContext(ctx).Error(err.Error())
+	// We expect Close to fail again because Shutdown most likely failed when trying to close a listener.
+	// We still call it however, to make sure that all connections get closed as well.
+	_ = server.Close()
 }

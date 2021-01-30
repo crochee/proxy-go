@@ -96,7 +96,7 @@ func setup(ctx context.Context) error {
 		logger.FromContext(ctx).Fatalf("build route failed.Error:%v", err)
 		return err
 	}
-	srv := server.New(ctx, pool, config.Cfg, handler)
+	srv := server.NewServer(ctx, pool, config.Cfg, handler)
 
 	srv.Start()
 	defer srv.Close()

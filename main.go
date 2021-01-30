@@ -33,7 +33,7 @@ func main() {
 	if err != nil {
 		logger.FromContext(ctx).Fatalf("build route failed.Error:%v", err)
 	}
-	srv := server.New(ctx, pool, config.Cfg, handler)
+	srv := server.NewServer(ctx, pool, config.Cfg, handler)
 
 	srv.Start()
 	defer srv.Close()

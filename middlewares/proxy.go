@@ -13,12 +13,11 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"os"
 	"strings"
 	"sync"
 	"time"
 
-	"proxy-go/config/dynamic"
+	"proxy-go/config"
 	"proxy-go/logger"
 )
 
@@ -49,47 +48,14 @@ const StatusClientClosedRequest = 499
 // StatusClientClosedRequestText non-standard HTTP status for client disconnection.
 const StatusClientClosedRequestText = "Client Closed Request"
 
-func BuildProxy(flushInterval time.Duration, medata dynamic.Medata) (http.Handler, error) {
-	var (
-		item = rand.Int()
-		mtx  sync.Mutex
-		err  error
-	)
-	if hostName, err = os.Hostname(); err != nil {
-		hostName = "localhost"
-	}
+func BuildProxy(flushInterval time.Duration, medata config.Medata) (http.Handler, error) {
 	return &httputil.ReverseProxy{
 		Director: func(request *http.Request) {
-			rewrite(request)
 			u := request.URL
 			if request.RequestURI != "" {
 				parsedURL, err := url.ParseRequestURI(request.RequestURI)
 				if err == nil {
 					u = parsedURL
-				}
-			}
-			if strings.HasPrefix(u.Path, medata.Path) {
-				var pass string
-				switch medata.Mode {
-				case "random": // 随机
-					pass = medata.LocationList[rand.Int()%len(medata.LocationList)].ProxyPass
-				case "round_robin": // 轮询
-					mtx.Lock()
-					pass = medata.LocationList[item%len(medata.LocationList)].ProxyPass
-					item++
-					mtx.Unlock()
-				default:
-				}
-				if pass != "" {
-					parsedURL, err := url.ParseRequestURI(pass)
-					if err == nil {
-						request.URL.Scheme = parsedURL.Scheme
-						request.URL.Opaque = parsedURL.Opaque
-						request.URL.User = parsedURL.User
-						request.URL.Host = parsedURL.Host
-
-						u.Path = parsedURL.Path
-					}
 				}
 			}
 

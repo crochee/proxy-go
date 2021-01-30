@@ -9,8 +9,6 @@ import (
 	"strings"
 
 	"path/filepath"
-
-	"proxy-go/config/dynamic"
 )
 
 type Config struct {
@@ -18,7 +16,7 @@ type Config struct {
 }
 
 type Server struct {
-	Medata []*dynamic.Medata `json:"medata,omitempty" yaml:"medata,omitempty"`
+	Medata []*Medata `json:"medata,omitempty" yaml:"medata,omitempty"`
 }
 
 var Cfg *Config
