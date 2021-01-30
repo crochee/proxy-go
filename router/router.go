@@ -9,12 +9,12 @@ import (
 	"net/http"
 	"strings"
 
-	"proxy-go/config"
 	"proxy-go/middlewares"
+	"proxy-go/service"
 )
 
-func Route(ctx context.Context, cfg *config.Config) (http.Handler, error) {
-	proxy, err := middlewares.BuildProxy(0, *cfg.Server.Medata[0])
+func Route(ctx context.Context) (http.Handler, error) {
+	proxy, err := service.NewProxyBuilder(0)
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +25,7 @@ func Route(ctx context.Context, cfg *config.Config) (http.Handler, error) {
 
 	return &MixHandler{
 		Proxy: proxyHandler,
-		Gin:   GinRun(),
+		Gin:   NewGinEngine(),
 	}, nil
 }
 
@@ -38,8 +38,24 @@ type MixHandler struct {
 
 func (m *MixHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	if strings.HasPrefix(request.URL.Path, ProxyPrefix) {
+		request.URL.Path = ensureLeadingSlash(strings.TrimPrefix(request.URL.Path, ProxyPrefix))
+		if request.URL.RawPath != "" {
+			request.URL.RawPath = ensureLeadingSlash(strings.TrimPrefix(request.URL.RawPath, ProxyPrefix))
+		}
 		m.Proxy.ServeHTTP(writer, request)
 		return
 	}
 	m.Proxy.ServeHTTP(writer, request)
+}
+
+func ensureLeadingSlash(str string) string {
+	if str == "" {
+		return str
+	}
+
+	if str[0] == '/' {
+		return str
+	}
+
+	return "/" + str
 }

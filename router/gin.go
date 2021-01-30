@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"proxy-go/api/middleware"
 )
 
 // @title obs Swagger API
@@ -23,9 +24,10 @@ import (
 // @in header
 // @name sk
 
-// GinRun gin router
-func GinRun() *gin.Engine {
+// NewGinEngine gin router
+func NewGinEngine() *gin.Engine {
 	router := gin.New()
+	router.Use(middleware.Recovery)
 
 	if gin.Mode() != gin.ReleaseMode {
 		// swagger
