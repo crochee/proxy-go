@@ -7,7 +7,6 @@ package router
 import (
 	"context"
 	"net/http"
-	"proxy-go/middlewares/replacehost"
 	"strings"
 	"time"
 
@@ -15,6 +14,7 @@ import (
 	"proxy-go/middlewares/logger"
 	"proxy-go/middlewares/ratelimit"
 	"proxy-go/middlewares/recovery"
+	"proxy-go/middlewares/replacehost"
 	"proxy-go/service"
 	"proxy-go/util"
 )
