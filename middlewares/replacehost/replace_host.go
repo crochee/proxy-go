@@ -31,21 +31,6 @@ const (
 	upgrade                     = "Upgrade"
 )
 
-var xHeaders = []string{
-	xForwardedProto,
-	xForwardedFor,
-	xForwardedHost,
-	xForwardedPort,
-	xForwardedServer,
-	xForwardedURI,
-	xForwardedMethod,
-	xForwardedTLSClientCert,
-	xForwardedTLSClientCertInfo,
-	xRealIP,
-}
-
-const ReplacedHostHeader = "X-Replaced-Host"
-
 // replaceHost is a middleware used to replace host to an URL request.
 type replaceHost struct {
 	next     http.Handler
@@ -113,21 +98,22 @@ func (r *replaceHost) rewrite(request *http.Request) {
 		}
 	}
 
-	xfProto := request.Header.Get(xForwardedProto)
-	if xfProto == "" {
+	if request.Header.Get(xForwardedProto) == "" {
+		var proto string
 		if isWebsocketRequest(request) {
 			if request.TLS != nil {
-				request.Header.Set(xForwardedProto, "wss")
+				proto = "wss"
 			} else {
-				request.Header.Set(xForwardedProto, "ws")
+				proto = "ws"
 			}
 		} else {
 			if request.TLS != nil {
-				request.Header.Set(xForwardedProto, "https")
+				proto = "https"
 			} else {
-				request.Header.Set(xForwardedProto, "http")
+				proto = "http"
 			}
 		}
+		request.Header.Set(xForwardedProto, proto)
 	}
 
 	if xfPort := request.Header.Get(xForwardedPort); xfPort == "" {
@@ -138,9 +124,7 @@ func (r *replaceHost) rewrite(request *http.Request) {
 		request.Header.Set(xForwardedHost, request.Host)
 	}
 
-	if r.hostName != "" {
-		request.Header.Set(xForwardedServer, r.hostName)
-	}
+	request.Header.Set(xForwardedServer, r.hostName)
 }
 
 // removeIPv6Zone removes the zone if the given IP is an ipv6 address and it has {zone} information in it,
