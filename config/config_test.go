@@ -14,10 +14,20 @@ func TestInitConfig(t *testing.T) {
 		Server: &Server{
 			Medata: []*Medata{
 				{
-					Name:         "proxy",
+					Name:         "proxy1",
 					Scheme:       "http",
 					Port:         8120,
 					Tls:          nil,
+					GraceTimeOut: 15 * time.Second,
+				},
+				{
+					Name:   "proxy2",
+					Scheme: "https",
+					Port:   8121,
+					Tls: &TlsConfig{
+						Cert: "./conf/cert.pem",
+						Key:  "./conf/key.pem",
+					},
 					GraceTimeOut: 15 * time.Second,
 				},
 			},

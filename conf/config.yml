@@ -1,6 +1,13 @@
 server:
     medata:
-        - name: proxy
+        - name: proxy1
           scheme: http
           port: 8120
+          grace_time_out: 15s
+        - name: proxy2
+          scheme: https
+          port: 8121
+          tls:
+            cert: ./conf/cert.pem
+            key: ./conf/key.pem
           grace_time_out: 15s

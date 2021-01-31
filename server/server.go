@@ -146,9 +146,7 @@ func (s *Server) listen(m *config.Medata) {
 		}
 
 		ln = tls.NewListener(ln, &tls.Config{
-			Certificates:       []tls.Certificate{certificate},
-			ServerName:         m.Name,
-			InsecureSkipVerify: true,
+			Certificates: []tls.Certificate{certificate},
 		})
 		log.Infof("https server medata:%+v running...", m)
 	default:

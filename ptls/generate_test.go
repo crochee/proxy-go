@@ -18,7 +18,7 @@ func TestGenerateSelfSignedCertKey(t *testing.T) {
 	//zBytes := sha256.Sum256(randomBytes)
 	//z := hex.EncodeToString(zBytes[:sha256.Size])
 	//domain := fmt.Sprintf("%s.%s.proxy.default", z[:32], z[32:])
-	domain := "localhost"
+	//domain := "localhost"
 	host := "192.168.31.62"
 	cert, key, err := GenerateSelfSignedCertKey(
 		host,
@@ -26,7 +26,7 @@ func TestGenerateSelfSignedCertKey(t *testing.T) {
 			net.ParseIP(host),
 		},
 		[]string{
-			domain,
+			//	domain,
 		})
 	if err != nil {
 		t.Error(err)
