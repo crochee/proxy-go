@@ -7,6 +7,7 @@ package router
 import (
 	"context"
 	"net/http"
+	"proxy-go/middlewares/replacehost"
 	"strings"
 	"time"
 
@@ -15,11 +16,28 @@ import (
 	"proxy-go/middlewares/ratelimit"
 	"proxy-go/middlewares/recovery"
 	"proxy-go/service"
+	"proxy-go/util"
 )
 
 func Route(ctx context.Context) (http.Handler, error) {
 	proxy := service.NewProxyBuilder(ctx)
 
+	proxy = replacehost.New(ctx, proxy, []*dynamic.ReplaceHost{
+		{
+			Name: "obs",
+			Host: &dynamic.Host{
+				Scheme: "http",
+				Host:   "localhost:8150",
+			},
+		},
+		{
+			Name: "console",
+			Host: &dynamic.Host{
+				Scheme: "http",
+				Host:   "localhost:8088",
+			},
+		},
+	})
 	// 中间件组合
 	var (
 		handler http.Handler
@@ -52,24 +70,14 @@ type MixHandler struct {
 
 func (m *MixHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	if strings.HasPrefix(request.URL.Path, ProxyPrefix) {
-		request.URL.Path = ensureLeadingSlash(strings.TrimPrefix(request.URL.Path, ProxyPrefix))
+		request.URL.Path = util.EnsureLeadingSlash(strings.TrimPrefix(request.URL.Path, ProxyPrefix))
 		if request.URL.RawPath != "" {
-			request.URL.RawPath = ensureLeadingSlash(strings.TrimPrefix(request.URL.RawPath, ProxyPrefix))
+			request.URL.RawPath = util.EnsureLeadingSlash(strings.TrimPrefix(request.URL.RawPath, ProxyPrefix))
 		}
+		request.RequestURI = request.URL.RequestURI()
+
 		m.Proxy.ServeHTTP(writer, request)
 		return
 	}
 	m.Proxy.ServeHTTP(writer, request)
-}
-
-func ensureLeadingSlash(str string) string {
-	if str == "" {
-		return str
-	}
-
-	if str[0] == '/' {
-		return str
-	}
-
-	return "/" + str
 }
