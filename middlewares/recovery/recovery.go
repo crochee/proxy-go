@@ -2,7 +2,7 @@
 // Author: crochee
 // Date: 2021/1/17
 
-package middlewares
+package recovery
 
 import (
 	"context"
@@ -17,8 +17,8 @@ type recovery struct {
 	ctx  context.Context
 }
 
-// NewRecovery creates recovery middleware
-func NewRecovery(ctx context.Context, next http.Handler) (http.Handler, error) {
+// New creates recovery middleware
+func New(ctx context.Context, next http.Handler) (http.Handler, error) {
 	return &recovery{
 		next: next,
 		ctx:  ctx,

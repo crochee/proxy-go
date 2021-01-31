@@ -9,7 +9,8 @@ import (
 	"net/http"
 	"strings"
 
-	"proxy-go/middlewares"
+	"proxy-go/middlewares/logger"
+	"proxy-go/middlewares/recovery"
 	"proxy-go/service"
 )
 
@@ -18,15 +19,19 @@ func Route(ctx context.Context) (http.Handler, error) {
 	if err != nil {
 		return nil, err
 	}
-	var proxyHandler http.Handler
-	if proxy, err = middlewares.NewRecovery(ctx, proxy); err != nil {
+
+	// 中间件组合
+	var handler http.Handler
+	handler = &MixHandler{
+		Proxy: proxy,
+		Gin:   NewGinEngine(),
+	}
+
+	if handler, err = logger.New(ctx, handler); err != nil {
 		return nil, err
 	}
 
-	return &MixHandler{
-		Proxy: proxyHandler,
-		Gin:   NewGinEngine(),
-	}, nil
+	return recovery.New(ctx, handler)
 }
 
 const ProxyPrefix = "proxy"

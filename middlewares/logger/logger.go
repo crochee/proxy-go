@@ -19,7 +19,7 @@ type loggerHandler struct {
 	next http.Handler
 }
 
-func NewLogger(ctx context.Context, next http.Handler) (http.Handler, error) {
+func New(ctx context.Context, next http.Handler) (http.Handler, error) {
 	return &loggerHandler{
 		ctx:  ctx,
 		next: next,
@@ -28,40 +28,57 @@ func NewLogger(ctx context.Context, next http.Handler) (http.Handler, error) {
 
 func (l *loggerHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	start := time.Now().Local()
-	path := request.URL.Path
-	raw := request.URL.RawQuery
-	scheme := "HTTP"
-	proto := request.Proto
+	param := &LogFormatterParams{
+		Scheme:   "HTTP",
+		Proto:    request.Proto,
+		ClientIp: clientIp(request),
+		Method:   request.Method,
+		Path:     request.URL.Path,
+	}
 	if request.TLS != nil {
-		scheme = "HTTPS"
+		param.Scheme = "HTTPS"
 	}
-	if raw != "" {
-		path = path + "?" + raw
+	if request.URL.RawQuery != "" {
+		param.Path += "?" + request.URL.RawQuery
 	}
-	clientIp := clientIp(request)
 
 	crw := newCaptureResponseWriter(writer)
 
 	l.next.ServeHTTP(crw, request)
 
-	latency := time.Now().Local().Sub(start)
-	if latency > time.Minute {
+	param.Now = time.Now().Local()
+	param.Last = param.Now.Sub(start)
+	if param.Last > time.Minute {
 		// Truncate in a golang < 1.8 safe way
-		latency = latency - latency%time.Second
+		param.Last = param.Last - param.Last%time.Second
 	}
+	param.Status = crw.Status()
+	param.Size = crw.Size()
 
 	logger.FromContext(l.ctx).Infof(
 		"[PROXY] %v | %3d | %13v | %15s | %-7s | %5s | %10s |%8d| %#v",
-		time.Now().Local().Format("2006/01/02 - 15:04:05"),
-		crw.Status(),
-		latency,
-		scheme,
-		proto,
-		clientIp,
-		request.Method,
-		crw.Size(),
-		path,
+		param.Now.Format("2006/01/02 - 15:04:05"),
+		param.Status,
+		param.Last,
+		param.Scheme,
+		param.Proto,
+		param.ClientIp,
+		param.Method,
+		param.Size,
+		param.Path,
 	)
+}
+
+type LogFormatterParams struct {
+	Now      time.Time
+	Status   int
+	Last     time.Duration
+	Scheme   string
+	Proto    string
+	ClientIp string
+	Method   string
+	Size     int64
+	Path     string
 }
 
 func clientIp(request *http.Request) string {
