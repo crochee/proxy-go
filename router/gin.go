@@ -27,7 +27,7 @@ import (
 // NewGinEngine gin router
 func NewGinEngine() *gin.Engine {
 	router := gin.New()
-	router.Use(middleware.Recovery)
+	router.Use(middleware.CrossDomain)
 
 	if gin.Mode() != gin.ReleaseMode {
 		// swagger

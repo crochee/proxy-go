@@ -8,30 +8,39 @@ import (
 	"context"
 	"net/http"
 	"strings"
+	"time"
 
+	"proxy-go/middlewares/dynamic"
 	"proxy-go/middlewares/logger"
+	"proxy-go/middlewares/ratelimit"
 	"proxy-go/middlewares/recovery"
 	"proxy-go/service"
 )
 
 func Route(ctx context.Context) (http.Handler, error) {
-	proxy, err := service.NewProxyBuilder(0)
-	if err != nil {
-		return nil, err
-	}
+	proxy := service.NewProxyBuilder(ctx)
 
 	// 中间件组合
-	var handler http.Handler
+	var (
+		handler http.Handler
+	)
 	handler = &MixHandler{
 		Proxy: proxy,
 		Gin:   NewGinEngine(),
 	}
 
-	if handler, err = logger.New(ctx, handler); err != nil {
-		return nil, err
-	}
+	// logger
+	handler = logger.New(ctx, handler)
 
-	return recovery.New(ctx, handler)
+	// recovery
+	handler = recovery.New(ctx, handler)
+
+	// rate limit
+	handler = ratelimit.New(ctx, handler, &dynamic.RateLimit{
+		Every: 10 * time.Microsecond,
+		Burst: 1,
+	})
+	return handler, nil
 }
 
 const ProxyPrefix = "proxy"

@@ -19,11 +19,11 @@ type loggerHandler struct {
 	next http.Handler
 }
 
-func New(ctx context.Context, next http.Handler) (http.Handler, error) {
+func New(ctx context.Context, next http.Handler) http.Handler {
 	return &loggerHandler{
 		ctx:  ctx,
 		next: next,
-	}, nil
+	}
 }
 
 func (l *loggerHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {

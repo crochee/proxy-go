@@ -18,11 +18,11 @@ type recovery struct {
 }
 
 // New creates recovery middleware
-func New(ctx context.Context, next http.Handler) (http.Handler, error) {
+func New(ctx context.Context, next http.Handler) http.Handler {
 	return &recovery{
 		next: next,
 		ctx:  ctx,
-	}, nil
+	}
 }
 
 func (re *recovery) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
