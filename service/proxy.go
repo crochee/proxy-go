@@ -11,7 +11,6 @@ import (
 	"net"
 	"net/http"
 	"net/http/httputil"
-	"net/url"
 	"sync"
 
 	"proxy-go/logger"
@@ -27,25 +26,26 @@ const StatusClientClosedRequestText = "Client Closed Request"
 func NewProxyBuilder(ctx context.Context) http.Handler {
 	return &httputil.ReverseProxy{
 		Director: func(request *http.Request) {
-			u := request.URL
-			if request.RequestURI != "" {
-				parsedURL, err := url.ParseRequestURI(request.RequestURI)
-				if err == nil {
-					u = parsedURL
-				}
-			}
-
-			request.URL.Path = u.Path
-			request.URL.RawPath = u.RawPath
-			request.URL.RawQuery = u.RawQuery
 			request.RequestURI = "" // Outgoing request should not have RequestURI
-			request.Proto = "HTTP/1.1"
-			request.ProtoMajor = 1
-			request.ProtoMinor = 1
 
 			if _, ok := request.Header["User-Agent"]; !ok {
-				request.Header.Set("User-Agent", "")
+				request.Header.Set("User-Agent", "proxy")
 			}
+
+			// Even if the websocket RFC says that headers should be case-insensitive,
+			// some servers need Sec-WebSocket-Key, Sec-WebSocket-Extensions, Sec-WebSocket-Accept,
+			// Sec-WebSocket-Protocol and Sec-WebSocket-Version to be case-sensitive.
+			// https://tools.ietf.org/html/rfc6455#page-20
+			request.Header["Sec-WebSocket-Key"] = request.Header["Sec-Websocket-Key"]
+			request.Header["Sec-WebSocket-Extensions"] = request.Header["Sec-Websocket-Extensions"]
+			request.Header["Sec-WebSocket-Accept"] = request.Header["Sec-Websocket-Accept"]
+			request.Header["Sec-WebSocket-Protocol"] = request.Header["Sec-Websocket-Protocol"]
+			request.Header["Sec-WebSocket-Version"] = request.Header["Sec-Websocket-Version"]
+			delete(request.Header, "Sec-Websocket-Key")
+			delete(request.Header, "Sec-Websocket-Extensions")
+			delete(request.Header, "Sec-Websocket-Accept")
+			delete(request.Header, "Sec-Websocket-Protocol")
+			delete(request.Header, "Sec-Websocket-Version")
 		},
 		Transport:  http.DefaultTransport,
 		BufferPool: newBufferPool(),
@@ -69,7 +69,7 @@ func NewProxyBuilder(ctx context.Context) http.Handler {
 			}
 			log := logger.FromContext(ctx)
 			text := statusText(statusCode)
-			log.Errorf("'%d %s' caused by: %v", statusCode, text, err)
+			log.Errorf("%+v '%d %s' caused by: %v", request, statusCode, text, err)
 			writer.WriteHeader(statusCode)
 			if _, err = writer.Write(util.Bytes(text)); err != nil {
 				log.Errorf("Error %v while writing status code", err)
