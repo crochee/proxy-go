@@ -61,7 +61,7 @@ func Route(ctx context.Context) (http.Handler, error) {
 	return handler, nil
 }
 
-const ProxyPrefix = "/proxy"
+const ProxyPrefix = "proxy"
 
 type MixHandler struct {
 	Proxy http.Handler
@@ -69,14 +69,17 @@ type MixHandler struct {
 }
 
 func (m *MixHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	if strings.HasPrefix(request.URL.Path, ProxyPrefix) {
-		request.URL.Path = internal.EnsureLeadingSlash(strings.TrimPrefix(request.URL.Path, ProxyPrefix))
-		if request.URL.RawPath != "" {
-			request.URL.RawPath = internal.EnsureLeadingSlash(strings.TrimPrefix(request.URL.RawPath, ProxyPrefix))
+	list := strings.SplitN(request.URL.Path, "/", 3)
+	if len(list) > 1 {
+		if list[1] == ProxyPrefix {
+			prefix := "/" + ProxyPrefix
+			request.URL.Path = internal.EnsureLeadingSlash(strings.TrimPrefix(request.URL.Path, prefix))
+			if request.URL.RawPath != "" {
+				request.URL.RawPath = internal.EnsureLeadingSlash(strings.TrimPrefix(request.URL.RawPath, prefix))
+			}
+			m.Proxy.ServeHTTP(writer, request)
+			return
 		}
-
-		m.Proxy.ServeHTTP(writer, request)
-		return
 	}
 	m.Proxy.ServeHTTP(writer, request)
 }
