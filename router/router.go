@@ -81,5 +81,5 @@ func (m *MixHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request
 			return
 		}
 	}
-	m.Proxy.ServeHTTP(writer, request)
+	m.Gin.ServeHTTP(writer, request)
 }

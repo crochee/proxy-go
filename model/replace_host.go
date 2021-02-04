@@ -5,11 +5,11 @@
 package model
 
 type ReplaceHost struct {
-	Name string
+	Name string `json:"name" binding:"required"`
 	*Host
 }
 
 type Host struct {
-	Scheme string
-	Host   string
+	Scheme string `json:"scheme"`
+	Host   string `json:"host" binding:"required"`
 }

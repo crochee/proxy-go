@@ -46,15 +46,14 @@ func (l *loggerHandler) ServeHTTP(writer http.ResponseWriter, request *http.Requ
 
 	l.next.ServeHTTP(crw, request)
 
-	param.Now = time.Now().Local()
-	param.Last = param.Now.Sub(start)
-	if param.Last > time.Minute {
-		// Truncate in a golang < 1.8 safe way
-		param.Last = param.Last - param.Last%time.Second
-	}
 	param.Status = crw.Status()
 	param.Size = crw.Size()
-
+	param.Now = time.Now().Local()
+	param.Last = param.Now.Sub(start)
+	//if param.Last > time.Minute {
+	//	// Truncate in a golang < 1.8 safe way
+	//	param.Last = param.Last - param.Last%time.Second
+	//}
 	logger.FromContext(l.ctx).Infof(
 		"[PROXY] %v | %3d | %13v | %15s | %-7s | %5s | %10s |%8d| %#v",
 		param.Now.Format("2006/01/02 - 15:04:05"),

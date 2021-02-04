@@ -9,6 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+
+	"proxy-go/api"
 	"proxy-go/api/middleware"
 )
 
@@ -37,5 +39,8 @@ func NewGinEngine() *gin.Engine {
 		// 增加性能测试
 		pprof.Register(router)
 	}
+
+	router.PUT("/api/v1/host", api.UpdateHost)
+
 	return router
 }

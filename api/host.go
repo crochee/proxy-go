@@ -20,5 +20,5 @@ func UpdateHost(ctx *gin.Context) {
 		response.GinError(ctx, response.ErrorWith(http.StatusBadRequest, err))
 		return
 	}
-
+	ctx.JSON(http.StatusOK, replaceHost)
 }
