@@ -8,11 +8,11 @@ import (
 	"context"
 	"net"
 	"net/http"
-	"proxy-go/model"
 	"strings"
 	"time"
 
 	"proxy-go/logger"
+	"proxy-go/model"
 )
 
 type loggerHandler struct {
