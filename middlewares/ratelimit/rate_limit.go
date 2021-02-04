@@ -8,14 +8,13 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"proxy-go/util"
-
 	"time"
 
 	"golang.org/x/time/rate"
 
+	"proxy-go/internal"
 	"proxy-go/logger"
-	"proxy-go/middlewares/dynamic"
+	"proxy-go/model"
 )
 
 type rateLimiter struct {
@@ -26,7 +25,7 @@ type rateLimiter struct {
 }
 
 // New returns a rate limiter middleware.
-func New(ctx context.Context, next http.Handler, limit *dynamic.RateLimit) http.Handler {
+func New(ctx context.Context, next http.Handler, limit *model.RateLimit) http.Handler {
 	rateLimiter := &rateLimiter{
 		next: next,
 		ctx:  ctx,
@@ -64,7 +63,7 @@ func (rl *rateLimiter) serveDelayError(w http.ResponseWriter, delay time.Duratio
 	w.Header().Set("X-Retry-In", delay.String())
 	w.WriteHeader(http.StatusTooManyRequests)
 
-	if _, err := w.Write(util.Bytes(http.StatusText(http.StatusTooManyRequests))); err != nil {
+	if _, err := w.Write(internal.Bytes(internal.StatusText(http.StatusTooManyRequests))); err != nil {
 		logger.FromContext(rl.ctx).Errorf("could not serve 429: %v", err)
 	}
 }

@@ -10,7 +10,7 @@ import (
 )
 
 func TestSplit(t *testing.T) {
-	path := "/host"
+	path := ""
 	list := strings.SplitN(path, "/", 3)
-	t.Log(list)
+	t.Log(len(list))
 }

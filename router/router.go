@@ -10,29 +10,29 @@ import (
 	"strings"
 	"time"
 
-	"proxy-go/middlewares/dynamic"
+	"proxy-go/internal"
 	"proxy-go/middlewares/logger"
 	"proxy-go/middlewares/ratelimit"
 	"proxy-go/middlewares/recovery"
 	"proxy-go/middlewares/replacehost"
+	"proxy-go/model"
 	"proxy-go/service"
-	"proxy-go/util"
 )
 
 func Route(ctx context.Context) (http.Handler, error) {
 	proxy := service.NewProxyBuilder(ctx)
 
-	proxy = replacehost.New(ctx, proxy, []*dynamic.ReplaceHost{
+	proxy = replacehost.New(ctx, proxy, []*model.ReplaceHost{
 		{
 			Name: "obs",
-			Host: &dynamic.Host{
+			Host: &model.Host{
 				Scheme: "http",
 				Host:   "localhost:8150",
 			},
 		},
 		{
 			Name: "console",
-			Host: &dynamic.Host{
+			Host: &model.Host{
 				Scheme: "http",
 				Host:   "localhost:8088",
 			},
@@ -54,7 +54,7 @@ func Route(ctx context.Context) (http.Handler, error) {
 	handler = recovery.New(ctx, handler)
 
 	// rate limit
-	handler = ratelimit.New(ctx, handler, &dynamic.RateLimit{
+	handler = ratelimit.New(ctx, handler, &model.RateLimit{
 		Every: 10 * time.Microsecond,
 		Burst: 1,
 	})
@@ -70,9 +70,9 @@ type MixHandler struct {
 
 func (m *MixHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	if strings.HasPrefix(request.URL.Path, ProxyPrefix) {
-		request.URL.Path = util.EnsureLeadingSlash(strings.TrimPrefix(request.URL.Path, ProxyPrefix))
+		request.URL.Path = internal.EnsureLeadingSlash(strings.TrimPrefix(request.URL.Path, ProxyPrefix))
 		if request.URL.RawPath != "" {
-			request.URL.RawPath = util.EnsureLeadingSlash(strings.TrimPrefix(request.URL.RawPath, ProxyPrefix))
+			request.URL.RawPath = internal.EnsureLeadingSlash(strings.TrimPrefix(request.URL.RawPath, ProxyPrefix))
 		}
 
 		m.Proxy.ServeHTTP(writer, request)

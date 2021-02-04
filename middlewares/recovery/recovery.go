@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"runtime/debug"
 
+	"proxy-go/internal"
 	"proxy-go/logger"
 )
 
@@ -38,7 +39,7 @@ func (re *recovery) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 			log.Errorf("Stack: %s", debug.Stack())
 
-			http.Error(rw, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			http.Error(rw, internal.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
 	}(re.ctx, rw, req)
 	re.next.ServeHTTP(rw, req)

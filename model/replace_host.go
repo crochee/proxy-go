@@ -2,7 +2,7 @@
 // Author: crochee
 // Date: 2021/1/31
 
-package dynamic
+package model
 
 type ReplaceHost struct {
 	Name string

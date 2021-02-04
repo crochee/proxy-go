@@ -11,17 +11,10 @@ import (
 	"net"
 	"net/http"
 	"net/http/httputil"
-	"sync"
 
+	"proxy-go/internal"
 	"proxy-go/logger"
-	"proxy-go/util"
 )
-
-// StatusClientClosedRequest non-standard HTTP status code for client disconnection.
-const StatusClientClosedRequest = 499
-
-// StatusClientClosedRequestText non-standard HTTP status for client disconnection.
-const StatusClientClosedRequestText = "Client Closed Request"
 
 func NewProxyBuilder(ctx context.Context) http.Handler {
 	return &httputil.ReverseProxy{
@@ -48,15 +41,14 @@ func NewProxyBuilder(ctx context.Context) http.Handler {
 			delete(request.Header, "Sec-Websocket-Version")
 		},
 		Transport:  http.DefaultTransport,
-		BufferPool: newBufferPool(),
+		BufferPool: internal.BufPool,
 		ErrorHandler: func(writer http.ResponseWriter, request *http.Request, err error) {
 			statusCode := http.StatusInternalServerError
-
 			switch {
 			case errors.Is(err, io.EOF):
 				statusCode = http.StatusBadGateway
 			case errors.Is(err, context.Canceled):
-				statusCode = StatusClientClosedRequest
+				statusCode = internal.StatusClientClosedRequest
 			default:
 				var netErr net.Error
 				if errors.As(err, &netErr) {
@@ -68,43 +60,12 @@ func NewProxyBuilder(ctx context.Context) http.Handler {
 				}
 			}
 			log := logger.FromContext(ctx)
-			text := statusText(statusCode)
+			text := internal.StatusText(statusCode)
 			log.Errorf("%+v '%d %s' caused by: %v", request, statusCode, text, err)
 			writer.WriteHeader(statusCode)
-			if _, err = writer.Write(util.Bytes(text)); err != nil {
+			if _, err = writer.Write(internal.Bytes(text)); err != nil {
 				log.Errorf("Error %v while writing status code", err)
 			}
 		},
 	}
-}
-
-func statusText(statusCode int) string {
-	if statusCode == StatusClientClosedRequest {
-		return StatusClientClosedRequestText
-	}
-	return http.StatusText(statusCode)
-}
-
-const bufferPoolSize = 32 * 1024
-
-func newBufferPool() *bufferPool {
-	return &bufferPool{
-		pool: sync.Pool{
-			New: func() interface{} {
-				return make([]byte, bufferPoolSize)
-			},
-		},
-	}
-}
-
-type bufferPool struct {
-	pool sync.Pool
-}
-
-func (b *bufferPool) Get() []byte {
-	return b.pool.Get().([]byte)
-}
-
-func (b *bufferPool) Put(bytes []byte) {
-	b.pool.Put(bytes)
 }
