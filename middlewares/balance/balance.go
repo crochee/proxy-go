@@ -5,15 +5,12 @@
 package balance
 
 import (
-	"container/heap"
 	"context"
 	"fmt"
 	"net"
 	"net/http"
 	"os"
-	"reflect"
 	"strings"
-	"sync"
 
 	"proxy-go/internal"
 	"proxy-go/logger"
@@ -21,52 +18,21 @@ import (
 )
 
 type Balancer struct {
-	ctx         context.Context
-	mutex       sync.Mutex
-	handlers    []*model.NamedHandler
-	curDeadline float64
-	hostName    string
+	ctx      context.Context
+	selector Selector
+	hostName string
 }
 
-func New(ctx context.Context) *Balancer {
+func New(ctx context.Context, selector Selector) *Balancer {
 	hostname, err := os.Hostname()
 	if err != nil {
 		hostname = "localhost"
 	}
 	return &Balancer{
 		ctx:      ctx,
-		handlers: make([]*model.NamedHandler, 0, 4),
+		selector: selector,
 		hostName: hostname,
 	}
-}
-
-func (b *Balancer) Len() int {
-	return len(b.handlers)
-}
-
-func (b *Balancer) Less(i, j int) bool {
-	return b.handlers[i].Deadline < b.handlers[j].Deadline
-}
-
-func (b *Balancer) Swap(i, j int) {
-	b.handlers[i], b.handlers[j] = b.handlers[j], b.handlers[i]
-}
-
-func (b *Balancer) Push(x interface{}) {
-	h, ok := x.(*model.NamedHandler)
-	if !ok {
-		return
-	}
-	b.handlers = append(b.handlers, h)
-}
-
-func (b *Balancer) Pop() interface{} {
-	if b.Len() < 1 {
-		return nil
-	}
-	h := b.handlers[len(b.handlers)-1]
-	b.handlers = b.handlers[0 : len(b.handlers)-1]
-	return h
 }
 
 func (b *Balancer) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
@@ -81,58 +47,28 @@ func (b *Balancer) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 
 	request.Header.Add(model.XForwardedHost, request.Host)
 	request.URL.Scheme = server.Scheme
-	request.URL.Host = server.Host.Host
+	request.URL.Host = server.Host
 	server.ServeHTTP(writer, request)
 }
 
 func (b *Balancer) Update(add bool, handler *model.NamedHandler) {
-	b.mutex.Lock()
-	defer b.mutex.Unlock()
-	for index, srvHandler := range b.handlers {
-		if reflect.DeepEqual(srvHandler.Host, handler.Host) {
-			if !add {
-				if index == b.Len()-1 {
-					b.handlers = b.handlers[:index]
-					return
-				}
-				b.handlers = append(b.handlers[:index], b.handlers[index+1:]...)
-				return
-			}
-			if handler.Weight > 0 {
-				srvHandler.Weight = handler.Weight
-			}
-			return
-		}
-	}
-	if handler.Weight <= 0 {
+	if add && handler.Weight <= 0 {
+		logger.FromContext(b.ctx).Warnf("add handler failed.it's Weight is %f", handler.Weight)
 		return
 	}
-	handler.Deadline = b.curDeadline + 1/handler.Weight
-	heap.Push(b, handler)
+	b.selector.Update(add, handler, handler.Weight)
 }
 
 func (b *Balancer) nextServer() (*model.NamedHandler, error) {
-	b.mutex.Lock()
-	defer b.mutex.Unlock()
-
-	if len(b.handlers) == 0 {
-		return nil, fmt.Errorf("no servers in the pool")
+	handler, err := b.selector.Next()
+	if err != nil {
+		return nil, err
 	}
-
-	// Pick handler with closest deadline.
-	handler, ok := heap.Pop(b).(*model.NamedHandler)
+	srv, ok := handler.(*model.NamedHandler)
 	if !ok {
 		return nil, fmt.Errorf("no servers in the pool")
 	}
-	// todo 这个负载均衡策略待改进
-	// curDeadline should be handler's deadline so that new added entry would have a fair competition environment with the old ones.
-	b.curDeadline = handler.Deadline
-	handler.Deadline += 1 / handler.Weight
-
-	heap.Push(b, handler)
-
-	logger.FromContext(b.ctx).Debugf("Service selected by WRR: %+v", handler)
-	return handler, nil
+	return srv, nil
 }
 
 func (b *Balancer) rewrite(request *http.Request) {

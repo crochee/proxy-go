@@ -13,3 +13,9 @@ type Host struct {
 	Scheme string `json:"scheme"`
 	Host   string `json:"host" binding:"required"`
 }
+
+type Node struct {
+	Scheme   string            `json:"scheme"`
+	Host     string            `json:"host"`
+	Metadata map[string]string `json:"metadata"`
+}

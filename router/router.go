@@ -24,7 +24,7 @@ import (
 func ChainBuilder(ctx context.Context, pool *safe.Pool) (http.Handler, error) {
 	proxy := service.NewProxyBuilder(ctx)
 
-	balancer := balance.New(ctx)
+	balancer := balance.New(ctx, balance.NewRandom())
 
 	pool.GoCtx(func(ctx context.Context) {
 		select {
@@ -33,7 +33,7 @@ func ChainBuilder(ctx context.Context, pool *safe.Pool) (http.Handler, error) {
 		default:
 			balancer.Update(true, &model.NamedHandler{
 				Handler: proxy,
-				Host: &model.Host{
+				Node: &model.Node{
 					Scheme: "http",
 					Host:   "127.0.0.1:8150",
 				},
@@ -49,7 +49,7 @@ func ChainBuilder(ctx context.Context, pool *safe.Pool) (http.Handler, error) {
 		default:
 			balancer.Update(true, &model.NamedHandler{
 				Handler: proxy,
-				Host: &model.Host{
+				Node: &model.Node{
 					Scheme: "http",
 					Host:   "192.168.31.62:8090",
 				},

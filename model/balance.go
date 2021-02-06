@@ -8,7 +8,7 @@ import "net/http"
 
 type NamedHandler struct {
 	http.Handler
-	*Host
+	*Node
 	Weight   float64
 	Deadline float64
 }
