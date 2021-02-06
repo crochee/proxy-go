@@ -8,11 +8,16 @@ import (
 	"container/heap"
 	"errors"
 	"math/rand"
-	"net/http"
 	"reflect"
 	"sync"
 	"time"
 )
+
+type Node struct {
+	Scheme   string            `json:"scheme"`
+	Host     string            `json:"host"`
+	Metadata map[string]string `json:"metadata"`
+}
 
 var ErrNoneAvailable = errors.New("none available")
 
@@ -22,27 +27,28 @@ func init() {
 
 // Selector strategy algorithm
 type Selector interface {
-	Update(bool, http.Handler, float64)
-	Next() (http.Handler, error)
+	Update(bool, *Node, float64)
+	Next() (*Node, error)
+	List() []*Node
 }
 
 type Random struct {
 	mux  sync.RWMutex
-	list []http.Handler
+	list []*Node
 }
 
 func NewRandom() *Random {
 	return &Random{
-		list: make([]http.Handler, 0, 4),
+		list: make([]*Node, 0, 4),
 	}
 }
 
-func (r *Random) Update(add bool, handler http.Handler, weight float64) {
+func (r *Random) Update(add bool, node *Node, weight float64) {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 	var equal bool
 	for index, list := range r.list {
-		if reflect.DeepEqual(list, handler) {
+		if reflect.DeepEqual(list, node) {
 			if !add {
 				if index == len(r.list)-1 {
 					r.list = r.list[:index]
@@ -55,11 +61,11 @@ func (r *Random) Update(add bool, handler http.Handler, weight float64) {
 		}
 	}
 	if !equal {
-		r.list = append(r.list, handler)
+		r.list = append(r.list, node)
 	}
 }
 
-func (r *Random) Next() (http.Handler, error) {
+func (r *Random) Next() (*Node, error) {
 	r.mux.RLock()
 	defer r.mux.RUnlock()
 	length := len(r.list)
@@ -70,25 +76,29 @@ func (r *Random) Next() (http.Handler, error) {
 	return r.list[i], nil
 }
 
+func (r *Random) List() []*Node {
+	return r.list
+}
+
 type RoundRobin struct {
 	randIndex int
 	mux       sync.Mutex
-	list      []http.Handler
+	list      []*Node
 }
 
 func NewRoundRobin() *RoundRobin {
 	return &RoundRobin{
 		randIndex: rand.Int(),
-		list:      make([]http.Handler, 0, 4),
+		list:      make([]*Node, 0, 4),
 	}
 }
 
-func (r *RoundRobin) Update(add bool, handler http.Handler, weight float64) {
+func (r *RoundRobin) Update(add bool, node *Node, weight float64) {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 	var equal bool
 	for index, list := range r.list {
-		if reflect.DeepEqual(list, handler) {
+		if reflect.DeepEqual(list, node) {
 			if !add {
 				if index == len(r.list)-1 {
 					r.list = r.list[:index]
@@ -101,11 +111,11 @@ func (r *RoundRobin) Update(add bool, handler http.Handler, weight float64) {
 		}
 	}
 	if !equal {
-		r.list = append(r.list, handler)
+		r.list = append(r.list, node)
 	}
 }
 
-func (r *RoundRobin) Next() (http.Handler, error) {
+func (r *RoundRobin) Next() (*Node, error) {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
@@ -119,8 +129,12 @@ func (r *RoundRobin) Next() (http.Handler, error) {
 	return node, nil
 }
 
+func (r *RoundRobin) List() []*Node {
+	return r.list
+}
+
 type weightHandler struct {
-	handler  http.Handler
+	node     *Node
 	weight   float64
 	deadline float64
 }
@@ -166,12 +180,12 @@ func (h *Heap) Pop() interface{} {
 	return handler
 }
 
-func (h *Heap) Update(add bool, handler http.Handler, weight float64) {
+func (h *Heap) Update(add bool, node *Node, weight float64) {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 	var equal bool
 	for index, list := range h.handlers {
-		if reflect.DeepEqual(list, handler) {
+		if reflect.DeepEqual(list, node) {
 			if !add {
 				if index == len(h.handlers)-1 {
 					h.handlers = h.handlers[:index]
@@ -184,14 +198,14 @@ func (h *Heap) Update(add bool, handler http.Handler, weight float64) {
 		}
 	}
 	if !equal {
-		w := &weightHandler{handler: handler, weight: weight}
+		w := &weightHandler{node: node, weight: weight}
 		h.Push(w)
 		// use RWLock to protect b.curDeadline
 		w.deadline = h.curDeadline + 1/w.weight
 	}
 }
 
-func (h *Heap) Next() (http.Handler, error) {
+func (h *Heap) Next() (*Node, error) {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 	if h.Len() == 0 {
@@ -206,5 +220,14 @@ func (h *Heap) Next() (http.Handler, error) {
 	handler.deadline += 1 / handler.weight
 	heap.Push(h, handler)
 
-	return handler.handler, nil
+	return handler.node, nil
+}
+
+func (h *Heap) List() []*Node {
+	list := make([]*Node, 0, len(h.handlers))
+	h.mutex.RLock()
+	for _, handler := range h.handlers {
+		list = append(list, handler.node)
+	}
+	return list
 }

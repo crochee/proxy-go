@@ -4,11 +4,8 @@
 
 package model
 
-import "net/http"
-
-type NamedHandler struct {
-	http.Handler
-	*Node
-	Weight   float64
-	Deadline float64
+type Node struct {
+	Scheme   string            `json:"scheme"`
+	Host     string            `json:"host"`
+	Metadata map[string]string `json:"metadata"`
 }

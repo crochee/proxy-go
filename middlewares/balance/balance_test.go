@@ -8,78 +8,59 @@ import (
 	"context"
 	"strconv"
 	"testing"
-
-	"proxy-go/model"
 )
 
 func TestBalancer_Update(t *testing.T) {
-	b := New(context.Background())
+	b := New(context.Background(), NewRandom(), nil)
 	tt := []struct {
-		Add     bool
-		handler *model.NamedHandler
+		Add  bool
+		Node *Node
 	}{
 		{
 			Add: false,
-			handler: &model.NamedHandler{
-				Handler:  nil,
-				Host:     nil,
-				Weight:   0,
-				Deadline: 0,
+			Node: &Node{
+				Scheme:   "http",
+				Host:     "127.0.0.1:8150",
+				Metadata: nil,
 			},
 		},
 		{
 			Add: true,
-			handler: &model.NamedHandler{
-				Handler: nil,
-				Host: &model.Host{
-					Scheme: "http",
-					Host:   "127.0.0.1:8150",
-				},
-				Weight:   1,
-				Deadline: 0,
+			Node: &Node{
+				Scheme:   "http",
+				Host:     "192.168.31.62:8150",
+				Metadata: nil,
 			},
 		},
 		{
 			Add: true,
-			handler: &model.NamedHandler{
-				Handler: nil,
-				Host: &model.Host{
-					Scheme: "http",
-					Host:   "localhost:8150",
-				},
-				Weight:   1,
-				Deadline: 0,
+			Node: &Node{
+				Scheme:   "http",
+				Host:     "localhost:8150",
+				Metadata: nil,
 			},
 		},
 		{
 			Add: true,
-			handler: &model.NamedHandler{
-				Handler: nil,
-				Host: &model.Host{
-					Scheme: "http",
-					Host:   "127.0.0.1:8150",
-				},
-				Weight:   2,
-				Deadline: 0,
+			Node: &Node{
+				Scheme:   "http",
+				Host:     "127.0.0.1:8150",
+				Metadata: nil,
 			},
 		},
 		{
 			Add: false,
-			handler: &model.NamedHandler{
-				Handler: nil,
-				Host: &model.Host{
-					Scheme: "http",
-					Host:   "127.0.0.1:8150",
-				},
-				Weight:   2,
-				Deadline: 0,
+			Node: &Node{
+				Scheme:   "http",
+				Host:     "127.0.0.1:8150",
+				Metadata: nil,
 			},
 		},
 	}
 	for index, hand := range tt {
 		t.Run("index:"+strconv.Itoa(index), func(t *testing.T) {
-			b.Update(hand.Add, hand.handler)
-			for _, handler := range b.handlers {
+			b.Update(hand.Add, hand.Node, 1)
+			for _, handler := range b.selector.List() {
 				t.Logf("%+v", handler)
 			}
 		})

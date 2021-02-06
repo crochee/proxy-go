@@ -6,7 +6,6 @@ package balance
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"net/http"
 	"os"
@@ -19,56 +18,51 @@ import (
 
 type Balancer struct {
 	ctx      context.Context
+	next     http.Handler
 	selector Selector
 	hostName string
 }
 
-func New(ctx context.Context, selector Selector) *Balancer {
+func New(ctx context.Context, selector Selector, next http.Handler) *Balancer {
 	hostname, err := os.Hostname()
 	if err != nil {
 		hostname = "localhost"
 	}
 	return &Balancer{
 		ctx:      ctx,
+		next:     next,
 		selector: selector,
 		hostName: hostname,
 	}
 }
 
 func (b *Balancer) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	server, err := b.nextServer()
+	node, err := b.nextNode()
 	if err != nil {
-		http.Error(writer, internal.StatusText(http.StatusServiceUnavailable)+err.Error(),
-			http.StatusServiceUnavailable)
+		logger.FromContext(b.ctx).Warnf("get next node failed.Error:%v", err)
+		http.Error(writer, internal.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
 		return
 	}
 
 	b.rewrite(request)
 
 	request.Header.Add(model.XForwardedHost, request.Host)
-	request.URL.Scheme = server.Scheme
-	request.URL.Host = server.Host
-	server.ServeHTTP(writer, request)
+	request.URL.Scheme = node.Scheme
+	request.URL.Host = node.Host
+
+	b.next.ServeHTTP(writer, request)
 }
 
-func (b *Balancer) Update(add bool, handler *model.NamedHandler) {
-	if add && handler.Weight <= 0 {
-		logger.FromContext(b.ctx).Warnf("add handler failed.it's Weight is %f", handler.Weight)
+func (b *Balancer) Update(add bool, node *Node, weight float64) {
+	if add && weight <= 0 {
+		logger.FromContext(b.ctx).Warnf("add handler failed.it's Weight is %f", weight)
 		return
 	}
-	b.selector.Update(add, handler, handler.Weight)
+	b.selector.Update(add, node, weight)
 }
 
-func (b *Balancer) nextServer() (*model.NamedHandler, error) {
-	handler, err := b.selector.Next()
-	if err != nil {
-		return nil, err
-	}
-	srv, ok := handler.(*model.NamedHandler)
-	if !ok {
-		return nil, fmt.Errorf("no servers in the pool")
-	}
-	return srv, nil
+func (b *Balancer) nextNode() (*Node, error) {
+	return b.selector.Next()
 }
 
 func (b *Balancer) rewrite(request *http.Request) {
