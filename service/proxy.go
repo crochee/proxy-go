@@ -61,7 +61,7 @@ func NewProxyBuilder(ctx context.Context) http.Handler {
 			}
 			log := logger.FromContext(ctx)
 			text := internal.StatusText(statusCode)
-			log.Errorf("%+v '%d %s' caused by: %v", request, statusCode, text, err)
+			log.Errorf("%+v '%d %s' caused by: %v", request.URL, statusCode, text, err)
 			writer.WriteHeader(statusCode)
 			if _, err = writer.Write(internal.Bytes(text)); err != nil {
 				log.Errorf("Error %v while writing status code", err)

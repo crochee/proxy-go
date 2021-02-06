@@ -29,7 +29,7 @@ func main() {
 	ctx = server.ContextWithSignal(ctx)
 	pool := safe.NewPool(ctx)
 
-	handler, err := router.Route(ctx)
+	handler, err := router.ChainBuilder(ctx, pool)
 	if err != nil {
 		logger.FromContext(ctx).Fatalf("build route failed.Error:%v", err)
 	}
