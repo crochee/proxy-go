@@ -16,27 +16,27 @@ import (
 
 	"proxy-go/config"
 	"proxy-go/logger"
-	"proxy-go/safe"
 )
 
 type Server struct {
 	config   *config.Config
-	pool     *safe.Pool
 	list     map[string]*http.Server
 	handler  http.Handler
 	stopChan chan struct{}
+	watcher  *Watcher
 	ctx      context.Context
 	lock     sync.RWMutex
 	wg       sync.WaitGroup
 }
 
 // NewServer returns an initialized Server.
-func NewServer(ctx context.Context, routinesPool *safe.Pool, cf *config.Config, handler http.Handler) *Server {
+func NewServer(ctx context.Context, cf *config.Config, handler http.Handler,
+	watcher *Watcher) *Server {
 	return &Server{
 		config:   cf,
-		pool:     routinesPool,
 		list:     make(map[string]*http.Server, len(cf.Server.Medata)),
 		handler:  handler,
+		watcher:  watcher,
 		stopChan: make(chan struct{}, 1),
 		ctx:      ctx,
 	}
@@ -59,6 +59,7 @@ func (s *Server) Start() {
 			s.wg.Done()
 		}(medata)
 	}
+	s.watcher.Start()
 }
 
 // Wait blocks until the server shutdown.
@@ -106,7 +107,7 @@ func (s *Server) Close() {
 		}
 	}(ctx)
 
-	s.pool.Stop()
+	s.watcher.Stop()
 
 	close(s.stopChan)
 	cancel()

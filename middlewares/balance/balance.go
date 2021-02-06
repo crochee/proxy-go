@@ -13,7 +13,6 @@ import (
 
 	"proxy-go/internal"
 	"proxy-go/logger"
-	"proxy-go/model"
 )
 
 type Balancer struct {
@@ -36,6 +35,10 @@ func New(ctx context.Context, selector Selector, next http.Handler) *Balancer {
 	}
 }
 
+func (b *Balancer) Name() string {
+	return "LoadBalancer"
+}
+
 func (b *Balancer) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	node, err := b.nextNode()
 	if err != nil {
@@ -46,7 +49,7 @@ func (b *Balancer) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 
 	b.rewrite(request)
 
-	request.Header.Add(model.XForwardedHost, request.Host)
+	request.Header.Add(internal.XForwardedHost, request.Host)
 	request.URL.Scheme = node.Scheme
 	request.URL.Host = node.Host
 
@@ -69,12 +72,12 @@ func (b *Balancer) rewrite(request *http.Request) {
 	if clientIP, _, err := net.SplitHostPort(request.RemoteAddr); err == nil {
 		clientIP = removeIPv6Zone(clientIP)
 
-		if request.Header.Get(model.XRealIP) == "" {
-			request.Header.Set(model.XRealIP, clientIP)
+		if request.Header.Get(internal.XRealIP) == "" {
+			request.Header.Set(internal.XRealIP, clientIP)
 		}
 	}
 
-	if request.Header.Get(model.XForwardedProto) == "" {
+	if request.Header.Get(internal.XForwardedProto) == "" {
 		var proto string
 		if isWebsocketRequest(request) {
 			if request.TLS != nil {
@@ -89,18 +92,18 @@ func (b *Balancer) rewrite(request *http.Request) {
 				proto = "http"
 			}
 		}
-		request.Header.Set(model.XForwardedProto, proto)
+		request.Header.Set(internal.XForwardedProto, proto)
 	}
 
-	if xfPort := request.Header.Get(model.XForwardedPort); xfPort == "" {
-		request.Header.Set(model.XForwardedPort, forwardedPort(request))
+	if xfPort := request.Header.Get(internal.XForwardedPort); xfPort == "" {
+		request.Header.Set(internal.XForwardedPort, forwardedPort(request))
 	}
 
-	if xfHost := request.Header.Get(model.XForwardedHost); xfHost == "" && request.Host != "" {
-		request.Header.Set(model.XForwardedHost, request.Host)
+	if xfHost := request.Header.Get(internal.XForwardedHost); xfHost == "" && request.Host != "" {
+		request.Header.Set(internal.XForwardedHost, request.Host)
 	}
 
-	request.Header.Set(model.XForwardedServer, b.hostName)
+	request.Header.Set(internal.XForwardedServer, b.hostName)
 }
 
 // removeIPv6Zone removes the zone if the given IP is an ipv6 address and it has {zone} information in it,
@@ -120,7 +123,7 @@ func isWebsocketRequest(req *http.Request) bool {
 		}
 		return false
 	}
-	return containsHeader(model.Connection, "upgrade") && containsHeader(model.Upgrade, "websocket")
+	return containsHeader(internal.Connection, "upgrade") && containsHeader(internal.Upgrade, "websocket")
 }
 
 func forwardedPort(req *http.Request) string {
@@ -132,7 +135,7 @@ func forwardedPort(req *http.Request) string {
 		return port
 	}
 
-	if req.Header.Get(model.XForwardedProto) == "https" || req.Header.Get(model.XForwardedProto) == "wss" {
+	if req.Header.Get(internal.XForwardedProto) == "https" || req.Header.Get(internal.XForwardedProto) == "wss" {
 		return "443"
 	}
 

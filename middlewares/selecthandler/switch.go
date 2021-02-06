@@ -27,6 +27,10 @@ func New(ctx context.Context) *SwitchHandler {
 	}
 }
 
+func (s *SwitchHandler) Name() string {
+	return "Switcher"
+}
+
 func (s *SwitchHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	list := strings.SplitN(request.URL.Path, "/", 3)
 	if len(list) > 1 {

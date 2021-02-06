@@ -10,55 +10,35 @@ import (
 	"strings"
 	"time"
 
+	"proxy-go/config/dynamic"
 	"proxy-go/internal"
 	"proxy-go/middlewares/balance"
 	"proxy-go/middlewares/logger"
 	"proxy-go/middlewares/ratelimit"
 	"proxy-go/middlewares/recovery"
 	"proxy-go/middlewares/selecthandler"
-	"proxy-go/model"
-	"proxy-go/safe"
+	"proxy-go/server"
 	"proxy-go/service"
 )
 
-func ChainBuilder(ctx context.Context, pool *safe.Pool) (http.Handler, error) {
+func ChainBuilder(ctx context.Context, watcher *server.Watcher) (http.Handler, error) {
 	proxy := service.NewProxyBuilder(ctx)
 
 	balancer := balance.New(ctx, balance.NewRandom(), proxy)
 
-	pool.GoCtx(func(ctx context.Context) {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-			balancer.Update(true, &balance.Node{
-				Scheme: "http",
-				Host:   "127.0.0.1:8150",
-			}, 1)
-		}
+	watcher.AddListener(balancer.Name(), func(config *dynamic.Config) {
+		balancer.Update(true, &balance.Node{
+			Scheme: "http",
+			Host:   "127.0.0.1:8150",
+		}, 1)
 	})
 
-	pool.GoCtx(func(ctx context.Context) {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-			balancer.Update(true, &balance.Node{
-				Scheme: "http",
-				Host:   "127.0.0.1:8150",
-			}, 1)
-		}
-	})
 	switchHandler := selecthandler.New(ctx)
 
-	pool.GoCtx(func(ctx context.Context) {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-			switchHandler.Update("obs", balancer)
-		}
+	watcher.AddListener(switchHandler.Name(), func(config *dynamic.Config) {
+		switchHandler.Update("obs", balancer)
 	})
+
 	// 中间件组合
 	var (
 		handler http.Handler
@@ -75,7 +55,7 @@ func ChainBuilder(ctx context.Context, pool *safe.Pool) (http.Handler, error) {
 	handler = logger.New(ctx, handler)
 
 	// rate limit
-	handler = ratelimit.New(ctx, handler, &model.RateLimit{
+	handler = ratelimit.New(ctx, handler, &dynamic.RateLimit{
 		Every: 10 * time.Microsecond,
 		Burst: 1,
 	})

@@ -8,11 +8,12 @@ import (
 	"context"
 	"net"
 	"net/http"
+	"proxy-go/internal"
 	"strings"
 	"time"
 
 	"proxy-go/logger"
-	"proxy-go/model"
+	"proxy-go/middlewares"
 )
 
 type loggerHandler struct {
@@ -20,11 +21,15 @@ type loggerHandler struct {
 	next http.Handler
 }
 
-func New(ctx context.Context, next http.Handler) http.Handler {
+func New(ctx context.Context, next http.Handler) middlewares.MiddleWare {
 	return &loggerHandler{
 		ctx:  ctx,
 		next: next,
 	}
+}
+
+func (l *loggerHandler) Name() string {
+	return "Logger"
 }
 
 func (l *loggerHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
@@ -82,10 +87,10 @@ type LogFormatterParams struct {
 }
 
 func clientIp(request *http.Request) string {
-	clientIP := request.Header.Get(model.XForwardedFor)
+	clientIP := request.Header.Get(internal.XForwardedFor)
 	clientIP = strings.TrimSpace(strings.Split(clientIP, ",")[0])
 	if clientIP == "" {
-		clientIP = strings.TrimSpace(request.Header.Get(model.XRealIP))
+		clientIP = strings.TrimSpace(request.Header.Get(internal.XRealIP))
 	}
 	if clientIP != "" {
 		return clientIP

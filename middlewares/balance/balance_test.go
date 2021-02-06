@@ -6,6 +6,7 @@ package balance
 
 import (
 	"context"
+	"reflect"
 	"strconv"
 	"testing"
 )
@@ -65,4 +66,9 @@ func TestBalancer_Update(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestBalancer_Name(t *testing.T) {
+	b := New(nil, nil, nil)
+	t.Log(reflect.TypeOf(b))
 }

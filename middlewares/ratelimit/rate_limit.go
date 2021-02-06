@@ -8,13 +8,14 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"proxy-go/config/dynamic"
 	"time"
 
 	"golang.org/x/time/rate"
 
 	"proxy-go/internal"
 	"proxy-go/logger"
-	"proxy-go/model"
+	"proxy-go/middlewares"
 )
 
 type rateLimiter struct {
@@ -25,7 +26,7 @@ type rateLimiter struct {
 }
 
 // New returns a rate limiter middleware.
-func New(ctx context.Context, next http.Handler, limit *model.RateLimit) http.Handler {
+func New(ctx context.Context, next http.Handler, limit *dynamic.RateLimit) middlewares.MiddleWare {
 	rateLimiter := &rateLimiter{
 		next: next,
 		ctx:  ctx,
@@ -38,6 +39,10 @@ func New(ctx context.Context, next http.Handler, limit *model.RateLimit) http.Ha
 	}
 	rateLimiter.limiter = rate.NewLimiter(every, limit.Burst)
 	return rateLimiter
+}
+
+func (rl *rateLimiter) Name() string {
+	return "RateLimiter"
 }
 
 func (rl *rateLimiter) ServeHTTP(rw http.ResponseWriter, req *http.Request) {

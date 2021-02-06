@@ -2,7 +2,7 @@
 // Author: crochee
 // Date: 2021/2/4
 
-package model
+package internal
 
 const (
 	XForwardedProto             = "X-Forwarded-Proto"

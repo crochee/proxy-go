@@ -11,11 +11,10 @@ import (
 	"github.com/gin-gonic/gin/binding"
 
 	"proxy-go/api/response"
-	"proxy-go/model"
 )
 
 func UpdateHost(ctx *gin.Context) {
-	var replaceHost model.ReplaceHost
+	var replaceHost interface{}
 	if err := ctx.ShouldBindBodyWith(&replaceHost, binding.JSON); err != nil {
 		response.GinError(ctx, response.ErrorWith(http.StatusBadRequest, err))
 		return

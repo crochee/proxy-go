@@ -11,6 +11,7 @@ import (
 
 	"proxy-go/internal"
 	"proxy-go/logger"
+	"proxy-go/middlewares"
 )
 
 type recovery struct {
@@ -19,11 +20,15 @@ type recovery struct {
 }
 
 // New creates recovery middleware
-func New(ctx context.Context, next http.Handler) http.Handler {
+func New(ctx context.Context, next http.Handler) middlewares.MiddleWare {
 	return &recovery{
 		next: next,
 		ctx:  ctx,
 	}
+}
+
+func (re *recovery) Name() string {
+	return "Recovery"
 }
 
 func (re *recovery) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
