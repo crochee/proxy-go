@@ -4,8 +4,7 @@
 
 package dynamic
 
-import "proxy-go/middlewares/balance"
-
 type Config struct {
-	Balancer balance.Node
+	Balancer BalanceNode
+	Limit    RateLimit
 }

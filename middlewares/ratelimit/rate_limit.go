@@ -8,36 +8,42 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"proxy-go/config/dynamic"
+	"sync"
 	"time"
 
 	"golang.org/x/time/rate"
 
+	"proxy-go/config/dynamic"
 	"proxy-go/internal"
 	"proxy-go/logger"
-	"proxy-go/middlewares"
 )
 
 type rateLimiter struct {
-	limiter  *rate.Limiter // reqs/s
-	next     http.Handler
+	limiterMap *sync.Map
+	mux        sync.Mutex
+	next       http.Handler
+	ctx        context.Context
+
 	maxDelay time.Duration
-	ctx      context.Context
+	every    time.Duration
+	burst    int
 }
 
 // New returns a rate limiter middleware.
-func New(ctx context.Context, next http.Handler, limit *dynamic.RateLimit) middlewares.MiddleWare {
+func New(ctx context.Context, next http.Handler) *rateLimiter {
 	rateLimiter := &rateLimiter{
-		next: next,
-		ctx:  ctx,
+		limiterMap: new(sync.Map),
+		next:       next,
+		ctx:        ctx,
+		every:      10 * time.Microsecond,
+		burst:      1,
 	}
-	every := rate.Every(limit.Every)
+	every := rate.Every(rateLimiter.every)
 	if every < 1 {
 		rateLimiter.maxDelay = 500 * time.Millisecond
 	} else {
 		rateLimiter.maxDelay = time.Second / (time.Duration(every) * 2)
 	}
-	rateLimiter.limiter = rate.NewLimiter(every, limit.Burst)
 	return rateLimiter
 }
 
@@ -46,21 +52,9 @@ func (rl *rateLimiter) Name() string {
 }
 
 func (rl *rateLimiter) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	res := rl.limiter.Reserve()
-	if !res.OK() {
-		http.Error(rw, "No bursty traffic allowed", http.StatusTooManyRequests)
-		return
+	if rl.limit(rw, req) {
+		rl.next.ServeHTTP(rw, req)
 	}
-
-	delay := res.Delay()
-	if delay > rl.maxDelay {
-		res.Cancel()
-		rl.serveDelayError(rw, delay)
-		return
-	}
-
-	time.Sleep(delay)
-	rl.next.ServeHTTP(rw, req)
 }
 
 func (rl *rateLimiter) serveDelayError(w http.ResponseWriter, delay time.Duration) {
@@ -71,4 +65,47 @@ func (rl *rateLimiter) serveDelayError(w http.ResponseWriter, delay time.Duratio
 	if _, err := w.Write(internal.Bytes(internal.StatusText(http.StatusTooManyRequests))); err != nil {
 		logger.FromContext(rl.ctx).Errorf("could not serve 429: %v", err)
 	}
+}
+
+func (rl *rateLimiter) Update(limit dynamic.RateLimit) {
+	rl.mux.Lock()
+	rl.every = limit.Every
+	rl.burst = limit.Burst
+	rl.mux.Unlock()
+}
+
+func (rl *rateLimiter) limit(rw http.ResponseWriter, req *http.Request) bool {
+	var limiter *rate.Limiter
+	value, ok := rl.limiterMap.Load(req.RemoteAddr)
+	if !ok {
+		rl.mux.Lock()
+		every := rate.Every(rl.every)
+		if every < 1 {
+			rl.maxDelay = 500 * time.Millisecond
+		} else {
+			rl.maxDelay = time.Second / (time.Duration(every) * 2)
+		}
+		limiter = rate.NewLimiter(every, rl.burst)
+		rl.mux.Unlock()
+
+		rl.limiterMap.Store(req.RemoteAddr, limiter)
+	}
+	if limiter, ok = value.(*rate.Limiter); !ok {
+		time.Sleep(rl.maxDelay)
+	}
+
+	res := limiter.Reserve()
+	if !res.OK() {
+		http.Error(rw, "No bursty traffic allowed", http.StatusTooManyRequests)
+		return false
+	}
+
+	delay := res.Delay()
+	if delay > rl.maxDelay {
+		res.Cancel()
+		rl.serveDelayError(rw, delay)
+		return false
+	}
+	time.Sleep(delay)
+	return true
 }

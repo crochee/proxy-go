@@ -8,7 +8,6 @@ import (
 	"context"
 	"net/http"
 	"strings"
-	"time"
 
 	"proxy-go/config/dynamic"
 	"proxy-go/internal"
@@ -27,10 +26,11 @@ func ChainBuilder(ctx context.Context, watcher *server.Watcher) (http.Handler, e
 	balancer := balance.New(ctx, balance.NewRandom(), proxy)
 
 	watcher.AddListener(balancer.Name(), func(config *dynamic.Config) {
-		balancer.Update(true, &balance.Node{
-			Scheme: "http",
-			Host:   "127.0.0.1:8150",
-		}, 1)
+		balancer.Update(config.Balancer.Add, &balance.Node{
+			Scheme:   config.Balancer.Scheme,
+			Host:     config.Balancer.Host,
+			Metadata: config.Balancer.Metadata,
+		}, config.Balancer.Weight)
 	})
 
 	switchHandler := selecthandler.New(ctx)
@@ -55,11 +55,13 @@ func ChainBuilder(ctx context.Context, watcher *server.Watcher) (http.Handler, e
 	handler = logger.New(ctx, handler)
 
 	// rate limit
-	handler = ratelimit.New(ctx, handler, &dynamic.RateLimit{
-		Every: 10 * time.Microsecond,
-		Burst: 1,
+	limit := ratelimit.New(ctx, handler)
+
+	watcher.AddListener(limit.Name(), func(config *dynamic.Config) {
+		limit.Update(config.Limit)
 	})
-	return handler, nil
+
+	return limit, nil
 }
 
 const ProxyPrefix = "proxy"

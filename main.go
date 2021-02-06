@@ -29,11 +29,13 @@ func main() {
 	ctx = server.ContextWithSignal(ctx)
 	pool := safe.NewPool(ctx)
 
-	handler, err := router.ChainBuilder(ctx, pool)
+	watcher := server.NewWatcher(ctx, pool)
+
+	handler, err := router.ChainBuilder(ctx, watcher)
 	if err != nil {
 		logger.FromContext(ctx).Fatalf("build route failed.Error:%v", err)
 	}
-	srv := server.NewServer(ctx, pool, config.Cfg, handler)
+	srv := server.NewServer(ctx, config.Cfg, handler, watcher)
 
 	srv.Start()
 	defer srv.Close()

@@ -215,7 +215,8 @@ func (h *Heap) Next() (*Node, error) {
 	if !ok {
 		return nil, ErrNoneAvailable
 	}
-	// curDeadline should be handler's deadline so that new added entry would have a fair competition environment with the old ones.
+	// curDeadline should be handler's deadline so that
+	// new added entry would have a fair competition environment with the old ones.
 	h.curDeadline = handler.deadline
 	handler.deadline += 1 / handler.weight
 	heap.Push(h, handler)
