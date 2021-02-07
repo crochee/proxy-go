@@ -5,9 +5,10 @@
 package dynamic
 
 type BalanceNode struct {
-	Add      bool              `json:"add"`
-	Scheme   string            `json:"scheme"`
-	Host     string            `json:"host"`
-	Metadata map[string]string `json:"metadata"`
-	Weight   float64           `json:"weight"`
+	ServiceName string            `json:"service_name"`
+	Add         bool              `json:"add"`
+	Scheme      string            `json:"scheme"`
+	Host        string            `json:"host"`
+	Metadata    map[string]string `json:"metadata"`
+	Weight      float64           `json:"weight"`
 }

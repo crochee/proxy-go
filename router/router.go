@@ -23,20 +23,25 @@ import (
 func ChainBuilder(ctx context.Context, watcher *server.Watcher) (http.Handler, error) {
 	proxy := service.NewProxyBuilder(ctx)
 
-	balancer := balance.New(ctx, balance.NewRandom(), proxy)
+	switchHandler := selecthandler.New(ctx)
 
-	watcher.AddListener(balancer.Name(), func(config *dynamic.Config) {
+	watcher.AddListener(switchHandler.Name(), func(config *dynamic.Config) {
+		var balancer *balance.Balancer
+		handler, ok := switchHandler.Load(config.Balancer.ServiceName)
+		if !ok {
+			balancer = balance.New(ctx, balance.NewRandom(), proxy)
+			switchHandler.Store(config.Balancer.ServiceName, balancer)
+		} else {
+			if balancer, ok = handler.(*balance.Balancer); !ok {
+				switchHandler.Delete(config.Balancer.ServiceName)
+				return
+			}
+		}
 		balancer.Update(config.Balancer.Add, &balance.Node{
 			Scheme:   config.Balancer.Scheme,
 			Host:     config.Balancer.Host,
 			Metadata: config.Balancer.Metadata,
 		}, config.Balancer.Weight)
-	})
-
-	switchHandler := selecthandler.New(ctx)
-
-	watcher.AddListener(switchHandler.Name(), func(config *dynamic.Config) {
-		switchHandler.Update("obs", balancer)
 	})
 
 	// 中间件组合

@@ -51,6 +51,15 @@ func (s *SwitchHandler) ServeHTTP(writer http.ResponseWriter, request *http.Requ
 	http.Error(writer, internal.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
 }
 
-func (s *SwitchHandler) Update(name string, handler http.Handler) {
+func (s *SwitchHandler) Store(name string, handler http.Handler) {
 	s.cache.Store(name, handler)
+}
+
+func (s *SwitchHandler) Load(serviceName string) (http.Handler, bool) {
+	value, ok := s.cache.Load(serviceName)
+	return value.(http.Handler), ok
+}
+
+func (s *SwitchHandler) Delete(serviceName string) {
+	s.cache.Delete(serviceName)
 }
