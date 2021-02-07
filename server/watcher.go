@@ -33,7 +33,7 @@ func NewWatcher(ctx context.Context, pool *safe.Pool) *Watcher {
 	}
 }
 
-type DynamicFunc func(config *dynamic.Config)
+type DynamicFunc func(*dynamic.Config)
 
 func (w *Watcher) Start() {
 	for {
@@ -52,7 +52,7 @@ func (w *Watcher) Start() {
 			if !ok {
 				continue
 			}
-			w.pool.GoCtx(func(ctx context.Context) {
+			w.pool.Go(func(ctx context.Context) {
 				dynamicFunc(message.content)
 			})
 		}

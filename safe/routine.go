@@ -39,6 +39,21 @@ func (p *Pool) GoCtx(goroutine routineCtx) {
 	})
 }
 
+// Go starts a recoverable goroutine with a context.
+func (p *Pool) Go(goroutine routineCtx) {
+	p.waitGroup.Add(1)
+	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				logger.FromContext(p.ctx).Errorf("Error in Go routine: %v", err)
+				logger.FromContext(p.ctx).Errorf("Stack: %s", debug.Stack())
+			}
+			p.waitGroup.Done()
+		}()
+		goroutine(p.ctx)
+	}()
+}
+
 // Stop stops all started routines, waiting for their termination.
 func (p *Pool) Stop() {
 	p.cancel()

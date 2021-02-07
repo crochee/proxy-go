@@ -19,10 +19,10 @@ import (
 )
 
 type rateLimiter struct {
-	limiterMap *sync.Map
-	mux        sync.Mutex
-	next       http.Handler
-	ctx        context.Context
+	limiter *rate.Limiter
+	mux     sync.Mutex
+	next    http.Handler
+	ctx     context.Context
 
 	maxDelay time.Duration
 	every    time.Duration
@@ -32,11 +32,10 @@ type rateLimiter struct {
 // New returns a rate limiter middleware.
 func New(ctx context.Context, next http.Handler) *rateLimiter {
 	rateLimiter := &rateLimiter{
-		limiterMap: new(sync.Map),
-		next:       next,
-		ctx:        ctx,
-		every:      10 * time.Microsecond,
-		burst:      1,
+		next:  next,
+		ctx:   ctx,
+		every: 10 * time.Microsecond,
+		burst: 1,
 	}
 	every := rate.Every(rateLimiter.every)
 	if every < 1 {
@@ -44,6 +43,8 @@ func New(ctx context.Context, next http.Handler) *rateLimiter {
 	} else {
 		rateLimiter.maxDelay = time.Second / (time.Duration(every) * 2)
 	}
+	rateLimiter.limiter = rate.NewLimiter(every, rateLimiter.burst)
+
 	return rateLimiter
 }
 
@@ -52,9 +53,21 @@ func (rl *rateLimiter) Name() string {
 }
 
 func (rl *rateLimiter) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	if rl.limit(rw, req) {
-		rl.next.ServeHTTP(rw, req)
+	res := rl.limiter.Reserve()
+	if !res.OK() {
+		http.Error(rw, "No bursty traffic allowed", http.StatusTooManyRequests)
+		return
 	}
+
+	delay := res.Delay()
+	if delay > rl.maxDelay {
+		res.Cancel()
+		rl.serveDelayError(rw, delay)
+		return
+	}
+	time.Sleep(delay)
+
+	rl.next.ServeHTTP(rw, req)
 }
 
 func (rl *rateLimiter) serveDelayError(w http.ResponseWriter, delay time.Duration) {
@@ -69,43 +82,16 @@ func (rl *rateLimiter) serveDelayError(w http.ResponseWriter, delay time.Duratio
 
 func (rl *rateLimiter) Update(limit dynamic.RateLimit) {
 	rl.mux.Lock()
-	rl.every = limit.Every
-	rl.burst = limit.Burst
-	rl.mux.Unlock()
-}
+	if rl.every != limit.Every || rl.burst != limit.Burst {
+		rl.every, rl.burst = limit.Every, limit.Burst
 
-func (rl *rateLimiter) limit(rw http.ResponseWriter, req *http.Request) bool {
-	var limiter *rate.Limiter
-	value, ok := rl.limiterMap.Load(req.RemoteAddr)
-	if !ok {
-		rl.mux.Lock()
 		every := rate.Every(rl.every)
 		if every < 1 {
 			rl.maxDelay = 500 * time.Millisecond
 		} else {
 			rl.maxDelay = time.Second / (time.Duration(every) * 2)
 		}
-		limiter = rate.NewLimiter(every, rl.burst)
-		rl.mux.Unlock()
-
-		rl.limiterMap.Store(req.RemoteAddr, limiter)
+		rl.limiter = rate.NewLimiter(every, rl.burst)
 	}
-	if limiter, ok = value.(*rate.Limiter); !ok {
-		time.Sleep(rl.maxDelay)
-	}
-
-	res := limiter.Reserve()
-	if !res.OK() {
-		http.Error(rw, "No bursty traffic allowed", http.StatusTooManyRequests)
-		return false
-	}
-
-	delay := res.Delay()
-	if delay > rl.maxDelay {
-		res.Cancel()
-		rl.serveDelayError(rw, delay)
-		return false
-	}
-	time.Sleep(delay)
-	return true
+	rl.mux.Unlock()
 }

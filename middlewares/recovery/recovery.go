@@ -20,7 +20,7 @@ type recovery struct {
 }
 
 // New creates recovery middleware
-func New(ctx context.Context, next http.Handler) middlewares.MiddleWare {
+func New(ctx context.Context, next http.Handler) middlewares.Handler {
 	return &recovery{
 		next: next,
 		ctx:  ctx,

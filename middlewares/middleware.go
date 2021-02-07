@@ -6,7 +6,7 @@ package middlewares
 
 import "net/http"
 
-type MiddleWare interface {
+type Handler interface {
 	Name() string
 	http.Handler
 }

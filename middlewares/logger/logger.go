@@ -8,10 +8,10 @@ import (
 	"context"
 	"net"
 	"net/http"
-	"proxy-go/internal"
 	"strings"
 	"time"
 
+	"proxy-go/internal"
 	"proxy-go/logger"
 	"proxy-go/middlewares"
 )
@@ -21,7 +21,7 @@ type loggerHandler struct {
 	next http.Handler
 }
 
-func New(ctx context.Context, next http.Handler) middlewares.MiddleWare {
+func New(ctx context.Context, next http.Handler) middlewares.Handler {
 	return &loggerHandler{
 		ctx:  ctx,
 		next: next,
