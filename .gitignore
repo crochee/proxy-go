@@ -3,3 +3,4 @@ log
 go.sum
 proxy-go.exe
 golangci-lint.json
+proxy.exe
