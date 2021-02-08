@@ -23,7 +23,7 @@ import (
 // @Tags middleware
 // @Accept application/json
 // @Produce  application/json
-// @Param request body model.Switch true "switch config"
+// @Param request body dynamic.Switch true "switch config"
 // @Success 200
 // @Failure 400 {object} response.Response
 // @Failure 500 {object} response.Response
@@ -59,7 +59,7 @@ func UpdateSwitch(ctx *gin.Context) {
 // @Tags middleware
 // @Accept application/json
 // @Produce  application/json
-// @Param request body model.RateLimit true "rate limit config"
+// @Param request body dynamic.RateLimit true "rate limit config"
 // @Success 200
 // @Failure 400 {object} response.Response
 // @Failure 500 {object} response.Response
