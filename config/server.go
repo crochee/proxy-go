@@ -5,8 +5,9 @@
 package config
 
 import (
-	"proxy-go/ptls"
 	"time"
+
+	"proxy-go/ptls"
 )
 
 type Medata struct {
