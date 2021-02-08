@@ -7,8 +7,10 @@ package main
 import (
 	"context"
 	"os"
+	"runtime/pprof"
 	"strings"
 
+	"github.com/gin-gonic/gin"
 	"proxy-go/config"
 	"proxy-go/logger"
 	"proxy-go/router"
@@ -36,6 +38,20 @@ func main() {
 		logger.FromContext(ctx).Fatalf("build route failed.Error:%v", err)
 	}
 	srv := server.NewServer(ctx, config.Cfg, handler, server.GlobalWatcher)
+
+	if gin.Mode() == gin.DebugMode {
+		fCpu, err := os.Create("./test/cpu.prof")
+		if err != nil {
+			logger.FromContext(ctx).Errorf("create cpu prof failed.Error:%v", err)
+			return
+		}
+		defer fCpu.Close()
+		if err = pprof.StartCPUProfile(fCpu); err != nil {
+			logger.FromContext(ctx).Errorf("start cpu performance failed.Error:%v", err)
+			return
+		}
+		defer pprof.StopCPUProfile()
+	}
 
 	srv.Start()
 	defer srv.Close()
