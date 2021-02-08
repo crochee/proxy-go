@@ -5,17 +5,17 @@
 package config
 
 import (
-	"time"
-
 	"proxy-go/ptls"
+	"time"
 )
 
 type Medata struct {
-	Name         string        `json:"name,omitempty" yaml:"name,omitempty"`
-	Scheme       string        `json:"scheme,omitempty" yaml:"scheme,omitempty"`
-	Port         int           `json:"port,omitempty" yaml:"port,omitempty"`
 	Tls          *TlsConfig    `json:"tls,omitempty" yaml:"tls,omitempty"`
 	GraceTimeOut time.Duration `json:"grace_time_out,omitempty" yaml:"grace_time_out,omitempty"`
+
+	Name   string `json:"name,omitempty" yaml:"name,omitempty"`
+	Scheme string `json:"scheme,omitempty" yaml:"scheme,omitempty"`
+	Port   int    `json:"port,omitempty" yaml:"port,omitempty"`
 }
 
 type TlsConfig struct {

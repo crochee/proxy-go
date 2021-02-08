@@ -12,13 +12,19 @@ import (
 
 	"proxy-go/api/response"
 	"proxy-go/config/dynamic"
+	"proxy-go/logger"
 	"proxy-go/middlewares"
 	"proxy-go/server"
 )
 
 func UpdateSwitch(ctx *gin.Context) {
-	var dynamicSwitch dynamic.Switch
-	if err := ctx.ShouldBindBodyWith(&dynamicSwitch, binding.JSON); err != nil {
+	dynamicSwitch := &dynamic.Switch{
+		Node: dynamic.BalanceNode{
+			Scheme: "http", // 默认值 http
+			Weight: 1.0,    // 1.0
+		},
+	}
+	if err := ctx.ShouldBindBodyWith(dynamicSwitch, binding.JSON); err != nil {
 		response.GinError(ctx, response.ErrorWith(http.StatusBadRequest, err))
 		return
 	}
@@ -26,10 +32,11 @@ func UpdateSwitch(ctx *gin.Context) {
 		response.ErrorWithMessage(ctx, "please check server")
 		return
 	}
+	logger.Debugf("%+v", dynamicSwitch)
 	server.GlobalWatcher.Entry() <- &server.Message{
 		Name: middlewares.Switcher,
 		Content: &dynamic.Config{
-			Switcher: &dynamicSwitch,
+			Switcher: dynamicSwitch,
 		},
 	}
 	ctx.Status(http.StatusOK)

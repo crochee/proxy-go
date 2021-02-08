@@ -1,2 +1,2 @@
 @echo off
-go build ./cmd/proxy
+go build -tags=jsoniter ./cmd/proxy

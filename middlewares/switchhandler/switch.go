@@ -58,7 +58,10 @@ func (s *SwitchHandler) Store(name string, handler http.Handler) {
 
 func (s *SwitchHandler) Load(serviceName string) (http.Handler, bool) {
 	value, ok := s.cache.Load(serviceName)
-	return value.(http.Handler), ok
+	if !ok {
+		return nil, false
+	}
+	return value.(http.Handler), true
 }
 
 func (s *SwitchHandler) Delete(serviceName string) {
