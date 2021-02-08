@@ -121,7 +121,11 @@ func (s *Server) listen(m *config.Medata) {
 		log.Error(err.Error())
 		return
 	}
-	srv := &http.Server{Handler: s.handler}
+	srv := &http.Server{
+		Handler: s.handler,
+		BaseContext: func(listener net.Listener) context.Context {
+			return s.ctx
+		}}
 	switch m.Scheme {
 	case "http":
 		log.Infof("http server medata:%+v running...", m)

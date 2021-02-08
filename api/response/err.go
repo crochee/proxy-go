@@ -37,12 +37,11 @@ func Error(code interface{}, message string) *ProxyError {
 }
 
 // ErrorWiths according to the given message and error structure returns an ProxyError
-func ErrorWiths(code interface{}, err error, message string) *ProxyError {
+func ErrorWiths(code interface{}, message string, err error) *ProxyError {
 	buffer := internal.GetBuffer()
-	buffer.AppendString("error:")
-	buffer.AppendString(err.Error())
-	buffer.AppendString(",message:")
 	buffer.AppendString(message)
+	buffer.AppendString(".Error:")
+	buffer.AppendString(err.Error())
 	message = buffer.String()
 	buffer.Free()
 	return &ProxyError{

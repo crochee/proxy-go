@@ -18,14 +18,6 @@ import (
 // @version 1.0
 // @description This is a obs server.
 
-// @securityDefinitions.apikey ApiKeyAuth
-// @in header
-// @name ak
-
-// @securityDefinitions.apikey ApiKeyAuth
-// @in header
-// @name sk
-
 // NewGinEngine gin router
 func NewGinEngine() *gin.Engine {
 	router := gin.New()
@@ -40,10 +32,20 @@ func NewGinEngine() *gin.Engine {
 		pprof.Register(router)
 	}
 
-	routerV1 := router.Group("/api/v1")
+	prof := router.Group("/debug/pprof")
 	{
-		routerV1.POST("/switch", api.UpdateSwitch)
-		routerV1.PUT("/limit", api.UpdateRateLimit)
+		prof.GET("/index", api.Index)
+		prof.GET("/profile", api.Profile)
+		prof.GET("/trace", api.Trace)
+		prof.GET("/heap", api.Heap)
+	}
+
+	routerV1 := router.Group("/api/v1")
+
+	mid := routerV1.Group("/mid")
+	{
+		mid.POST("/switch", api.UpdateSwitch)
+		mid.PUT("/limit", api.UpdateRateLimit)
 	}
 
 	return router

@@ -18,3 +18,8 @@ func StatusText(statusCode int) string {
 	}
 	return http.StatusText(statusCode)
 }
+
+var (
+	JsonContentType      = "application/json; charset=utf-8"
+	JsonAsciiContentType = "application/json"
+)
