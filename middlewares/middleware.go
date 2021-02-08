@@ -10,3 +10,11 @@ type Handler interface {
 	Name() string
 	http.Handler
 }
+
+var (
+	LoadBalancer = "LoadBalancer"
+	Logger       = "Logger"
+	RateLimiter  = "RateLimiter"
+	Recovery     = "Recovery"
+	Switcher     = "Switcher"
+)

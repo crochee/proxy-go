@@ -29,7 +29,7 @@ func New(ctx context.Context, next http.Handler) middlewares.Handler {
 }
 
 func (l *loggerHandler) Name() string {
-	return "Logger"
+	return middlewares.Logger
 }
 
 func (l *loggerHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {

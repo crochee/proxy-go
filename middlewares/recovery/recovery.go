@@ -28,7 +28,7 @@ func New(ctx context.Context, next http.Handler) middlewares.Handler {
 }
 
 func (re *recovery) Name() string {
-	return "Recovery"
+	return middlewares.Recovery
 }
 
 func (re *recovery) ServeHTTP(rw http.ResponseWriter, req *http.Request) {

@@ -13,6 +13,7 @@ import (
 
 	"proxy-go/internal"
 	"proxy-go/logger"
+	"proxy-go/middlewares"
 )
 
 type Balancer struct {
@@ -36,7 +37,7 @@ func New(ctx context.Context, selector Selector, next http.Handler) *Balancer {
 }
 
 func (b *Balancer) Name() string {
-	return "LoadBalancer"
+	return middlewares.LoadBalancer
 }
 
 func (b *Balancer) ServeHTTP(writer http.ResponseWriter, request *http.Request) {

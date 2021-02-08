@@ -2,7 +2,7 @@
 // Author: crochee
 // Date: 2021/1/31
 
-package selecthandler
+package switchhandler
 
 import (
 	"context"
@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"proxy-go/internal"
+	"proxy-go/middlewares"
 )
 
 // SwitchHandler is a middleware used to switch handler.
@@ -28,7 +29,7 @@ func New(ctx context.Context) *SwitchHandler {
 }
 
 func (s *SwitchHandler) Name() string {
-	return "Switcher"
+	return middlewares.Switcher
 }
 
 func (s *SwitchHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {

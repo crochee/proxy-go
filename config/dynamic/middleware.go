@@ -5,6 +5,6 @@
 package dynamic
 
 type Config struct {
-	Balancer BalanceNode
-	Limit    RateLimit
+	Switcher *Switch    `json:"switcher"`
+	Limit    *RateLimit `json:"limit"`
 }

@@ -14,7 +14,7 @@ import (
 
 type Message struct {
 	Name    string
-	content *dynamic.Config
+	Content *dynamic.Config
 }
 
 type Watcher struct {
@@ -23,6 +23,8 @@ type Watcher struct {
 	storeMap *sync.Map //map[string]DynamicFunc
 	message  chan *Message
 }
+
+var GlobalWatcher *Watcher
 
 func NewWatcher(ctx context.Context, pool *safe.Pool) *Watcher {
 	return &Watcher{
@@ -53,7 +55,7 @@ func (w *Watcher) Start() {
 				continue
 			}
 			w.pool.Go(func(ctx context.Context) {
-				dynamicFunc(message.content)
+				dynamicFunc(message.Content)
 			})
 		}
 	}
@@ -63,7 +65,7 @@ func (w *Watcher) AddListener(name string, function DynamicFunc) {
 	w.storeMap.Store(name, function)
 }
 
-func (w *Watcher) Entry() <-chan *Message {
+func (w *Watcher) Entry() chan<- *Message {
 	return w.message
 }
 

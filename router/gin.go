@@ -40,7 +40,11 @@ func NewGinEngine() *gin.Engine {
 		pprof.Register(router)
 	}
 
-	router.PUT("/api/v1/host", api.UpdateHost)
+	routerV1 := router.Group("/api/v1")
+	{
+		routerV1.POST("/switch", api.UpdateSwitch)
+		routerV1.PUT("/limit", api.UpdateRateLimit)
+	}
 
 	return router
 }

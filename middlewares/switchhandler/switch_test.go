@@ -2,7 +2,7 @@
 // Author: crochee
 // Date: 2021/1/31
 
-package selecthandler
+package switchhandler
 
 import (
 	"strings"

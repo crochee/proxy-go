@@ -16,6 +16,7 @@ import (
 	"proxy-go/config/dynamic"
 	"proxy-go/internal"
 	"proxy-go/logger"
+	"proxy-go/middlewares"
 )
 
 type rateLimiter struct {
@@ -49,7 +50,7 @@ func New(ctx context.Context, next http.Handler) *rateLimiter {
 }
 
 func (rl *rateLimiter) Name() string {
-	return "RateLimiter"
+	return middlewares.RateLimiter
 }
 
 func (rl *rateLimiter) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
@@ -80,7 +81,7 @@ func (rl *rateLimiter) serveDelayError(w http.ResponseWriter, delay time.Duratio
 	}
 }
 
-func (rl *rateLimiter) Update(limit dynamic.RateLimit) {
+func (rl *rateLimiter) Update(limit *dynamic.RateLimit) {
 	rl.mux.Lock()
 	if rl.every != limit.Every || rl.burst != limit.Burst {
 		rl.every, rl.burst = limit.Every, limit.Burst

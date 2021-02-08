@@ -15,7 +15,7 @@ import (
 	"proxy-go/middlewares/logger"
 	"proxy-go/middlewares/ratelimit"
 	"proxy-go/middlewares/recovery"
-	"proxy-go/middlewares/selecthandler"
+	"proxy-go/middlewares/switchhandler"
 	"proxy-go/server"
 	"proxy-go/service"
 )
@@ -23,25 +23,29 @@ import (
 func ChainBuilder(ctx context.Context, watcher *server.Watcher) (http.Handler, error) {
 	proxy := service.NewProxyBuilder(ctx)
 
-	switchHandler := selecthandler.New(ctx)
+	switchHandler := switchhandler.New(ctx)
 
 	watcher.AddListener(switchHandler.Name(), func(config *dynamic.Config) {
+		if !config.Switcher.Add {
+			switchHandler.Delete(config.Switcher.ServiceName)
+			return
+		}
 		var balancer *balance.Balancer
-		handler, ok := switchHandler.Load(config.Balancer.ServiceName)
+		handler, ok := switchHandler.Load(config.Switcher.ServiceName)
 		if !ok {
 			balancer = balance.New(ctx, balance.NewRandom(), proxy)
-			switchHandler.Store(config.Balancer.ServiceName, balancer)
+			switchHandler.Store(config.Switcher.ServiceName, balancer)
 		} else {
 			if balancer, ok = handler.(*balance.Balancer); !ok {
-				switchHandler.Delete(config.Balancer.ServiceName)
+				switchHandler.Delete(config.Switcher.ServiceName)
 				return
 			}
 		}
-		balancer.Update(config.Balancer.Add, &balance.Node{
-			Scheme:   config.Balancer.Scheme,
-			Host:     config.Balancer.Host,
-			Metadata: config.Balancer.Metadata,
-		}, config.Balancer.Weight)
+		balancer.Update(config.Switcher.Node.Add, &balance.Node{
+			Scheme:   config.Switcher.Node.Scheme,
+			Host:     config.Switcher.Node.Host,
+			Metadata: config.Switcher.Node.Metadata,
+		}, config.Switcher.Node.Weight)
 	})
 
 	// 中间件组合
