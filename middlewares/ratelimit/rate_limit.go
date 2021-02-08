@@ -35,8 +35,8 @@ func New(ctx context.Context, next http.Handler) *rateLimiter {
 	rateLimiter := &rateLimiter{
 		next:  next,
 		ctx:   ctx,
-		every: 10 * time.Microsecond,
-		burst: 1,
+		every: 100 * time.Microsecond,
+		burst: 1000 * 1000 * 1000,
 	}
 	every := rate.Every(rateLimiter.every)
 	if every < 1 {
