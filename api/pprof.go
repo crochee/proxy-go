@@ -7,6 +7,7 @@ package api
 import (
 	"html/template"
 	"net/http"
+	"proxy-go/logger"
 	"runtime"
 	"runtime/pprof"
 	"runtime/trace"
@@ -79,6 +80,7 @@ Profile Descriptions:
 func Index(ctx *gin.Context) {
 	ctx.Writer.Header().Set("X-Content-Type-Options", "nosniff")
 
+	logger.FromContext(ctx.Request.Context()).Debug("start index")
 	type profile struct {
 		Name  string
 		Href  string
@@ -144,7 +146,7 @@ func Profile(ctx *gin.Context) {
 	// Set Content Type assuming StartCPUProfile will work,
 	// because if it does it starts writing.
 	ctx.Writer.Header().Set("Content-Type", "application/octet-stream")
-	ctx.Writer.Header().Set("Content-Disposition", `attachment; filename="profile"`)
+	ctx.Writer.Header().Set("Content-Disposition", `attachment; filename="cpu.prof"`)
 	if err := pprof.StartCPUProfile(ctx.Writer); err != nil {
 		// StartCPUProfile failed, so no writes yet.
 		ctx.Writer.Header().Del("Content-Type")
@@ -184,7 +186,7 @@ func Trace(ctx *gin.Context) {
 	// Set Content Type assuming trace.Start will work,
 	// because if it does it starts writing.
 	ctx.Writer.Header().Set("Content-Type", "application/octet-stream")
-	ctx.Writer.Header().Set("Content-Disposition", `attachment; filename="trace"`)
+	ctx.Writer.Header().Set("Content-Disposition", `attachment; filename="trace.prof"`)
 	if err := trace.Start(ctx.Writer); err != nil {
 		// trace.Start failed, so no writes yet.
 		ctx.Writer.Header().Del("Content-Type")
@@ -217,7 +219,7 @@ func Heap(ctx *gin.Context) {
 		ctx.Writer.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	} else {
 		ctx.Writer.Header().Set("Content-Type", "application/octet-stream")
-		ctx.Writer.Header().Set("Content-Disposition", `attachment; filename="heap"`)
+		ctx.Writer.Header().Set("Content-Disposition", `attachment; filename="mem.prof"`)
 	}
 	runtime.GC() // get up-to-date statistics
 	if err := pprof.WriteHeapProfile(ctx.Writer); err != nil {
