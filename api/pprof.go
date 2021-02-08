@@ -42,6 +42,8 @@ var indexTmpl = template.Must(template.New("index").Parse(`<html>
 </head>
 <body>
 /debug/pprof/<br>
+<div>example:</div>
+<div>go tool pprof cpu.prof</div>
 <br>
 Types of profiles available:
 <table>
