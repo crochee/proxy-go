@@ -13,7 +13,6 @@ import (
 	"proxy-go/internal"
 	"proxy-go/middlewares/balance"
 	"proxy-go/middlewares/logger"
-	"proxy-go/middlewares/ratelimit"
 	"proxy-go/middlewares/recovery"
 	"proxy-go/middlewares/switchhandler"
 	"proxy-go/server"
@@ -33,7 +32,7 @@ func ChainBuilder(ctx context.Context, watcher *server.Watcher) (http.Handler, e
 		var balancer *balance.Balancer
 		handler, ok := switchHandler.Load(config.Switcher.ServiceName)
 		if !ok {
-			balancer = balance.New(ctx, balance.NewRandom(), proxy)
+			balancer = balance.New(ctx, balance.NewRoundRobin(), proxy)
 			switchHandler.Store(config.Switcher.ServiceName, balancer)
 		} else {
 			if balancer, ok = handler.(*balance.Balancer); !ok {
@@ -64,13 +63,13 @@ func ChainBuilder(ctx context.Context, watcher *server.Watcher) (http.Handler, e
 	handler = logger.New(ctx, handler)
 
 	// rate limit
-	limit := ratelimit.New(ctx, handler)
+	//limit := ratelimit.New(ctx, handler)
+	//
+	//watcher.AddListener(limit.Name(), func(config *dynamic.Config) {
+	//	limit.Update(config.Limit)
+	//})
 
-	watcher.AddListener(limit.Name(), func(config *dynamic.Config) {
-		limit.Update(config.Limit)
-	})
-
-	return limit, nil
+	return handler, nil
 }
 
 const ProxyPrefix = "proxy"
