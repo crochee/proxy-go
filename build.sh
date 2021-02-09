@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!bin/bash
 set -ex
 
 go build -tags=jsoniter ./cmd/proxy
