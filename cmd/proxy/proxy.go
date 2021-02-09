@@ -79,7 +79,7 @@ func run(c *cli.Context) error {
 		logger.Level(strings.ToUpper(c.String("log-level"))),
 		logger.LogPath(c.String("log-path")),
 	)
-	path := c.String("config-path")
+	path := c.String("config")
 	if path == "" {
 		path = "./conf/config.yml"
 	}
