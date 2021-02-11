@@ -72,8 +72,7 @@ func ListSwitch(ctx *gin.Context) {
 		return
 	}
 	server.GlobalWatcher.Entry() <- &server.Message{
-		Name:    middlewares.CompleteAction(middlewares.Switcher, middlewares.List),
-		Content: &dynamic.Config{},
+		Name: middlewares.CompleteAction(middlewares.Switcher, middlewares.List),
 	}
 	tc := internal.AcquireTimer(30 * time.Second)
 	var (
@@ -82,6 +81,8 @@ func ListSwitch(ctx *gin.Context) {
 		ok   bool
 	)
 	select {
+	case <-ctx.Request.Context().Done():
+		err = ctx.Request.Context().Err()
 	case resp, ok = <-server.GlobalWatcher.Out():
 		if !ok {
 			err = errors.New("chan is closed")

@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"proxy-go/config/dynamic"
+	"proxy-go/logger"
 	"proxy-go/safe"
 )
 
@@ -32,6 +33,7 @@ func NewWatcher(ctx context.Context, pool *safe.Pool) *Watcher {
 		ctx:      ctx,
 		pool:     pool,
 		storeMap: new(sync.Map),
+		message:  make(chan *Message, 100),
 		response: make(chan interface{}, 100),
 	}
 }
@@ -56,7 +58,12 @@ func (w *Watcher) Start() {
 				continue
 			}
 			w.pool.Go(func(ctx context.Context) {
-				dynamicFunc(message.Content, w.response)
+				select {
+				case <-ctx.Done():
+				default:
+					logger.FromContext(ctx).Debugf("message:%+v", message)
+					dynamicFunc(message.Content, w.response)
+				}
 			})
 		}
 	}
@@ -67,9 +74,6 @@ func (w *Watcher) AddListener(name string, function DynamicFunc) {
 }
 
 func (w *Watcher) Entry() chan<- *Message {
-	if w.message == nil {
-		w.message = make(chan *Message, 100)
-	}
 	return w.message
 }
 
