@@ -11,8 +11,10 @@ import (
 
 	"proxy-go/config/dynamic"
 	"proxy-go/internal"
+	"proxy-go/middlewares"
 	"proxy-go/middlewares/balance"
 	"proxy-go/middlewares/logger"
+	"proxy-go/middlewares/ratelimit"
 	"proxy-go/middlewares/recovery"
 	"proxy-go/middlewares/switchhandler"
 	"proxy-go/server"
@@ -24,28 +26,67 @@ func ChainBuilder(ctx context.Context, watcher *server.Watcher) (http.Handler, e
 
 	switchHandler := switchhandler.New(ctx)
 
-	watcher.AddListener(switchHandler.Name(), func(config *dynamic.Config) {
-		if !config.Switcher.Add {
-			switchHandler.Delete(config.Switcher.ServiceName)
-			return
-		}
-		var balancer *balance.Balancer
-		handler, ok := switchHandler.Load(config.Switcher.ServiceName)
-		if !ok {
-			balancer = balance.New(ctx, balance.NewRoundRobin(), proxy)
-			switchHandler.Store(config.Switcher.ServiceName, balancer)
-		} else {
-			if balancer, ok = handler.(*balance.Balancer); !ok {
+	watcher.AddListener(
+		middlewares.CompleteAction(switchHandler.Name(), middlewares.Update),
+		func(config *dynamic.Config, _ chan<- interface{}) {
+			if !config.Switcher.Add {
 				switchHandler.Delete(config.Switcher.ServiceName)
 				return
 			}
-		}
-		balancer.Update(config.Switcher.Node.Add, &balance.Node{
-			Scheme:   config.Switcher.Node.Scheme,
-			Host:     config.Switcher.Node.Host,
-			Metadata: config.Switcher.Node.Metadata,
-		}, config.Switcher.Node.Weight)
-	})
+			var balancer *balance.Balancer
+			handler, ok := switchHandler.Load(config.Switcher.ServiceName)
+			if !ok {
+				balancer = balance.New(ctx, balance.NewRoundRobin(), proxy)
+				switchHandler.Store(config.Switcher.ServiceName, balancer)
+			} else {
+				if balancer, ok = handler.(*balance.Balancer); !ok {
+					switchHandler.Delete(config.Switcher.ServiceName)
+					return
+				}
+			}
+			balancer.Update(config.Switcher.Node.Add, &balance.Node{
+				Scheme:   config.Switcher.Node.Scheme,
+				Host:     config.Switcher.Node.Host,
+				Metadata: config.Switcher.Node.Metadata,
+				Weight:   config.Switcher.Node.Weight,
+			})
+		})
+
+	watcher.AddListener(
+		middlewares.CompleteAction(switchHandler.Name(), middlewares.List),
+		func(config *dynamic.Config, response chan<- interface{}) {
+			list := make([]*dynamic.Switch, 0, 4)
+			switchHandler.Range(func(key, value interface{}) bool {
+				keyStr, ok := key.(string)
+				if !ok {
+					return true
+				}
+				var node *balance.Balancer
+				if node, ok = value.(*balance.Balancer); !ok {
+					return true
+				}
+				nodeList := node.NodeList()
+				if len(nodeList) == 0 {
+					list = append(list, &dynamic.Switch{
+						ServiceName: keyStr,
+					})
+					return true
+				}
+				for _, nodeValue := range nodeList {
+					list = append(list, &dynamic.Switch{
+						ServiceName: keyStr,
+						Node: dynamic.BalanceNode{
+							Scheme:   nodeValue.Scheme,
+							Host:     nodeValue.Host,
+							Metadata: nodeValue.Metadata,
+							Weight:   nodeValue.Weight,
+						},
+					})
+				}
+				return true
+			})
+			response <- list
+		})
 
 	// 中间件组合
 	var (
@@ -62,14 +103,21 @@ func ChainBuilder(ctx context.Context, watcher *server.Watcher) (http.Handler, e
 	// logger
 	handler = logger.New(ctx, handler)
 
-	// rate limit
-	//limit := ratelimit.New(ctx, handler)
-	//
-	//watcher.AddListener(limit.Name(), func(config *dynamic.Config) {
-	//	limit.Update(config.Limit)
-	//})
+	limit := ratelimit.New(ctx, handler)
 
-	return handler, nil
+	watcher.AddListener(
+		middlewares.CompleteAction(limit.Name(), middlewares.Update),
+		func(config *dynamic.Config, _ chan<- interface{}) {
+			limit.Update(config.Limit)
+		})
+
+	watcher.AddListener(
+		middlewares.CompleteAction(limit.Name(), middlewares.Get),
+		func(config *dynamic.Config, response chan<- interface{}) {
+			response <- limit.Get()
+		})
+
+	return limit, nil
 }
 
 const ProxyPrefix = "proxy"

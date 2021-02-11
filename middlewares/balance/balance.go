@@ -36,7 +36,7 @@ func New(ctx context.Context, selector Selector, next http.Handler) *Balancer {
 	}
 }
 
-func (b *Balancer) Name() string {
+func (b *Balancer) Name() middlewares.HandlerName {
 	return middlewares.LoadBalancer
 }
 
@@ -57,16 +57,20 @@ func (b *Balancer) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 	b.next.ServeHTTP(writer, request)
 }
 
-func (b *Balancer) Update(add bool, node *Node, weight float64) {
-	if add && weight <= 0 {
-		logger.FromContext(b.ctx).Warnf("add handler failed.it's Weight is %f", weight)
+func (b *Balancer) Update(add bool, node *Node) {
+	if add && node.Weight <= 0 {
+		logger.FromContext(b.ctx).Warnf("add handler failed.it's Weight is %f", node.Weight)
 		return
 	}
-	b.selector.Update(add, node, weight)
+	b.selector.Update(add, node)
 }
 
 func (b *Balancer) nextNode() (*Node, error) {
 	return b.selector.Next()
+}
+
+func (b *Balancer) NodeList() []*Node {
+	return b.selector.List()
 }
 
 func (b *Balancer) rewrite(request *http.Request) {

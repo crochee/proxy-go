@@ -22,6 +22,7 @@ type Watcher struct {
 	pool     *safe.Pool
 	storeMap *sync.Map //map[string]DynamicFunc
 	message  chan *Message
+	response chan interface{}
 }
 
 var GlobalWatcher *Watcher
@@ -31,11 +32,11 @@ func NewWatcher(ctx context.Context, pool *safe.Pool) *Watcher {
 		ctx:      ctx,
 		pool:     pool,
 		storeMap: new(sync.Map),
-		message:  make(chan *Message, 100),
+		response: make(chan interface{}, 100),
 	}
 }
 
-type DynamicFunc func(*dynamic.Config)
+type DynamicFunc func(*dynamic.Config, chan<- interface{})
 
 func (w *Watcher) Start() {
 	for {
@@ -55,7 +56,7 @@ func (w *Watcher) Start() {
 				continue
 			}
 			w.pool.Go(func(ctx context.Context) {
-				dynamicFunc(message.Content)
+				dynamicFunc(message.Content, w.response)
 			})
 		}
 	}
@@ -66,7 +67,14 @@ func (w *Watcher) AddListener(name string, function DynamicFunc) {
 }
 
 func (w *Watcher) Entry() chan<- *Message {
+	if w.message == nil {
+		w.message = make(chan *Message, 100)
+	}
 	return w.message
+}
+
+func (w *Watcher) Out() <-chan interface{} {
+	return w.response
 }
 
 func (w *Watcher) Stop() {

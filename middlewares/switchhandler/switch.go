@@ -28,7 +28,7 @@ func New(ctx context.Context) *SwitchHandler {
 	}
 }
 
-func (s *SwitchHandler) Name() string {
+func (s *SwitchHandler) Name() middlewares.HandlerName {
 	return middlewares.Switcher
 }
 
@@ -66,4 +66,8 @@ func (s *SwitchHandler) Load(serviceName string) (http.Handler, bool) {
 
 func (s *SwitchHandler) Delete(serviceName string) {
 	s.cache.Delete(serviceName)
+}
+
+func (s *SwitchHandler) Range(function func(key, value interface{}) bool) {
+	s.cache.Range(function)
 }

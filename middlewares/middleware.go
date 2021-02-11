@@ -4,17 +4,36 @@
 
 package middlewares
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+)
 
 type Handler interface {
-	Name() string
+	Name() HandlerName
 	http.Handler
 }
 
+type HandlerName string
+
 var (
-	LoadBalancer = "LoadBalancer"
-	Logger       = "Logger"
-	RateLimiter  = "RateLimiter"
-	Recovery     = "Recovery"
-	Switcher     = "Switcher"
+	LoadBalancer HandlerName = "LoadBalancer"
+	Logger       HandlerName = "Logger"
+	RateLimiter  HandlerName = "RateLimiter"
+	Recovery     HandlerName = "Recovery"
+	Switcher     HandlerName = "Switcher"
 )
+
+type Action string
+
+var (
+	Add    Action = "Add"
+	Delete Action = "Delete"
+	Update Action = "Update"
+	Get    Action = "Get"
+	List   Action = "List"
+)
+
+func CompleteAction(name HandlerName, action Action) string {
+	return fmt.Sprintf("%s:%s", name, action)
+}

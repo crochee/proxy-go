@@ -17,6 +17,7 @@ type Node struct {
 	Scheme   string            `json:"scheme"`
 	Host     string            `json:"host"`
 	Metadata map[string]string `json:"metadata"`
+	Weight   float64           `json:"weight"`
 }
 
 var ErrNoneAvailable = errors.New("none available")
@@ -27,7 +28,7 @@ func init() {
 
 // Selector strategy algorithm
 type Selector interface {
-	Update(bool, *Node, float64)
+	Update(bool, *Node)
 	Next() (*Node, error)
 	List() []*Node
 }
@@ -43,7 +44,7 @@ func NewRandom() *Random {
 	}
 }
 
-func (r *Random) Update(add bool, node *Node, weight float64) {
+func (r *Random) Update(add bool, node *Node) {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 	var equal bool
@@ -93,7 +94,7 @@ func NewRoundRobin() *RoundRobin {
 	}
 }
 
-func (r *RoundRobin) Update(add bool, node *Node, weight float64) {
+func (r *RoundRobin) Update(add bool, node *Node) {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 	var equal bool
@@ -133,21 +134,20 @@ func (r *RoundRobin) List() []*Node {
 	return r.list
 }
 
-type weightHandler struct {
-	node     *Node
-	weight   float64
+type deadlineNode struct {
+	Node     *Node
 	deadline float64
 }
 
 type Heap struct {
 	mutex       sync.RWMutex
-	handlers    []*weightHandler
+	handlers    []*deadlineNode
 	curDeadline float64
 }
 
 func NewHeap() *Heap {
 	return &Heap{
-		handlers: make([]*weightHandler, 0, 4),
+		handlers: make([]*deadlineNode, 0, 4),
 	}
 }
 
@@ -164,7 +164,7 @@ func (h *Heap) Swap(i, j int) {
 }
 
 func (h *Heap) Push(x interface{}) {
-	handler, ok := x.(*weightHandler)
+	handler, ok := x.(*deadlineNode)
 	if !ok {
 		return
 	}
@@ -180,7 +180,7 @@ func (h *Heap) Pop() interface{} {
 	return handler
 }
 
-func (h *Heap) Update(add bool, node *Node, weight float64) {
+func (h *Heap) Update(add bool, node *Node) {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 	var equal bool
@@ -198,10 +198,10 @@ func (h *Heap) Update(add bool, node *Node, weight float64) {
 		}
 	}
 	if !equal {
-		w := &weightHandler{node: node, weight: weight}
+		w := &deadlineNode{Node: node}
 		h.Push(w)
 		// use RWLock to protect b.curDeadline
-		w.deadline = h.curDeadline + 1/w.weight
+		w.deadline = h.curDeadline + 1/w.Node.Weight
 	}
 }
 
@@ -211,24 +211,24 @@ func (h *Heap) Next() (*Node, error) {
 	if h.Len() == 0 {
 		return nil, ErrNoneAvailable
 	}
-	handler, ok := heap.Pop(h).(*weightHandler)
+	handler, ok := heap.Pop(h).(*deadlineNode)
 	if !ok {
 		return nil, ErrNoneAvailable
 	}
 	// curDeadline should be handler's deadline so that
 	// new added entry would have a fair competition environment with the old ones.
 	h.curDeadline = handler.deadline
-	handler.deadline += 1 / handler.weight
+	handler.deadline += 1 / handler.Node.Weight
 	heap.Push(h, handler)
 
-	return handler.node, nil
+	return handler.Node, nil
 }
 
 func (h *Heap) List() []*Node {
 	list := make([]*Node, 0, len(h.handlers))
 	h.mutex.RLock()
 	for _, handler := range h.handlers {
-		list = append(list, handler.node)
+		list = append(list, handler.Node)
 	}
 	return list
 }

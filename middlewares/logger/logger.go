@@ -28,7 +28,7 @@ func New(ctx context.Context, next http.Handler) middlewares.Handler {
 	}
 }
 
-func (l *loggerHandler) Name() string {
+func (l *loggerHandler) Name() middlewares.HandlerName {
 	return middlewares.Logger
 }
 

@@ -5,13 +5,16 @@
 package api
 
 import (
+	"errors"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 
 	"proxy-go/api/response"
 	"proxy-go/config/dynamic"
+	"proxy-go/internal"
 	"proxy-go/logger"
 	"proxy-go/middlewares"
 	"proxy-go/server"
@@ -45,12 +48,45 @@ func UpdateSwitch(ctx *gin.Context) {
 	}
 	logger.FromContext(ctx.Request.Context()).Debugf("%+v", dynamicSwitch)
 	server.GlobalWatcher.Entry() <- &server.Message{
-		Name: middlewares.Switcher,
+		Name: middlewares.CompleteAction(middlewares.Switcher, middlewares.Update),
 		Content: &dynamic.Config{
 			Switcher: dynamicSwitch,
 		},
 	}
 	ctx.Status(http.StatusOK)
+}
+
+// ListSwitch godoc
+// @Summary list switch
+// @Description list switch middleware config
+// @Tags middleware
+// @Accept application/json
+// @Produce  application/json
+// @Success 200 {array} dynamic.Switch
+// @Failure 400 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /api/v1/mid/switch [get]
+func ListSwitch(ctx *gin.Context) {
+	tc := internal.AcquireTimer(30 * time.Second)
+	var (
+		err  error
+		resp interface{}
+		ok   bool
+	)
+	select {
+	case resp, ok = <-server.GlobalWatcher.Out():
+		if !ok {
+			err = errors.New("chan is closed")
+		}
+	case <-tc.C:
+		err = errors.New("time out")
+	}
+	internal.ReleaseTimer(tc)
+	if err != nil {
+		response.GinError(ctx, response.ErrorWith(http.StatusInternalServerError, err))
+		return
+	}
+	ctx.JSON(http.StatusOK, resp)
 }
 
 // UpdateRateLimit godoc
@@ -75,7 +111,7 @@ func UpdateRateLimit(ctx *gin.Context) {
 		return
 	}
 	server.GlobalWatcher.Entry() <- &server.Message{
-		Name: middlewares.Switcher,
+		Name: middlewares.CompleteAction(middlewares.RateLimiter, middlewares.Update),
 		Content: &dynamic.Config{
 			Limit: &rateLimit,
 		},

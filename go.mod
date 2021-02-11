@@ -3,7 +3,6 @@ module proxy-go
 go 1.15
 
 require (
-	github.com/gin-contrib/pprof v1.3.0
 	github.com/gin-gonic/gin v1.6.3
 	github.com/json-iterator/go v1.1.10
 	github.com/swaggo/files v0.0.0-20190704085106-630677cd5c14

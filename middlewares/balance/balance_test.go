@@ -60,7 +60,7 @@ func TestBalancer_Update(t *testing.T) {
 	}
 	for index, hand := range tt {
 		t.Run("index:"+strconv.Itoa(index), func(t *testing.T) {
-			b.Update(hand.Add, hand.Node, 1)
+			b.Update(hand.Add, hand.Node)
 			for _, handler := range b.selector.List() {
 				t.Logf("%+v", handler)
 			}

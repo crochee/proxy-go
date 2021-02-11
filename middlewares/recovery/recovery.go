@@ -27,7 +27,7 @@ func New(ctx context.Context, next http.Handler) middlewares.Handler {
 	}
 }
 
-func (re *recovery) Name() string {
+func (re *recovery) Name() middlewares.HandlerName {
 	return middlewares.Recovery
 }
 

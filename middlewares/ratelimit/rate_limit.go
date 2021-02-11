@@ -21,7 +21,7 @@ import (
 
 type rateLimiter struct {
 	limiter *rate.Limiter
-	mux     sync.Mutex
+	mux     sync.RWMutex
 	next    http.Handler
 	ctx     context.Context
 
@@ -49,7 +49,7 @@ func New(ctx context.Context, next http.Handler) *rateLimiter {
 	return rateLimiter
 }
 
-func (rl *rateLimiter) Name() string {
+func (rl *rateLimiter) Name() middlewares.HandlerName {
 	return middlewares.RateLimiter
 }
 
@@ -95,4 +95,14 @@ func (rl *rateLimiter) Update(limit *dynamic.RateLimit) {
 		rl.limiter = rate.NewLimiter(every, rl.burst)
 	}
 	rl.mux.Unlock()
+}
+
+func (rl *rateLimiter) Get() *dynamic.RateLimit {
+	rl.mux.RLock()
+	rlValue := &dynamic.RateLimit{
+		Every: rl.every,
+		Burst: rl.burst,
+	}
+	rl.mux.RUnlock()
+	return rlValue
 }
