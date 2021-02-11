@@ -123,7 +123,7 @@ func (s *Server) listen(m *config.Medata) {
 	}
 	srv := &http.Server{
 		Handler: s.handler,
-		BaseContext: func(listener net.Listener) context.Context {
+		BaseContext: func(_ net.Listener) context.Context {
 			return s.ctx
 		}}
 	switch m.Scheme {

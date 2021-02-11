@@ -67,6 +67,14 @@ func UpdateSwitch(ctx *gin.Context) {
 // @Failure 500 {object} response.Response
 // @Router /api/v1/mid/switch [get]
 func ListSwitch(ctx *gin.Context) {
+	if server.GlobalWatcher == nil {
+		response.ErrorWithMessage(ctx, "please check server")
+		return
+	}
+	server.GlobalWatcher.Entry() <- &server.Message{
+		Name:    middlewares.CompleteAction(middlewares.Switcher, middlewares.List),
+		Content: &dynamic.Config{},
+	}
 	tc := internal.AcquireTimer(30 * time.Second)
 	var (
 		err  error

@@ -5,7 +5,6 @@
 package balance
 
 import (
-	"context"
 	"net"
 	"net/http"
 	"os"
@@ -17,19 +16,17 @@ import (
 )
 
 type Balancer struct {
-	ctx      context.Context
 	next     http.Handler
 	selector Selector
 	hostName string
 }
 
-func New(ctx context.Context, selector Selector, next http.Handler) *Balancer {
+func New(selector Selector, next http.Handler) *Balancer {
 	hostname, err := os.Hostname()
 	if err != nil {
 		hostname = "localhost"
 	}
 	return &Balancer{
-		ctx:      ctx,
 		next:     next,
 		selector: selector,
 		hostName: hostname,
@@ -43,7 +40,7 @@ func (b *Balancer) Name() middlewares.HandlerName {
 func (b *Balancer) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	node, err := b.nextNode()
 	if err != nil {
-		logger.FromContext(b.ctx).Warnf("get next node failed.Error:%v", err)
+		logger.FromContext(request.Context()).Warnf("get next node failed.Error:%v", err)
 		http.Error(writer, internal.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
 		return
 	}
@@ -59,7 +56,6 @@ func (b *Balancer) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 
 func (b *Balancer) Update(add bool, node *Node) {
 	if add && node.Weight <= 0 {
-		logger.FromContext(b.ctx).Warnf("add handler failed.it's Weight is %f", node.Weight)
 		return
 	}
 	b.selector.Update(add, node)

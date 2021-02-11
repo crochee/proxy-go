@@ -5,7 +5,6 @@
 package ratelimit
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"sync"
@@ -23,7 +22,6 @@ type rateLimiter struct {
 	limiter *rate.Limiter
 	mux     sync.RWMutex
 	next    http.Handler
-	ctx     context.Context
 
 	maxDelay time.Duration
 	every    time.Duration
@@ -31,10 +29,9 @@ type rateLimiter struct {
 }
 
 // New returns a rate limiter middleware.
-func New(ctx context.Context, next http.Handler) *rateLimiter {
+func New(next http.Handler) *rateLimiter {
 	rateLimiter := &rateLimiter{
 		next:  next,
-		ctx:   ctx,
 		every: 100 * time.Microsecond,
 		burst: 1000 * 1000 * 1000,
 	}
@@ -63,7 +60,7 @@ func (rl *rateLimiter) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	delay := res.Delay()
 	if delay > rl.maxDelay {
 		res.Cancel()
-		rl.serveDelayError(rw, delay)
+		rl.serveDelayError(rw, req, delay)
 		return
 	}
 	time.Sleep(delay)
@@ -71,13 +68,13 @@ func (rl *rateLimiter) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	rl.next.ServeHTTP(rw, req)
 }
 
-func (rl *rateLimiter) serveDelayError(w http.ResponseWriter, delay time.Duration) {
+func (rl *rateLimiter) serveDelayError(w http.ResponseWriter, req *http.Request, delay time.Duration) {
 	w.Header().Set("Retry-After", fmt.Sprintf("%.0f", delay.Seconds()))
 	w.Header().Set("X-Retry-In", delay.String())
 	w.WriteHeader(http.StatusTooManyRequests)
 
 	if _, err := w.Write(internal.Bytes(internal.StatusText(http.StatusTooManyRequests))); err != nil {
-		logger.FromContext(rl.ctx).Errorf("could not serve 429: %v", err)
+		logger.FromContext(req.Context()).Errorf("could not serve 429: %v", err)
 	}
 }
 

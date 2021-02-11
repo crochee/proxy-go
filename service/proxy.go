@@ -16,7 +16,7 @@ import (
 	"proxy-go/logger"
 )
 
-func NewProxyBuilder(ctx context.Context) http.Handler {
+func NewProxyBuilder() http.Handler {
 	return &httputil.ReverseProxy{
 		Director: func(request *http.Request) {
 			request.RequestURI = "" // Outgoing request should not have RequestURI
@@ -59,7 +59,7 @@ func NewProxyBuilder(ctx context.Context) http.Handler {
 					}
 				}
 			}
-			log := logger.FromContext(ctx)
+			log := logger.FromContext(request.Context())
 			text := internal.StatusText(statusCode)
 			log.Errorf("%+v '%d %s' caused by: %v", request.URL, statusCode, text, err)
 			writer.WriteHeader(statusCode)

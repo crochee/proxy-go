@@ -5,7 +5,6 @@
 package logger
 
 import (
-	"context"
 	"net"
 	"net/http"
 	"strings"
@@ -17,13 +16,11 @@ import (
 )
 
 type loggerHandler struct {
-	ctx  context.Context
 	next http.Handler
 }
 
-func New(ctx context.Context, next http.Handler) middlewares.Handler {
+func New(next http.Handler) middlewares.Handler {
 	return &loggerHandler{
-		ctx:  ctx,
 		next: next,
 	}
 }
@@ -60,7 +57,7 @@ func (l *loggerHandler) ServeHTTP(writer http.ResponseWriter, request *http.Requ
 		// Truncate in a golang < 1.8 safe way
 		param.Last = param.Last - param.Last%time.Second
 	}
-	logger.FromContext(l.ctx).Infof(
+	logger.FromContext(request.Context()).Infof(
 		"[PROXY] %v | %3d | %13v | %15s | %-7s | %5s | %10s |%8d| %#v",
 		param.Now.Format("2006/01/02 - 15:04:05"),
 		param.Status,

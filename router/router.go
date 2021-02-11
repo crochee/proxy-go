@@ -5,7 +5,6 @@
 package router
 
 import (
-	"context"
 	"net/http"
 	"strings"
 
@@ -21,10 +20,10 @@ import (
 	"proxy-go/service"
 )
 
-func ChainBuilder(ctx context.Context, watcher *server.Watcher) (http.Handler, error) {
-	proxy := service.NewProxyBuilder(ctx)
+func ChainBuilder(watcher *server.Watcher) (http.Handler, error) {
+	proxy := service.NewProxyBuilder()
 
-	switchHandler := switchhandler.New(ctx)
+	switchHandler := switchhandler.New()
 
 	watcher.AddListener(
 		middlewares.CompleteAction(switchHandler.Name(), middlewares.Update),
@@ -36,7 +35,7 @@ func ChainBuilder(ctx context.Context, watcher *server.Watcher) (http.Handler, e
 			var balancer *balance.Balancer
 			handler, ok := switchHandler.Load(config.Switcher.ServiceName)
 			if !ok {
-				balancer = balance.New(ctx, balance.NewRoundRobin(), proxy)
+				balancer = balance.New(balance.NewRoundRobin(), proxy)
 				switchHandler.Store(config.Switcher.ServiceName, balancer)
 			} else {
 				if balancer, ok = handler.(*balance.Balancer); !ok {
@@ -98,12 +97,12 @@ func ChainBuilder(ctx context.Context, watcher *server.Watcher) (http.Handler, e
 	}
 
 	// recovery
-	handler = recovery.New(ctx, handler)
+	handler = recovery.New(handler)
 
 	// logger
-	handler = logger.New(ctx, handler)
+	handler = logger.New(handler)
 
-	limit := ratelimit.New(ctx, handler)
+	limit := ratelimit.New(handler)
 
 	watcher.AddListener(
 		middlewares.CompleteAction(limit.Name(), middlewares.Update),

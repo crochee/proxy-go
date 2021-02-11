@@ -5,7 +5,6 @@
 package switchhandler
 
 import (
-	"context"
 	"net/http"
 	"strings"
 	"sync"
@@ -17,14 +16,12 @@ import (
 // SwitchHandler is a middleware used to switch handler.
 type SwitchHandler struct {
 	cache *sync.Map
-	ctx   context.Context
 }
 
 // New creates a new handler.
-func New(ctx context.Context) *SwitchHandler {
+func New() *SwitchHandler {
 	return &SwitchHandler{
 		cache: new(sync.Map),
-		ctx:   ctx,
 	}
 }
 

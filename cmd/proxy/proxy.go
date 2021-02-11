@@ -93,7 +93,7 @@ func setup(ctx context.Context) error {
 
 	server.GlobalWatcher = server.NewWatcher(ctx, pool)
 
-	handler, err := router.ChainBuilder(ctx, server.GlobalWatcher)
+	handler, err := router.ChainBuilder(server.GlobalWatcher)
 	if err != nil {
 		logger.FromContext(ctx).Fatalf("build route failed.Error:%v", err)
 		return err
