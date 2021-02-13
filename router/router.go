@@ -102,7 +102,7 @@ func ChainBuilder(watcher *server.Watcher) (http.Handler, error) {
 	// logger
 	handler = logger.New(handler)
 
-	limit := ratelimit.New(handler)
+	limit := ratelimit.New(handler, 1)
 
 	watcher.AddListener(
 		middlewares.CompleteAction(limit.Name(), middlewares.Update),

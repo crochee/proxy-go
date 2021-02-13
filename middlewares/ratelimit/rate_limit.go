@@ -26,10 +26,11 @@ type rateLimiter struct {
 	maxDelay time.Duration
 	every    time.Duration
 	burst    int
+	mode     int
 }
 
 // New returns a rate limiter middleware.
-func New(next http.Handler) *rateLimiter {
+func New(next http.Handler, mode int) *rateLimiter {
 	rateLimiter := &rateLimiter{
 		next:  next,
 		every: 100 * time.Microsecond,
@@ -51,20 +52,32 @@ func (rl *rateLimiter) Name() middlewares.HandlerName {
 }
 
 func (rl *rateLimiter) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	res := rl.limiter.Reserve()
-	if !res.OK() {
-		http.Error(rw, "No bursty traffic allowed", http.StatusTooManyRequests)
-		return
+	switch rl.mode {
+	case 0:
+		if err := rl.limiter.Wait(req.Context()); err != nil {
+			http.Error(rw, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	case 1:
+		if !rl.limiter.Allow() {
+			http.Error(rw, "No bursty traffic allowed", http.StatusTooManyRequests)
+			return
+		}
+	case 2:
+		res := rl.limiter.Reserve()
+		if !res.OK() {
+			http.Error(rw, "No bursty traffic allowed", http.StatusTooManyRequests)
+			return
+		}
+		delay := res.Delay()
+		if delay > rl.maxDelay {
+			res.Cancel()
+			rl.serveDelayError(rw, req, delay)
+			return
+		}
+		time.Sleep(delay)
+	default:
 	}
-
-	delay := res.Delay()
-	if delay > rl.maxDelay {
-		res.Cancel()
-		rl.serveDelayError(rw, req, delay)
-		return
-	}
-	time.Sleep(delay)
-
 	rl.next.ServeHTTP(rw, req)
 }
 
