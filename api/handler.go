@@ -127,3 +127,45 @@ func UpdateRateLimit(ctx *gin.Context) {
 	}
 	ctx.Status(http.StatusOK)
 }
+
+// GetRateLimit godoc
+// @Summary get rate limit
+// @Description get rate limit middleware config
+// @Tags middleware
+// @Accept application/json
+// @Produce  application/json
+// @Success 200	{object} dynamic.RateLimit
+// @Failure 400 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /api/v1/mid/limit [get]
+func GetRateLimit(ctx *gin.Context) {
+	if server.GlobalWatcher == nil {
+		response.ErrorWithMessage(ctx, "please check server")
+		return
+	}
+	server.GlobalWatcher.Entry() <- &server.Message{
+		Name: middlewares.CompleteAction(middlewares.RateLimiter, middlewares.Get),
+	}
+	tc := internal.AcquireTimer(30 * time.Second)
+	var (
+		err  error
+		resp interface{}
+		ok   bool
+	)
+	select {
+	case <-ctx.Request.Context().Done():
+		err = ctx.Request.Context().Err()
+	case resp, ok = <-server.GlobalWatcher.Out():
+		if !ok {
+			err = errors.New("chan is closed")
+		}
+	case <-tc.C:
+		err = errors.New("time out")
+	}
+	internal.ReleaseTimer(tc)
+	if err != nil {
+		response.GinError(ctx, response.ErrorWith(http.StatusInternalServerError, err))
+		return
+	}
+	ctx.JSON(http.StatusOK, resp)
+}

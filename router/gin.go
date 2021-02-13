@@ -46,6 +46,7 @@ func NewGinEngine() *gin.Engine {
 		mid.POST("/switch", api.UpdateSwitch)
 		mid.GET("/switch", api.ListSwitch)
 		mid.PUT("/limit", api.UpdateRateLimit)
+		mid.GET("/limit", api.GetRateLimit)
 	}
 
 	return router

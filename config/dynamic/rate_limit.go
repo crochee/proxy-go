@@ -9,4 +9,5 @@ import "time"
 type RateLimit struct {
 	Every time.Duration
 	Burst int
+	Mode  int
 }

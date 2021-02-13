@@ -30,11 +30,12 @@ type rateLimiter struct {
 }
 
 // New returns a rate limiter middleware.
-func New(next http.Handler, mode int) *rateLimiter {
+func New(next http.Handler) *rateLimiter {
 	rateLimiter := &rateLimiter{
 		next:  next,
 		every: 100 * time.Microsecond,
 		burst: 1000 * 1000 * 1000,
+		mode:  1,
 	}
 	every := rate.Every(rateLimiter.every)
 	if every < 1 {
@@ -43,7 +44,6 @@ func New(next http.Handler, mode int) *rateLimiter {
 		rateLimiter.maxDelay = time.Second / (time.Duration(every) * 2)
 	}
 	rateLimiter.limiter = rate.NewLimiter(every, rateLimiter.burst)
-
 	return rateLimiter
 }
 
@@ -104,6 +104,7 @@ func (rl *rateLimiter) Update(limit *dynamic.RateLimit) {
 		}
 		rl.limiter = rate.NewLimiter(every, rl.burst)
 	}
+	rl.mode = limit.Mode
 	rl.mux.Unlock()
 }
 
@@ -112,6 +113,7 @@ func (rl *rateLimiter) Get() *dynamic.RateLimit {
 	rlValue := &dynamic.RateLimit{
 		Every: rl.every,
 		Burst: rl.burst,
+		Mode:  rl.mode,
 	}
 	rl.mux.RUnlock()
 	return rlValue
