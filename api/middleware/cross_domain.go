@@ -5,6 +5,7 @@
 package middleware
 
 import (
+	"github.com/rs/cors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -12,6 +13,7 @@ import (
 
 // CrossDomain skip the cross-domain phase
 func CrossDomain(ctx *gin.Context) {
+	cors.Default()
 	ctx.Header("Access-Control-Allow-Headers", "Content-Type")
 	ctx.Header("Access-Control-Allow-Origin", origin(ctx))
 	if ctx.Request.Method == http.MethodOptions {

@@ -22,6 +22,7 @@ var (
 	RateLimiter  HandlerName = "RateLimiter"
 	Recovery     HandlerName = "Recovery"
 	Switcher     HandlerName = "Switcher"
+	Cross        HandlerName = "Cross"
 )
 
 type Action string

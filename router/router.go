@@ -6,12 +6,14 @@ package router
 
 import (
 	"net/http"
+	"regexp"
 	"strings"
 
 	"proxy-go/config/dynamic"
 	"proxy-go/internal"
 	"proxy-go/middlewares"
 	"proxy-go/middlewares/balance"
+	"proxy-go/middlewares/cros"
 	"proxy-go/middlewares/logger"
 	"proxy-go/middlewares/ratelimit"
 	"proxy-go/middlewares/recovery"
@@ -115,8 +117,15 @@ func ChainBuilder(watcher *server.Watcher) (http.Handler, error) {
 		func(config *dynamic.Config, response chan<- interface{}) {
 			response <- limit.Get()
 		})
-
-	return limit, nil
+	return cros.New(limit, cros.Options{
+		AllowOriginRequestFunc: func(r *http.Request, origin string) bool {
+			return regexp.MustCompile(origin).MatchString(r.RequestURI)
+		},
+		AllowedMethods: []string{http.MethodGet, http.MethodPost, http.MethodDelete,
+			http.MethodPut, http.MethodPatch, http.MethodHead},
+		AllowedHeaders: []string{"*"},
+		MaxAge:         24 * 60 * 60,
+	}), nil
 }
 
 const ProxyPrefix = "proxy"
