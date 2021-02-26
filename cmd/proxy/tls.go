@@ -13,37 +13,6 @@ import (
 	"proxy-go/ptls"
 )
 
-var TlsFlags = []cli.Flag{
-	&cli.StringFlag{
-		Name:    "cert",
-		Aliases: []string{"c"},
-		Usage:   "cert path",
-		EnvVars: []string{"cert_path"},
-		Value:   "./conf/cert.pem",
-	},
-	&cli.StringFlag{
-		Name:    "key",
-		Aliases: []string{"k"},
-		Usage:   "key path",
-		EnvVars: []string{"key_path"},
-		Value:   "./conf/key.pem",
-	},
-	&cli.StringFlag{
-		Name:    "host",
-		Aliases: []string{"h"},
-		Usage:   "host",
-		EnvVars: []string{"host"},
-		Value:   "127.0.0.1",
-	},
-	&cli.StringFlag{
-		Name:    "domain",
-		Aliases: []string{"d"},
-		Usage:   "domain",
-		EnvVars: []string{"domain"},
-		Value:   "localhost",
-	},
-}
-
 func certificate(c *cli.Context) error {
 	host := c.String("host")
 	domain := c.String("domain")

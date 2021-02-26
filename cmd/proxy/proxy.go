@@ -26,20 +26,71 @@ func main() {
 	app.Version = cmd.Version
 	app.Usage = "Generates proxy"
 
-	app.Commands = cli.Commands{
+	app.Commands = []*cli.Command{
 		{
 			Name:    "proxy",
 			Aliases: []string{"p"},
 			Usage:   "proxy server",
 			Action:  run,
-			Flags:   runFlags,
+			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:    "enable-log",
+					Usage:   "enable log switch",
+					EnvVars: []string{"enable_log"},
+				},
+				&cli.StringFlag{
+					Name:    "log-path",
+					Usage:   "log path",
+					EnvVars: []string{"log_path"},
+				},
+				&cli.StringFlag{
+					Name:    "log-level",
+					Usage:   "log level",
+					EnvVars: []string{"log_level"},
+				},
+				&cli.StringFlag{
+					Name:    "config",
+					Usage:   "config path",
+					EnvVars: []string{"config"},
+					Value:   "./conf/config.yml",
+				},
+			},
 		},
 		{
 			Name:    "tls",
 			Aliases: []string{"t"},
 			Usage:   "generates random TLS certificates",
 			Action:  certificate,
-			Flags:   TlsFlags,
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:    "cert",
+					Aliases: []string{"c"},
+					Usage:   "cert path",
+					EnvVars: []string{"cert_path"},
+					Value:   "./conf/cert.pem",
+				},
+				&cli.StringFlag{
+					Name:    "key",
+					Aliases: []string{"k"},
+					Usage:   "key path",
+					EnvVars: []string{"key_path"},
+					Value:   "./conf/key.pem",
+				},
+				&cli.StringFlag{
+					Name:    "host",
+					Aliases: []string{"h"},
+					Usage:   "host",
+					EnvVars: []string{"host"},
+					Value:   "127.0.0.1",
+				},
+				&cli.StringFlag{
+					Name:    "domain",
+					Aliases: []string{"d"},
+					Usage:   "domain",
+					EnvVars: []string{"domain"},
+					Value:   "localhost",
+				},
+			},
 		},
 	}
 
@@ -47,30 +98,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-var runFlags = []cli.Flag{
-	&cli.BoolFlag{
-		Name:    "enable-log",
-		Usage:   "enable log switch",
-		EnvVars: []string{"enable_log"},
-	},
-	&cli.StringFlag{
-		Name:    "log-path",
-		Usage:   "log path",
-		EnvVars: []string{"log_path"},
-	},
-	&cli.StringFlag{
-		Name:    "log-level",
-		Usage:   "log level",
-		EnvVars: []string{"log_level"},
-	},
-	&cli.StringFlag{
-		Name:    "config",
-		Usage:   "config path",
-		EnvVars: []string{"config"},
-		Value:   "./conf/config.yml",
-	},
 }
 
 func run(c *cli.Context) error {
