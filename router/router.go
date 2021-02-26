@@ -7,11 +7,9 @@ package router
 import (
 	"net/http"
 	"strings"
-	"sync/atomic"
 
 	"proxy-go/config/dynamic"
 	"proxy-go/internal"
-	log "proxy-go/logger"
 	"proxy-go/middlewares"
 	"proxy-go/middlewares/balance"
 	"proxy-go/middlewares/logger"
@@ -126,14 +124,9 @@ const ProxyPrefix = "proxy"
 type MixHandler struct {
 	proxy http.Handler
 	api   http.Handler
-	count int64
 }
 
 func (m *MixHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	atomic.AddInt64(&m.count, 1)
-
-	log.FromContext(request.Context()).Debugf("%d", atomic.LoadInt64(&m.count))
-
 	list := strings.SplitN(request.URL.Path, "/", 3)
 	if len(list) > 1 {
 		if list[1] == ProxyPrefix {
@@ -143,10 +136,8 @@ func (m *MixHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request
 				request.URL.RawPath = internal.EnsureLeadingSlash(strings.TrimPrefix(request.URL.RawPath, prefix))
 			}
 			m.proxy.ServeHTTP(writer, request)
-			atomic.AddInt64(&m.count, -1)
 			return
 		}
 	}
 	m.api.ServeHTTP(writer, request)
-	atomic.AddInt64(&m.count, -1)
 }

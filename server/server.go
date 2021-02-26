@@ -78,9 +78,14 @@ func (s *Server) Stop() {
 				graceTimeOut = medata.GraceTimeOut
 			}
 		}
-		ctx, cancel := context.WithCancel(s.ctx)
+		var (
+			ctx    context.Context
+			cancel context.CancelFunc
+		)
 		if graceTimeOut > 0 {
-			ctx, cancel = context.WithTimeout(ctx, graceTimeOut)
+			ctx, cancel = context.WithTimeout(s.ctx, graceTimeOut)
+		} else {
+			ctx, cancel = context.WithCancel(s.ctx)
 		}
 
 		go func(ctx context.Context, server *http.Server) {

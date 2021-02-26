@@ -128,7 +128,7 @@ func Index(ctx *gin.Context) {
 // @Tags pprof
 // @Accept application/json
 // @Produce application/octet-stream
-// @Param seconds query string false "second default(30)"
+// @Param seconds query float false "second default(30)"
 // @Success 200
 // @Failure 400 {object} response.Response
 // @Failure 500 {object} response.Response
@@ -168,7 +168,7 @@ func Profile(ctx *gin.Context) {
 // @Tags pprof
 // @Accept application/json
 // @Produce application/octet-stream
-// @Param seconds query string false "second default(30)"
+// @Param seconds query float false "second default(30)"
 // @Success 200
 // @Failure 400 {object} response.Response
 // @Failure 500 {object} response.Response
@@ -209,6 +209,7 @@ func Trace(ctx *gin.Context) {
 // @Tags pprof
 // @Accept application/json
 // @Produce application/octet-stream
+// @Param debug query int false "second default(30)"
 // @Success 200
 // @Failure 400 {object} response.Response
 // @Failure 500 {object} response.Response
