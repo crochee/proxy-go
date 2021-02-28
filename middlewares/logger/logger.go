@@ -7,6 +7,7 @@ package logger
 import (
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -41,13 +42,13 @@ func (l *loggerHandler) ServeHTTP(writer http.ResponseWriter, request *http.Requ
 	if request.TLS != nil {
 		param.Scheme = "HTTPS"
 	}
+	var buf strings.Builder
 	if request.URL.RawQuery != "" {
-		buf := internal.GetBuffer()
-		buf.AppendString(param.Path)
-		buf.AppendByte('?')
-		buf.AppendString(request.URL.RawQuery)
+		buf.WriteString(param.Path)
+		buf.WriteByte('?')
+		buf.WriteString(request.URL.RawQuery)
 		param.Path = buf.String()
-		buf.Free()
+		buf.Reset()
 	}
 
 	crw := newCaptureResponseWriter(writer)
@@ -62,27 +63,25 @@ func (l *loggerHandler) ServeHTTP(writer http.ResponseWriter, request *http.Requ
 		// Truncate in a golang < 1.8 safe way
 		param.Last = param.Last - param.Last%time.Second
 	}
-	buf := internal.GetBuffer()
-	buf.AppendString("[PROXY] ")
-	buf.AppendTime(param.Now, "2006/01/02 - 15:04:05")
-	buf.AppendString(" | ")
-	buf.AppendInt(int64(param.Status))
-	buf.AppendString(" | ")
-	buf.AppendString(param.Last.String())
-	buf.AppendString(" | ")
-	buf.AppendString(param.Scheme)
-	buf.AppendString(" | ")
-	buf.AppendString(param.Proto)
-	buf.AppendString(" | ")
-	buf.AppendString(param.ClientIp)
-	buf.AppendString(" |")
-	buf.AppendString(param.Method)
-	buf.AppendString("| ")
-	buf.AppendInt(param.Size)
-	buf.AppendString(" | ")
-	buf.AppendString(param.Path)
+	buf.WriteString("[PROXY] ")
+	buf.WriteString(param.Now.Format("2006/01/02 - 15:04:05"))
+	buf.WriteString(" | ")
+	buf.WriteString(strconv.Itoa(param.Status))
+	buf.WriteString(" | ")
+	buf.WriteString(param.Last.String())
+	buf.WriteString(" | ")
+	buf.WriteString(param.Scheme)
+	buf.WriteString(" | ")
+	buf.WriteString(param.Proto)
+	buf.WriteString(" | ")
+	buf.WriteString(param.ClientIp)
+	buf.WriteString(" |")
+	buf.WriteString(param.Method)
+	buf.WriteString("| ")
+	buf.WriteString(strconv.Itoa(int(param.Size)))
+	buf.WriteString(" | ")
+	buf.WriteString(param.Path)
 	logger.FromContext(request.Context()).Info(buf.String())
-	buf.Free()
 }
 
 type LogFormatterParams struct {
