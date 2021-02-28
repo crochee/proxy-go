@@ -9,8 +9,8 @@ import (
 	"strings"
 	"sync"
 
-	"proxy-go/internal"
-	"proxy-go/middlewares"
+	"github.com/crochee/proxy-go/internal"
+	"github.com/crochee/proxy-go/middlewares"
 )
 
 // SwitchHandler is a middleware used to switch handler.

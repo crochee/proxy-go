@@ -14,8 +14,8 @@ import (
 	"sync"
 	"time"
 
-	"proxy-go/config"
-	"proxy-go/logger"
+	"github.com/crochee/proxy-go/config"
+	"github.com/crochee/proxy-go/logger"
 )
 
 type Server struct {

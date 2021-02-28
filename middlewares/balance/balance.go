@@ -10,9 +10,9 @@ import (
 	"os"
 	"strings"
 
-	"proxy-go/internal"
-	"proxy-go/logger"
-	"proxy-go/middlewares"
+	"github.com/crochee/proxy-go/internal"
+	"github.com/crochee/proxy-go/logger"
+	"github.com/crochee/proxy-go/middlewares"
 )
 
 type Balancer struct {

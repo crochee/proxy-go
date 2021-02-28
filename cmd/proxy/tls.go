@@ -10,7 +10,7 @@ import (
 
 	"github.com/urfave/cli/v2"
 
-	"proxy-go/ptls"
+	"github.com/crochee/proxy-go/ptls"
 )
 
 func certificate(c *cli.Context) error {

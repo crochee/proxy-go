@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"proxy-go/internal"
+	"github.com/crochee/proxy-go/internal"
 )
 
 type ProxyError struct {

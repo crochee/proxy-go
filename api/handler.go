@@ -12,12 +12,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 
-	"proxy-go/api/response"
-	"proxy-go/config/dynamic"
-	"proxy-go/internal"
-	"proxy-go/logger"
-	"proxy-go/middlewares"
-	"proxy-go/server"
+	"github.com/crochee/proxy-go/api/response"
+	"github.com/crochee/proxy-go/config/dynamic"
+	"github.com/crochee/proxy-go/internal"
+	"github.com/crochee/proxy-go/logger"
+	"github.com/crochee/proxy-go/middlewares"
+	"github.com/crochee/proxy-go/server"
 )
 
 // UpdateSwitch godoc

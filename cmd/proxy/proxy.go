@@ -12,12 +12,12 @@ import (
 
 	"github.com/urfave/cli/v2"
 
-	"proxy-go/cmd"
-	"proxy-go/config"
-	"proxy-go/logger"
-	"proxy-go/router"
-	"proxy-go/safe"
-	"proxy-go/server"
+	"github.com/crochee/proxy-go/cmd"
+	"github.com/crochee/proxy-go/config"
+	"github.com/crochee/proxy-go/logger"
+	"github.com/crochee/proxy-go/router"
+	"github.com/crochee/proxy-go/safe"
+	"github.com/crochee/proxy-go/server"
 )
 
 func main() {

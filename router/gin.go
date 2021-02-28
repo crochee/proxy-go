@@ -9,8 +9,7 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
-	"proxy-go/api"
-	"proxy-go/api/middleware"
+	"github.com/crochee/proxy-go/api"
 )
 
 // @title obs Swagger API
@@ -20,7 +19,6 @@ import (
 // NewGinEngine gin router
 func NewGinEngine() *gin.Engine {
 	router := gin.New()
-	router.Use(middleware.CrossDomain)
 
 	if gin.Mode() != gin.ReleaseMode {
 		// swagger

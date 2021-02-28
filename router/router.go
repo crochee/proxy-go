@@ -9,17 +9,17 @@ import (
 	"regexp"
 	"strings"
 
-	"proxy-go/config/dynamic"
-	"proxy-go/internal"
-	"proxy-go/middlewares"
-	"proxy-go/middlewares/balance"
-	"proxy-go/middlewares/cros"
-	"proxy-go/middlewares/logger"
-	"proxy-go/middlewares/ratelimit"
-	"proxy-go/middlewares/recovery"
-	"proxy-go/middlewares/switchhandler"
-	"proxy-go/server"
-	"proxy-go/service"
+	"github.com/crochee/proxy-go/config/dynamic"
+	"github.com/crochee/proxy-go/internal"
+	"github.com/crochee/proxy-go/middlewares"
+	"github.com/crochee/proxy-go/middlewares/balance"
+	"github.com/crochee/proxy-go/middlewares/cros"
+	"github.com/crochee/proxy-go/middlewares/logger"
+	"github.com/crochee/proxy-go/middlewares/ratelimit"
+	"github.com/crochee/proxy-go/middlewares/recovery"
+	"github.com/crochee/proxy-go/middlewares/switchhandler"
+	"github.com/crochee/proxy-go/server"
+	"github.com/crochee/proxy-go/service"
 )
 
 func ChainBuilder(watcher *server.Watcher) (http.Handler, error) {

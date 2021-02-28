@@ -8,9 +8,9 @@ import (
 	"context"
 	"sync"
 
-	"proxy-go/config/dynamic"
-	"proxy-go/logger"
-	"proxy-go/safe"
+	"github.com/crochee/proxy-go/config/dynamic"
+	"github.com/crochee/proxy-go/logger"
+	"github.com/crochee/proxy-go/safe"
 )
 
 type Message struct {

@@ -1,4 +1,4 @@
-module proxy-go
+module github.com/crochee/proxy-go
 
 go 1.15
 

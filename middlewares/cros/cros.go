@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	"proxy-go/logger"
-	"proxy-go/middlewares"
+	"github.com/crochee/proxy-go/logger"
+	"github.com/crochee/proxy-go/middlewares"
 )
 
 // Options is a configuration container to setup the CORS middleware.

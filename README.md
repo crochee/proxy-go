@@ -1,1 +1,1 @@
-# proxy-go
+# github.com/crochee/proxy-go

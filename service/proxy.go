@@ -12,8 +12,8 @@ import (
 	"net/http"
 	"net/http/httputil"
 
-	"proxy-go/internal"
-	"proxy-go/logger"
+	"github.com/crochee/proxy-go/internal"
+	"github.com/crochee/proxy-go/logger"
 )
 
 func NewProxyBuilder() http.Handler {

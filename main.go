@@ -9,11 +9,11 @@ import (
 	"os"
 	"strings"
 
-	"proxy-go/config"
-	"proxy-go/logger"
-	"proxy-go/router"
-	"proxy-go/safe"
-	"proxy-go/server"
+	"github.com/crochee/proxy-go/config"
+	"github.com/crochee/proxy-go/logger"
+	"github.com/crochee/proxy-go/router"
+	"github.com/crochee/proxy-go/safe"
+	"github.com/crochee/proxy-go/server"
 )
 
 func main() {

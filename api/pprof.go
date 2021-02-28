@@ -7,7 +7,6 @@ package api
 import (
 	"html/template"
 	"net/http"
-	"proxy-go/logger"
 	"runtime"
 	"runtime/pprof"
 	"runtime/trace"
@@ -16,7 +15,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"proxy-go/api/response"
+	"github.com/crochee/proxy-go/api/response"
+	"github.com/crochee/proxy-go/logger"
 )
 
 var profileDescriptions = map[string]string{

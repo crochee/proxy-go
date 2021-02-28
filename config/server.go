@@ -7,7 +7,7 @@ package config
 import (
 	"time"
 
-	"proxy-go/ptls"
+	"github.com/crochee/proxy-go/ptls"
 )
 
 type Medata struct {

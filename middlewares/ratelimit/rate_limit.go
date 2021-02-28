@@ -12,10 +12,10 @@ import (
 
 	"golang.org/x/time/rate"
 
-	"proxy-go/config/dynamic"
-	"proxy-go/internal"
-	"proxy-go/logger"
-	"proxy-go/middlewares"
+	"github.com/crochee/proxy-go/config/dynamic"
+	"github.com/crochee/proxy-go/internal"
+	"github.com/crochee/proxy-go/logger"
+	"github.com/crochee/proxy-go/middlewares"
 )
 
 type rateLimiter struct {
