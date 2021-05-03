@@ -5,6 +5,6 @@
 package dynamic
 
 type Config struct {
-	Switcher *Switch    `json:"switcher"`
-	Limit    *RateLimit `json:"limit"`
+	BalanceNode map[string]*BalanceNode `json:"balance_node,omitempty" yaml:"balance_node,omitempty"`
+	RateLimit   *RateLimit              `json:"rate_limit,omitempty" yaml:"rate_limit,omitempty"`
 }

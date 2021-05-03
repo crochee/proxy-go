@@ -6,17 +6,37 @@ package config
 
 import (
 	"fmt"
-	"strings"
-
 	"path/filepath"
+	"strings"
+	"time"
+
+	"github.com/crochee/proxy-go/config/dynamic"
+	"github.com/crochee/proxy-go/ptls"
 )
 
 type Config struct {
-	Server *Server `json:"server,omitempty" yaml:"server,omitempty"`
+	*Spec
+	lc LoadConfig
+}
+type Spec struct {
+	Medata     *Medata         `json:"medata" yaml:"medata"`
+	Middleware *dynamic.Config `json:"middleware,omitempty" yaml:"middleware,omitempty"`
 }
 
-type Server struct {
-	Medata []*Medata `json:"medata,omitempty" yaml:"medata,omitempty"`
+type Medata struct {
+	Tls          *TlsConfig    `json:"tls,omitempty" yaml:"tls,omitempty"`
+	GraceTimeOut time.Duration `json:"grace_time_out,omitempty" yaml:"grace_time_out,omitempty"`
+
+	Scheme string `json:"scheme,omitempty" yaml:"scheme,omitempty"`
+	Host   string `json:"host" yaml:"host"`
+
+	LogPath  string `json:"log_path,omitempty" yaml:"log_path,omitempty"`
+	LogLevel string `json:"log_level,omitempty" yaml:"log_level,omitempty"`
+}
+
+type TlsConfig struct {
+	Cert ptls.FileOrContent `json:"cert,omitempty" yaml:"cert,omitempty"`
+	Key  ptls.FileOrContent `json:"key,omitempty" yaml:"key,omitempty"`
 }
 
 var Cfg *Config
@@ -31,8 +51,8 @@ func InitConfig(path string) {
 }
 
 type LoadConfig interface {
-	Decode() (*Config, error)
-	Encode(*Config) error
+	Decode() (*Spec, error)
+	Encode(*Spec) error
 }
 
 func loadConfig(path string) (*Config, error) {
@@ -46,5 +66,12 @@ func loadConfig(path string) (*Config, error) {
 	default:
 		return nil, fmt.Errorf("unsupport config extension %s", ext)
 	}
-	return lc.Decode()
+	spec, err := lc.Decode()
+	if err != nil {
+		return nil, err
+	}
+	return &Config{
+		Spec: spec,
+		lc:   lc,
+	}, nil
 }

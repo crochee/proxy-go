@@ -6,164 +6,89 @@ package main
 
 import (
 	"context"
-	"log"
+	"crypto/tls"
+	"errors"
+	"flag"
 	"net"
-	"os"
+	"net/http"
 	"strings"
 
-	"github.com/urfave/cli/v2"
-
-	"github.com/crochee/proxy-go/cmd"
 	"github.com/crochee/proxy-go/config"
 	"github.com/crochee/proxy-go/logger"
-	"github.com/crochee/proxy-go/ptls"
-	"github.com/crochee/proxy-go/router"
-	"github.com/crochee/proxy-go/safe"
-	"github.com/crochee/proxy-go/server"
 )
 
+var configFile = flag.String("f", "./conf/config.yml", "the config file")
+
 func main() {
-	app := cli.NewApp()
-	app.Name = "proxy"
-	app.Version = cmd.Version
-	app.Usage = "Generates proxy"
+	flag.Parse()
 
-	app.Commands = []*cli.Command{
-		{
-			Name:    "proxy",
-			Aliases: []string{"p"},
-			Usage:   "proxy server",
-			Action:  run,
-			Flags: []cli.Flag{
-				&cli.BoolFlag{
-					Name:    "enable-log",
-					Usage:   "enable log switch",
-					EnvVars: []string{"enable_log"},
-				},
-				&cli.StringFlag{
-					Name:    "log-path",
-					Usage:   "log path",
-					EnvVars: []string{"log_path"},
-				},
-				&cli.StringFlag{
-					Name:    "log-level",
-					Usage:   "log level",
-					EnvVars: []string{"log_level"},
-				},
-				&cli.StringFlag{
-					Name:    "config",
-					Usage:   "config path",
-					EnvVars: []string{"config"},
-					Value:   "./conf/config.yml",
-				},
-			},
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel() // 全局取消
+	// 初始化配置
+	config.InitConfig(*configFile)
+	// 初始化系统日志
+	pathFunc := func(option *logger.Option) {
+		if config.Cfg.Medata.LogPath == "" {
+			return
+		}
+		option.Path = config.Cfg.Medata.LogPath
+	}
+	levelFunc := func(option *logger.Option) {
+		if config.Cfg.Medata.LogLevel == "" {
+			return
+		}
+		option.Level = config.Cfg.Medata.LogLevel
+	}
+	logger.InitSystemLogger(pathFunc, levelFunc)
+	// 初始化请求日志
+	requestLog := logger.NewLogger(pathFunc, levelFunc)
+
+	ln, err := net.Listen("tcp", config.Cfg.Medata.Host)
+	if err != nil {
+		logger.Fatal(err.Error())
+	}
+	srv := &http.Server{
+		Handler: nil,
+		BaseContext: func(_ net.Listener) context.Context {
+			return ctx
 		},
-		{
-			Name:    "tls",
-			Aliases: []string{"t"},
-			Usage:   "generates random TLS certificates",
-			Action:  certificate,
-			Flags: []cli.Flag{
-				&cli.StringFlag{
-					Name:    "cert",
-					Aliases: []string{"c"},
-					Usage:   "cert path",
-					EnvVars: []string{"cert_path"},
-					Value:   "./conf/cert.pem",
-				},
-				&cli.StringFlag{
-					Name:    "key",
-					Aliases: []string{"k"},
-					Usage:   "key path",
-					EnvVars: []string{"key_path"},
-					Value:   "./conf/key.pem",
-				},
-				&cli.StringFlag{
-					Name:    "host",
-					Aliases: []string{"h"},
-					Usage:   "host",
-					EnvVars: []string{"host"},
-					Value:   "127.0.0.1",
-				},
-				&cli.StringFlag{
-					Name:    "domain",
-					Aliases: []string{"d"},
-					Usage:   "domain",
-					EnvVars: []string{"domain"},
-					Value:   "localhost",
-				},
-			},
+		ConnContext: func(ctx context.Context, c net.Conn) context.Context {
+			return logger.With(ctx, requestLog)
 		},
 	}
-
-	err := app.Run(os.Args)
-	if err != nil {
-		log.Fatal(err)
+	logger.Infof("server medata:%+v running...", config.Cfg.Medata)
+	switch strings.ToLower(config.Cfg.Medata.Scheme) {
+	case "http":
+	case "https":
+		if ln, err = tlsListener(ln, config.Cfg.Medata); err != nil {
+			logger.Fatal(err.Error())
+		}
+	default:
+		logger.Fatalf("scheme is %s", config.Cfg.Medata.Scheme)
+	}
+	if err = srv.Serve(ln); err != nil {
+		logger.Fatal(err.Error())
 	}
 }
 
-func run(c *cli.Context) error {
-	ctx := logger.With(context.Background(),
-		logger.Enable(c.Bool("enable-log")),
-		logger.Level(strings.ToUpper(c.String("log-level"))),
-		logger.LogPath(c.String("log-path")),
-	)
-	path := c.String("config")
-	if path == "" {
-		path = "./conf/config.yml"
+func tlsListener(listener net.Listener, medata *config.Medata) (net.Listener, error) {
+	if medata.Tls == nil {
+		return nil, errors.New("https haven't tls")
 	}
-	config.InitConfig(path)
-	return setup(ctx)
-}
-
-func setup(ctx context.Context) error {
-	ctx = server.ContextWithSignal(ctx)
-	pool := safe.NewPool(ctx)
-
-	server.GlobalWatcher = server.NewWatcher(ctx, pool)
-
-	handler, err := router.ChainBuilder(server.GlobalWatcher)
+	certPEMBlock, err := medata.Tls.Cert.Read()
 	if err != nil {
-		logger.FromContext(ctx).Fatalf("build route failed.Error:%v", err)
-		return err
+		return nil, err
 	}
-	srv := server.NewServer(ctx, config.Cfg, handler, server.GlobalWatcher)
+	var keyPEMBlock []byte
+	if keyPEMBlock, err = medata.Tls.Key.Read(); err != nil {
+		return nil, err
+	}
+	var certificate tls.Certificate
+	if certificate, err = tls.X509KeyPair(certPEMBlock, keyPEMBlock); err != nil {
+		return nil, err
+	}
 
-	srv.Start()
-	defer srv.Close()
-
-	srv.Wait()
-	logger.FromContext(ctx).Info("shutting down")
-	return nil
-}
-
-func certificate(c *cli.Context) error {
-	host := c.String("host")
-	domain := c.String("domain")
-	cert, key, err := ptls.GenerateSelfSignedCertKey(
-		host,
-		[]net.IP{
-			net.ParseIP(host),
-		},
-		[]string{
-			domain,
-		})
-	if err != nil {
-		return err
-	}
-	var certFile *os.File
-	if certFile, err = os.Create(c.String("cert")); err != nil {
-		return nil
-	}
-	defer certFile.Close()
-	if _, err = certFile.Write(cert); err != nil {
-		return err
-	}
-	var keyFile *os.File
-	if keyFile, err = os.Create(c.String("key")); err != nil {
-		return err
-	}
-	defer keyFile.Close()
-	_, err = keyFile.Write(key)
-	return err
+	return tls.NewListener(listener, &tls.Config{
+		Certificates: []tls.Certificate{certificate},
+	}), nil
 }

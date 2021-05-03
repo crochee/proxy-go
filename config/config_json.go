@@ -14,20 +14,20 @@ type Json struct {
 	path string
 }
 
-func (j Json) Decode() (*Config, error) {
+func (j Json) Decode() (*Spec, error) {
 	file, err := os.Open(j.path)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
-	var config Config
-	if err = jsoniter.ConfigFastest.NewDecoder(file).Decode(&config); err != nil {
+	var config *Spec
+	if err = jsoniter.ConfigFastest.NewDecoder(file).Decode(config); err != nil {
 		return nil, err
 	}
-	return &config, nil
+	return config, nil
 }
 
-func (j Json) Encode(c *Config) error {
+func (j Json) Encode(c *Spec) error {
 	file, err := os.Create(j.path)
 	if err != nil {
 		return err

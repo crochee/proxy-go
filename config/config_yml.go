@@ -14,20 +14,20 @@ type Yml struct {
 	path string
 }
 
-func (y Yml) Decode() (*Config, error) {
+func (y Yml) Decode() (*Spec, error) {
 	file, err := os.Open(y.path)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
-	var config Config
-	if err = yaml.NewDecoder(file).Decode(&config); err != nil {
+	var config *Spec
+	if err = yaml.NewDecoder(file).Decode(config); err != nil {
 		return nil, err
 	}
-	return &config, nil
+	return config, nil
 }
 
-func (y Yml) Encode(c *Config) error {
+func (y Yml) Encode(c *Spec) error {
 	file, err := os.Create(y.path)
 	if err != nil {
 		return err

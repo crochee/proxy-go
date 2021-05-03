@@ -30,7 +30,7 @@ type Server struct {
 }
 
 // NewServer returns an initialized Server.
-func NewServer(ctx context.Context, cf *config.Config, handler http.Handler,
+func NewServer(ctx context.Context, cf *config.Spec, handler http.Handler,
 	watcher *Watcher) *Server {
 	return &Server{
 		config:   cf,

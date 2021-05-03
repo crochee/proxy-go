@@ -5,6 +5,7 @@
 package router
 
 import (
+	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -20,13 +21,13 @@ import (
 func NewGinEngine() *gin.Engine {
 	router := gin.New()
 
-	if gin.Mode() != gin.ReleaseMode {
+	if gin.Mode() == gin.DebugMode {
 		// swagger
 		url := ginSwagger.URL("/swagger/doc.json")
 		router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
 
 		// 增加性能测试
-		//pprof.Register(router)
+		pprof.Register(router)
 	}
 
 	prof := router.Group("/debug/pprof")

@@ -1,13 +1,12 @@
-server:
-    medata:
-        - name: proxy1
-          scheme: http
-          port: 8120
-          grace_time_out: 15s
-        - name: proxy2
-          scheme: https
-          port: 8121
-          tls:
-            cert: ./conf/cert.pem
-            key: ./conf/key.pem
-          grace_time_out: 15s
+medata:
+    host: :8120
+middleware:
+    balance_node:
+        obs:
+            scheme: http
+            host: ""
+            weight: 1.1
+    rate_limit:
+        every: 10s
+        burst: 2000
+        mode: 0

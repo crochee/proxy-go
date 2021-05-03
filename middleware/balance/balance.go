@@ -12,7 +12,7 @@ import (
 
 	"github.com/crochee/proxy-go/internal"
 	"github.com/crochee/proxy-go/logger"
-	"github.com/crochee/proxy-go/middlewares"
+	"github.com/crochee/proxy-go/middleware"
 )
 
 type Balancer struct {
@@ -33,8 +33,8 @@ func New(selector Selector, next http.Handler) *Balancer {
 	}
 }
 
-func (b *Balancer) Name() middlewares.HandlerName {
-	return middlewares.LoadBalancer
+func (b *Balancer) Name() middleware.HandlerName {
+	return middleware.LoadBalancer
 }
 
 func (b *Balancer) ServeHTTP(writer http.ResponseWriter, request *http.Request) {

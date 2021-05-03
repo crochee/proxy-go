@@ -13,21 +13,21 @@ import (
 
 	"github.com/crochee/proxy-go/internal"
 	"github.com/crochee/proxy-go/logger"
-	"github.com/crochee/proxy-go/middlewares"
+	"github.com/crochee/proxy-go/middleware"
 )
 
 type loggerHandler struct {
 	next http.Handler
 }
 
-func New(next http.Handler) middlewares.Handler {
+func New(next http.Handler) middleware.Handler {
 	return &loggerHandler{
 		next: next,
 	}
 }
 
-func (l *loggerHandler) Name() middlewares.HandlerName {
-	return middlewares.Logger
+func (l *loggerHandler) Name() middleware.HandlerName {
+	return middleware.Logger
 }
 
 func (l *loggerHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {

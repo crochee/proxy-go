@@ -2,7 +2,7 @@
 // Author: crochee
 // Date: 2021/2/6
 
-package middlewares
+package middleware
 
 import (
 	"fmt"

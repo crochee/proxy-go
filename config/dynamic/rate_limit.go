@@ -7,7 +7,7 @@ package dynamic
 import "time"
 
 type RateLimit struct {
-	Every time.Duration
-	Burst int
-	Mode  int
+	Every time.Duration `json:"every"`
+	Burst int           `json:"burst"`
+	Mode  int           `json:"mode"`
 }

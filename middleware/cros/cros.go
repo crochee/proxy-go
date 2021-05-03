@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/crochee/proxy-go/logger"
-	"github.com/crochee/proxy-go/middlewares"
+	"github.com/crochee/proxy-go/middleware"
 )
 
 // Options is a configuration container to setup the CORS middleware.
@@ -77,7 +77,7 @@ type crossDomain struct {
 	optionPassthrough bool
 }
 
-func New(next http.Handler, options Options) middlewares.Handler {
+func New(next http.Handler, options Options) middleware.Handler {
 	c := &crossDomain{
 		next:                   next,
 		exposedHeaders:         convert(options.ExposedHeaders, http.CanonicalHeaderKey),
@@ -146,8 +146,8 @@ func New(next http.Handler, options Options) middlewares.Handler {
 	return c
 }
 
-func (c *crossDomain) Name() middlewares.HandlerName {
-	return middlewares.Cross
+func (c *crossDomain) Name() middleware.HandlerName {
+	return middleware.Cross
 }
 
 func (c *crossDomain) ServeHTTP(writer http.ResponseWriter, request *http.Request) {

@@ -11,15 +11,15 @@ import (
 
 	"github.com/crochee/proxy-go/config/dynamic"
 	"github.com/crochee/proxy-go/internal"
-	"github.com/crochee/proxy-go/middlewares"
-	"github.com/crochee/proxy-go/middlewares/balance"
-	"github.com/crochee/proxy-go/middlewares/cros"
-	"github.com/crochee/proxy-go/middlewares/logger"
-	"github.com/crochee/proxy-go/middlewares/ratelimit"
-	"github.com/crochee/proxy-go/middlewares/recovery"
-	"github.com/crochee/proxy-go/middlewares/switchhandler"
-	"github.com/crochee/proxy-go/server"
+	"github.com/crochee/proxy-go/middleware"
+	"github.com/crochee/proxy-go/middleware/balance"
+	"github.com/crochee/proxy-go/middleware/cros"
+	"github.com/crochee/proxy-go/middleware/logger"
+	"github.com/crochee/proxy-go/middleware/ratelimit"
+	"github.com/crochee/proxy-go/middleware/recovery"
+	"github.com/crochee/proxy-go/middleware/switchhandler"
 	"github.com/crochee/proxy-go/service"
+	"github.com/crochee/proxy-go/service/server"
 )
 
 func ChainBuilder(watcher *server.Watcher) (http.Handler, error) {
@@ -28,7 +28,7 @@ func ChainBuilder(watcher *server.Watcher) (http.Handler, error) {
 	switchHandler := switchhandler.New()
 
 	watcher.AddListener(
-		middlewares.CompleteAction(switchHandler.Name(), middlewares.Update),
+		middleware.CompleteAction(switchHandler.Name(), middleware.Update),
 		func(config *dynamic.Config, _ chan<- interface{}) {
 			if !config.Switcher.Add {
 				switchHandler.Delete(config.Switcher.ServiceName)
@@ -54,7 +54,7 @@ func ChainBuilder(watcher *server.Watcher) (http.Handler, error) {
 		})
 
 	watcher.AddListener(
-		middlewares.CompleteAction(switchHandler.Name(), middlewares.List),
+		middleware.CompleteAction(switchHandler.Name(), middleware.List),
 		func(config *dynamic.Config, response chan<- interface{}) {
 			list := make([]*dynamic.Switch, 0, 4)
 			switchHandler.Range(func(key, value interface{}) bool {
@@ -107,13 +107,13 @@ func ChainBuilder(watcher *server.Watcher) (http.Handler, error) {
 	limit := ratelimit.New(handler)
 
 	watcher.AddListener(
-		middlewares.CompleteAction(limit.Name(), middlewares.Update),
+		middleware.CompleteAction(limit.Name(), middleware.Update),
 		func(config *dynamic.Config, _ chan<- interface{}) {
 			limit.Update(config.Limit)
 		})
 
 	watcher.AddListener(
-		middlewares.CompleteAction(limit.Name(), middlewares.Get),
+		middleware.CompleteAction(limit.Name(), middleware.Get),
 		func(config *dynamic.Config, response chan<- interface{}) {
 			response <- limit.Get()
 		})

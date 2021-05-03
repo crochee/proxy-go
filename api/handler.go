@@ -16,8 +16,8 @@ import (
 	"github.com/crochee/proxy-go/config/dynamic"
 	"github.com/crochee/proxy-go/internal"
 	"github.com/crochee/proxy-go/logger"
-	"github.com/crochee/proxy-go/middlewares"
-	"github.com/crochee/proxy-go/server"
+	"github.com/crochee/proxy-go/middleware"
+	"github.com/crochee/proxy-go/service/server"
 )
 
 // UpdateSwitch godoc
@@ -48,7 +48,7 @@ func UpdateSwitch(ctx *gin.Context) {
 	}
 	logger.FromContext(ctx.Request.Context()).Debugf("%+v", dynamicSwitch)
 	server.GlobalWatcher.Entry() <- &server.Message{
-		Name: middlewares.CompleteAction(middlewares.Switcher, middlewares.Update),
+		Name: middleware.CompleteAction(middleware.Switcher, middleware.Update),
 		Content: &dynamic.Config{
 			Switcher: dynamicSwitch,
 		},
@@ -72,7 +72,7 @@ func ListSwitch(ctx *gin.Context) {
 		return
 	}
 	server.GlobalWatcher.Entry() <- &server.Message{
-		Name: middlewares.CompleteAction(middlewares.Switcher, middlewares.List),
+		Name: middleware.CompleteAction(middleware.Switcher, middleware.List),
 	}
 	tc := internal.AcquireTimer(30 * time.Second)
 	var (
@@ -120,7 +120,7 @@ func UpdateRateLimit(ctx *gin.Context) {
 		return
 	}
 	server.GlobalWatcher.Entry() <- &server.Message{
-		Name: middlewares.CompleteAction(middlewares.RateLimiter, middlewares.Update),
+		Name: middleware.CompleteAction(middleware.RateLimiter, middleware.Update),
 		Content: &dynamic.Config{
 			Limit: &rateLimit,
 		},
@@ -144,7 +144,7 @@ func GetRateLimit(ctx *gin.Context) {
 		return
 	}
 	server.GlobalWatcher.Entry() <- &server.Message{
-		Name: middlewares.CompleteAction(middlewares.RateLimiter, middlewares.Get),
+		Name: middleware.CompleteAction(middleware.RateLimiter, middleware.Get),
 	}
 	tc := internal.AcquireTimer(30 * time.Second)
 	var (

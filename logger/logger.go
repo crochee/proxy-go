@@ -8,162 +8,138 @@ import (
 	"io"
 	"os"
 
+	"go.uber.org/multierr"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-var logger *Logger
+const (
+	DefaultLogSizeM int = 20
+	DefaultMaxZip   int = 50
+	MaxLogDays      int = 30
+)
 
-type Logger struct {
-	level       zapcore.Level
-	path        string
-	logger      *zap.Logger
-	loggerSugar *zap.SugaredLogger
-}
-
-// SetLoggerWriter return Logger writer
-func SetLoggerWriter(path string) io.Writer {
+func setLoggerWriter(path string) io.Writer {
+	if path == "" {
+		return os.Stdout
+	}
 	return &lumberjack.Logger{
 		Filename:   path,
-		MaxSize:    20,    //单个日志文件最大MaxSize*M大小 // megabytes
-		MaxAge:     30,    //days
-		MaxBackups: 50,    //备份数量
-		Compress:   false, //不压缩
-		LocalTime:  true,  //备份名采用本地时间
+		MaxSize:    DefaultLogSizeM, //单个日志文件最大MaxSize*M大小 // megabytes
+		MaxAge:     MaxLogDays,      //days
+		MaxBackups: DefaultMaxZip,   //备份数量
+		Compress:   false,           //不压缩
+		LocalTime:  true,            //备份名采用本地时间
 	}
 }
 
-// InitLogger init Logger
-func InitLogger(opts ...Option) {
-	logger = &Logger{}
+type Option struct {
+	Path  string
+	Level string
+	Skip  int
+}
+
+// NewLogger 初始化日志对象
+//
+// @param: path 日志路径
+// @param: level 日志等级
+func NewLogger(opts ...func(*Option)) *Logger {
+	l := &Logger{
+		Option: Option{
+			Path:  "",
+			Level: "INFO",
+			Skip:  1,
+		},
+	}
 	for _, opt := range opts {
-		opt.Apply(logger)
+		opt(&l.Option)
 	}
-	if logger.path == "" {
-		logger.logger = NewZap(logger.level, zapcore.NewConsoleEncoder, os.Stdout)
+	var encode func(zapcore.EncoderConfig) zapcore.Encoder
+	if l.Option.Path == "" {
+		encode = zapcore.NewConsoleEncoder
 	} else {
-		logger.logger = NewZap(logger.level, zapcore.NewConsoleEncoder, SetLoggerWriter(logger.path))
+		encode = zapcore.NewJSONEncoder
 	}
-	logger.loggerSugar = logger.logger.Sugar()
+	l.Logger = newZap(l.Option.Level, encode, l.Option.Skip, setLoggerWriter(l.Option.Path))
+	l.LoggerSugar = l.Logger.Sugar()
+
+	return l
 }
 
-func Infof(format string, v ...interface{}) {
-	if logger != nil {
-		logger.loggerSugar.Infof(format, v...)
-	}
+type Logger struct {
+	Logger      *zap.Logger
+	LoggerSugar *zap.SugaredLogger
+	Option
 }
 
-func (l *Logger) Infof(format string, v ...interface{}) {
-	if l != nil {
-		l.loggerSugar.Infof(format, v...)
-	}
-}
-
-func Info(message string) {
-	if logger != nil {
-		logger.logger.Info(message)
-	}
-}
-
-func (l *Logger) Info(message string) {
-	if l != nil {
-		l.logger.Info(message)
-	}
-}
-
-func Debugf(format string, v ...interface{}) {
-	if logger != nil {
-		logger.loggerSugar.Debugf(format, v...)
-	}
-}
-
+// Debugf 打印Debug信息
+//
+// @param: format 格式信息
+// @param: v 参数信息
 func (l *Logger) Debugf(format string, v ...interface{}) {
-	if l != nil {
-		l.loggerSugar.Debugf(format, v...)
-	}
+	l.LoggerSugar.Debugf(format, v...)
 }
 
-func Debug(message string) {
-	if logger != nil {
-		logger.logger.Debug(message)
-	}
-}
-
+// Debug 打印Debug信息
+//
+// @param: message 格式信息
 func (l *Logger) Debug(message string) {
-	if l != nil {
-		l.logger.Debug(message)
-	}
+	l.Logger.Debug(message)
 }
 
-func Warnf(format string, v ...interface{}) {
-	if logger != nil {
-		logger.loggerSugar.Warnf(format, v...)
-	}
+// Infof 打印Info信息
+//
+// @param: format 格式信息
+// @param: v 参数信息
+func (l *Logger) Infof(format string, v ...interface{}) {
+	l.LoggerSugar.Infof(format, v...)
 }
 
-func (l *Logger) Warnf(format string, v ...interface{}) {
-	if l != nil {
-		l.loggerSugar.Warnf(format, v...)
-	}
+// Info 打印Info信息
+//
+// @param: message 格式信息
+func (l *Logger) Info(message string) {
+	l.Logger.Info(message)
 }
 
-func Warn(message string) {
-	if logger != nil {
-		logger.logger.Warn(message)
-	}
-}
-
-func (l *Logger) Warn(message string) {
-	if l != nil {
-		l.logger.Warn(message)
-	}
-}
-
-func Errorf(format string, v ...interface{}) {
-	if logger != nil {
-		logger.loggerSugar.Errorf(format, v...)
-	}
-}
-
+// Errorf 打印Error信息
+//
+// @param: format 格式信息
+// @param: v 参数信息
 func (l *Logger) Errorf(format string, v ...interface{}) {
-	if l != nil {
-		l.loggerSugar.Errorf(format, v...)
-	}
+	l.LoggerSugar.Errorf(format, v...)
 }
 
-func Error(message string) {
-	if logger != nil {
-		logger.logger.Error(message)
-	}
-}
-
+// Error 打印Error信息
+//
+// @param: message 信息
 func (l *Logger) Error(message string) {
-	if l != nil {
-		l.logger.Error(message)
-	}
+	l.Logger.Error(message)
 }
 
-func Fatalf(format string, v ...interface{}) {
-	if logger != nil {
-		logger.loggerSugar.Fatalf(format, v...)
-	}
-}
-
+// Fatalf 打印Fatalf信息
+//
+// @param: format 格式信息
+// @param: v 参数信息
 func (l *Logger) Fatalf(format string, v ...interface{}) {
-	if l != nil {
-		l.loggerSugar.Fatalf(format, v...)
-	}
+	l.LoggerSugar.Errorf(format, v...)
 }
 
-func Fatal(message string) {
-	if logger != nil {
-		logger.logger.Fatal(message)
-	}
-}
-
+// Fatal 打印Fatal信息
+//
+// @param: message 信息
 func (l *Logger) Fatal(message string) {
-	if l != nil {
-		l.logger.Fatal(message)
+	l.Logger.Error(message)
+}
+
+func (l *Logger) Sync() error {
+	var resultErr error
+	if err := l.Logger.Sync(); err != nil {
+		resultErr = multierr.Append(resultErr, err)
 	}
+	if err := l.LoggerSugar.Sync(); err != nil {
+		resultErr = multierr.Append(resultErr, err)
+	}
+	return resultErr
 }

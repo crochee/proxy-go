@@ -10,7 +10,7 @@ import (
 	"sync"
 
 	"github.com/crochee/proxy-go/internal"
-	"github.com/crochee/proxy-go/middlewares"
+	"github.com/crochee/proxy-go/middleware"
 )
 
 // SwitchHandler is a middleware used to switch handler.
@@ -25,8 +25,8 @@ func New() *SwitchHandler {
 	}
 }
 
-func (s *SwitchHandler) Name() middlewares.HandlerName {
-	return middlewares.Switcher
+func (s *SwitchHandler) Name() middleware.HandlerName {
+	return middleware.Switcher
 }
 
 func (s *SwitchHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {

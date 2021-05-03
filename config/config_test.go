@@ -7,29 +7,31 @@ package config
 import (
 	"testing"
 	"time"
+
+	"github.com/crochee/proxy-go/config/dynamic"
 )
 
 func TestInitConfig(t *testing.T) {
-	cf := &Config{
-		Server: &Server{
-			Medata: []*Medata{
-				{
-					Name:         "proxy1",
-					Scheme:       "http",
-					Port:         8120,
-					Tls:          nil,
-					GraceTimeOut: 15 * time.Second,
+	cf := &Spec{
+		Medata: &Medata{
+			Tls:          nil,
+			GraceTimeOut: 0,
+			Scheme:       "",
+			Host:         ":8120",
+		},
+		Middleware: &dynamic.Config{
+			BalanceNode: map[string]*dynamic.BalanceNode{
+				"obs": {
+					Scheme:   "http",
+					Host:     "",
+					Metadata: nil,
+					Weight:   1.1,
 				},
-				{
-					Name:   "proxy2",
-					Scheme: "https",
-					Port:   8121,
-					Tls: &TlsConfig{
-						Cert: "./conf/cert.pem",
-						Key:  "./conf/key.pem",
-					},
-					GraceTimeOut: 15 * time.Second,
-				},
+			},
+			RateLimit: &dynamic.RateLimit{
+				Every: 10 * time.Second,
+				Burst: 2000,
+				Mode:  0,
 			},
 		},
 	}
