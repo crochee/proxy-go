@@ -7,6 +7,7 @@ package main
 import (
 	"context"
 	"log"
+	"net"
 	"os"
 	"strings"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/crochee/proxy-go/cmd"
 	"github.com/crochee/proxy-go/config"
 	"github.com/crochee/proxy-go/logger"
+	"github.com/crochee/proxy-go/ptls"
 	"github.com/crochee/proxy-go/router"
 	"github.com/crochee/proxy-go/safe"
 	"github.com/crochee/proxy-go/server"
@@ -133,4 +135,35 @@ func setup(ctx context.Context) error {
 	srv.Wait()
 	logger.FromContext(ctx).Info("shutting down")
 	return nil
+}
+
+func certificate(c *cli.Context) error {
+	host := c.String("host")
+	domain := c.String("domain")
+	cert, key, err := ptls.GenerateSelfSignedCertKey(
+		host,
+		[]net.IP{
+			net.ParseIP(host),
+		},
+		[]string{
+			domain,
+		})
+	if err != nil {
+		return err
+	}
+	var certFile *os.File
+	if certFile, err = os.Create(c.String("cert")); err != nil {
+		return nil
+	}
+	defer certFile.Close()
+	if _, err = certFile.Write(cert); err != nil {
+		return err
+	}
+	var keyFile *os.File
+	if keyFile, err = os.Create(c.String("key")); err != nil {
+		return err
+	}
+	defer keyFile.Close()
+	_, err = keyFile.Write(key)
+	return err
 }
