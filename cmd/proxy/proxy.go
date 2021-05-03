@@ -12,18 +12,18 @@ import (
 
 	"github.com/urfave/cli/v2"
 
+	"github.com/crochee/proxy-go/cmd"
 	"github.com/crochee/proxy-go/config"
 	"github.com/crochee/proxy-go/logger"
 	"github.com/crochee/proxy-go/router"
 	"github.com/crochee/proxy-go/safe"
 	"github.com/crochee/proxy-go/server"
-	"github.com/crochee/proxy-go/version"
 )
 
 func main() {
 	app := cli.NewApp()
 	app.Name = "proxy"
-	app.Version = version.Version
+	app.Version = cmd.Version
 	app.Usage = "Generates proxy"
 
 	app.Commands = []*cli.Command{
