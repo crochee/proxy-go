@@ -1,12 +1,14 @@
 medata:
     host: :8120
 middleware:
-    balance_node:
-        obs:
-            scheme: http
-            host: ""
-            weight: 1.1
     rate_limit:
         every: 10s
         burst: 2000
         mode: 0
+    balance:
+        obs:
+            selector: wwr
+            node_list:
+                - scheme: http
+                  host: 127.0.0.1:8701
+                  weight: 0

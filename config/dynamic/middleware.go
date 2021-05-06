@@ -5,6 +5,7 @@
 package dynamic
 
 type Config struct {
-	BalanceNode map[string]*BalanceNode `json:"balance_node,omitempty" yaml:"balance_node,omitempty"`
-	RateLimit   *RateLimit              `json:"rate_limit,omitempty" yaml:"rate_limit,omitempty"`
+	RateLimit *RateLimit `json:"rate_limit,omitempty" yaml:"rate_limit,omitempty"`
+
+	Balance map[string]*Balance `json:"balance,omitempty" yaml:"balance,omitempty"`
 }

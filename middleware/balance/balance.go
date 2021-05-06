@@ -9,15 +9,20 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 
+	"github.com/crochee/proxy-go/config/dynamic"
 	"github.com/crochee/proxy-go/internal"
 	"github.com/crochee/proxy-go/logger"
-	"github.com/crochee/proxy-go/middleware"
 )
 
 type Balancer struct {
 	next     http.Handler
-	selector Selector
+	selector map[string]struct {
+		*dynamic.Balance
+		Selector
+	}
+	rw       sync.RWMutex
 	hostName string
 }
 
@@ -33,14 +38,26 @@ func New(selector Selector, next http.Handler) *Balancer {
 	}
 }
 
-func (b *Balancer) Name() middleware.HandlerName {
-	return middleware.LoadBalancer
+func (b *Balancer) NameSpace() string {
+	return "LoadBalancer"
 }
 
 func (b *Balancer) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	node, err := b.nextNode()
+	list := strings.SplitN(request.URL.Path, "/", 3)
+	if len(list) < 1 {
+		http.Error(writer, internal.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
+		return
+	}
+	b.rw.RLock()
+	s, ok := b.selector[list[1]]
+	b.rw.RUnlock()
+	if !ok {
+		http.Error(writer, internal.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
+		return
+	}
+	node, err := s.Next()
 	if err != nil {
-		logger.FromContext(request.Context()).Warnf("get next node failed.Error:%v", err)
+		logger.FromContext(request.Context()).Errorf("get next node failed.Error:%v", err)
 		http.Error(writer, internal.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
 		return
 	}

@@ -26,8 +26,8 @@ func New(next http.Handler) middleware.Handler {
 	}
 }
 
-func (l *loggerHandler) Name() middleware.HandlerName {
-	return middleware.Logger
+func (l *loggerHandler) NameSpace() string {
+	return "AccessLog"
 }
 
 func (l *loggerHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
@@ -105,9 +105,7 @@ func clientIp(request *http.Request) string {
 	if clientIP != "" {
 		return clientIP
 	}
-	if addr := request.Header.Get("X-Appengine-Remote-Addr"); addr != "" {
-		return addr
-	}
+
 	if ip, _, err := net.SplitHostPort(strings.TrimSpace(request.RemoteAddr)); err == nil {
 		return ip
 	}

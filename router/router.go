@@ -5,10 +5,6 @@
 package router
 
 import (
-	"net/http"
-	"regexp"
-	"strings"
-
 	"github.com/crochee/proxy-go/config/dynamic"
 	"github.com/crochee/proxy-go/internal"
 	"github.com/crochee/proxy-go/middleware"
@@ -20,6 +16,9 @@ import (
 	"github.com/crochee/proxy-go/middleware/switchhandler"
 	"github.com/crochee/proxy-go/service"
 	"github.com/crochee/proxy-go/service/server"
+	"net/http"
+	"regexp"
+	"strings"
 )
 
 func ChainBuilder(watcher *server.Watcher) (http.Handler, error) {

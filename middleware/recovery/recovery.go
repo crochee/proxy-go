@@ -24,8 +24,8 @@ func New(next http.Handler) middleware.Handler {
 	}
 }
 
-func (re *recovery) Name() middleware.HandlerName {
-	return middleware.Recovery
+func (re *recovery) NameSpace() string {
+	return "Recovery"
 }
 
 func (re *recovery) ServeHTTP(rw http.ResponseWriter, req *http.Request) {

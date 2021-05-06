@@ -30,9 +30,6 @@ type httpServer struct {
 func New(ctx context.Context, medata *config.Medata, handler http.Handler) (*httpServer, error) {
 	newCtx, cancel := context.WithCancel(ctx)
 
-	// 初始化请求日志
-	requestLog := logger.NewLogger(logger.Path(medata.LogPath), logger.Level(medata.LogLevel))
-
 	ln, err := net.Listen("tcp", medata.Host)
 	if err != nil {
 		return nil, err
@@ -53,9 +50,6 @@ func New(ctx context.Context, medata *config.Medata, handler http.Handler) (*htt
 			Handler: handler,
 			BaseContext: func(_ net.Listener) context.Context {
 				return newCtx
-			},
-			ConnContext: func(ctx context.Context, c net.Conn) context.Context {
-				return logger.With(ctx, requestLog)
 			},
 		},
 		Listener: ln,

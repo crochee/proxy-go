@@ -12,10 +12,12 @@ type option struct {
 	skip  int
 }
 
+// Path gives path set log's path
 func Path(path string) func(*option) {
 	return func(o *option) { o.path = path }
 }
 
+// Level gives level set log's level
 func Level(level string) func(*option) {
 	return func(o *option) { o.level = level }
 }

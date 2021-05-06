@@ -20,12 +20,17 @@ func TestInitConfig(t *testing.T) {
 			Host:         ":8120",
 		},
 		Middleware: &dynamic.Config{
-			BalanceNode: map[string]*dynamic.BalanceNode{
+			Balance: map[string]*dynamic.Balance{
 				"obs": {
-					Scheme:   "http",
-					Host:     "",
-					Metadata: nil,
-					Weight:   1.1,
+					Selector: "wwr",
+					NodeList: []*dynamic.Node{
+						{
+							Scheme:   "http",
+							Host:     "127.0.0.1:8701",
+							Metadata: nil,
+							Weight:   0,
+						},
+					},
 				},
 			},
 			RateLimit: &dynamic.RateLimit{

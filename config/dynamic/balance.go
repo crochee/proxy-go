@@ -4,9 +4,14 @@
 
 package dynamic
 
-type BalanceNode struct {
+type Node struct {
 	Scheme   string            `json:"scheme,omitempty" yaml:"scheme,omitempty"`
 	Host     string            `json:"host"`
 	Metadata map[string]string `json:"metadata,omitempty" yaml:"metadata,omitempty"`
 	Weight   float64           `json:"weight"`
+}
+
+type Balance struct {
+	Selector string  `json:"selector" yaml:"selector"`
+	NodeList []*Node `json:"node_list" yaml:"node_list"`
 }

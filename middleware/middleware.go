@@ -10,7 +10,7 @@ import (
 )
 
 type Handler interface {
-	Name() HandlerName
+	NameSpace() string
 	http.Handler
 }
 

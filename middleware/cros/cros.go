@@ -146,8 +146,8 @@ func New(next http.Handler, options Options) middleware.Handler {
 	return c
 }
 
-func (c *crossDomain) Name() middleware.HandlerName {
-	return middleware.Cross
+func (c *crossDomain) NameSpace() string {
+	return "crossDomain"
 }
 
 func (c *crossDomain) ServeHTTP(writer http.ResponseWriter, request *http.Request) {

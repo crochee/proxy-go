@@ -15,7 +15,6 @@ import (
 	"github.com/crochee/proxy-go/config/dynamic"
 	"github.com/crochee/proxy-go/internal"
 	"github.com/crochee/proxy-go/logger"
-	"github.com/crochee/proxy-go/middleware"
 )
 
 type rateLimiter struct {
@@ -33,7 +32,7 @@ type rateLimiter struct {
 func New(next http.Handler) *rateLimiter {
 	rateLimiter := &rateLimiter{
 		next:  next,
-		every: 100 * time.Microsecond,
+		every: 500 * time.Microsecond,
 		burst: 1000 * 1000 * 1000,
 		mode:  1,
 	}
@@ -47,8 +46,8 @@ func New(next http.Handler) *rateLimiter {
 	return rateLimiter
 }
 
-func (rl *rateLimiter) Name() middleware.HandlerName {
-	return middleware.RateLimiter
+func (rl *rateLimiter) NameSpace() string {
+	return "RateLimiter"
 }
 
 func (rl *rateLimiter) ServeHTTP(rw http.ResponseWriter, req *http.Request) {

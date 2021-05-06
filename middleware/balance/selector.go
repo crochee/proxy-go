@@ -26,7 +26,7 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-// Selector strategy algorithm
+// selector strategy algorithm
 type Selector interface {
 	Update(bool, *Node)
 	Next() (*Node, error)
@@ -231,4 +231,30 @@ func (h *Heap) List() []*Node {
 		list = append(list, handler.Node)
 	}
 	return list
+}
+
+type WeightNode struct {
+	*Node
+	currentWeight float64 //当前权重
+}
+
+type WeightRoundRobin struct {
+	list []*WeightNode
+}
+
+func (w *WeightRoundRobin) Next() (*Node, error) {
+	var best *WeightNode
+	var total float64
+	for _, node := range w.list {
+		node.currentWeight += node.Weight // 将当前权重与有效权重相加
+		total += node.Weight              //累加总权重
+		if best == nil || node.currentWeight > best.currentWeight {
+			best = node
+		}
+	}
+	if best == nil {
+		return nil, ErrNoneAvailable
+	}
+	best.currentWeight -= total //将当前权重改为当前权重-总权重
+	return best.Node, nil
 }
