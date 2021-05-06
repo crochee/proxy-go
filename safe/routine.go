@@ -12,41 +12,28 @@ import (
 	"github.com/crochee/proxy-go/logger"
 )
 
-type routineCtx func(ctx context.Context)
-
-// Pool is a pool of go routines.
-type Pool struct {
+type pool struct {
 	waitGroup sync.WaitGroup
 	ctx       context.Context
 	cancel    context.CancelFunc
 }
 
 // NewPool creates a Pool.
-func NewPool(parentCtx context.Context) *Pool {
+func NewPool(parentCtx context.Context) *pool {
 	ctx, cancel := context.WithCancel(parentCtx)
-	return &Pool{
+	return &pool{
 		ctx:    ctx,
 		cancel: cancel,
 	}
 }
 
-// GoCtx starts a recoverable goroutine with a context.
-func (p *Pool) GoCtx(goroutine routineCtx) {
-	p.waitGroup.Add(1)
-	Go(func() {
-		defer p.waitGroup.Done()
-		goroutine(p.ctx)
-	})
-}
-
 // Go starts a recoverable goroutine with a context.
-func (p *Pool) Go(goroutine routineCtx) {
+func (p *pool) Go(goroutine func(ctx context.Context)) {
 	p.waitGroup.Add(1)
 	go func() {
 		defer func() {
 			if err := recover(); err != nil {
-				logger.FromContext(p.ctx).Errorf("Error in Go routine: %v", err)
-				logger.FromContext(p.ctx).Errorf("Stack: %s", debug.Stack())
+				logger.FromContext(p.ctx).Errorf("[Recovery] panic happened.Error:%v\n.Stack:\n%s", debug.Stack())
 			}
 			p.waitGroup.Done()
 		}()
@@ -55,28 +42,7 @@ func (p *Pool) Go(goroutine routineCtx) {
 }
 
 // Stop stops all started routines, waiting for their termination.
-func (p *Pool) Stop() {
+func (p *pool) Stop() {
 	p.cancel()
 	p.waitGroup.Wait()
-}
-
-func Go(goroutine func()) {
-	GoWithRecover(goroutine, defaultRecoverGoroutine)
-}
-
-// GoWithRecover starts a recoverable goroutine using given customRecover() function.
-func GoWithRecover(goroutine func(), customRecover func(err interface{})) {
-	go func() {
-		defer func() {
-			if err := recover(); err != nil {
-				customRecover(err)
-			}
-		}()
-		goroutine()
-	}()
-}
-
-func defaultRecoverGoroutine(err interface{}) {
-	logger.Errorf("Error in Go routine: %v", err)
-	logger.Errorf("Stack: %s", debug.Stack())
 }

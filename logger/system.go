@@ -12,9 +12,9 @@ var systemLogger Builder = NoLogger{}
 //
 // @param: path 日志路径
 // @param: level 日志等级
-func InitSystemLogger(opts ...func(*Option)) {
-	opts = append(opts, func(option *Option) {
-		option.Skip = 2
+func InitSystemLogger(opts ...func(*option)) {
+	opts = append(opts, func(option *option) {
+		option.skip = 2
 	})
 	systemLogger = NewLogger(opts...)
 }

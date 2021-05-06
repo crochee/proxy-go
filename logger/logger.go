@@ -34,34 +34,28 @@ func setLoggerWriter(path string) io.Writer {
 	}
 }
 
-type Option struct {
-	Path  string
-	Level string
-	Skip  int
-}
-
 // NewLogger 初始化日志对象
 //
 // @param: path 日志路径
 // @param: level 日志等级
-func NewLogger(opts ...func(*Option)) *Logger {
+func NewLogger(opts ...func(*option)) *Logger {
 	l := &Logger{
-		Option: Option{
-			Path:  "",
-			Level: "INFO",
-			Skip:  1,
+		option: option{
+			path:  "",
+			level: "INFO",
+			skip:  1,
 		},
 	}
 	for _, opt := range opts {
-		opt(&l.Option)
+		opt(&l.option)
 	}
 	var encode func(zapcore.EncoderConfig) zapcore.Encoder
-	if l.Option.Path == "" {
+	if l.option.path == "" {
 		encode = zapcore.NewConsoleEncoder
 	} else {
 		encode = zapcore.NewJSONEncoder
 	}
-	l.Logger = newZap(l.Option.Level, encode, l.Option.Skip, setLoggerWriter(l.Option.Path))
+	l.Logger = newZap(l.option.level, encode, l.option.skip, setLoggerWriter(l.option.path))
 	l.LoggerSugar = l.Logger.Sugar()
 
 	return l
@@ -70,7 +64,7 @@ func NewLogger(opts ...func(*Option)) *Logger {
 type Logger struct {
 	Logger      *zap.Logger
 	LoggerSugar *zap.SugaredLogger
-	Option
+	option
 }
 
 // Debugf 打印Debug信息
