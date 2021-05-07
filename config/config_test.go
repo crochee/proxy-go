@@ -15,9 +15,17 @@ func TestInitConfig(t *testing.T) {
 	cf := &Spec{
 		Medata: &Medata{
 			Tls:          nil,
-			GraceTimeOut: 0,
-			Scheme:       "",
+			GraceTimeOut: 15 * time.Second,
+			Scheme:       "http",
 			Host:         ":8120",
+			SystemLog: &dynamic.LogInfo{
+				Path:  "./log/proxy-sys.log",
+				Level: "DEBUG",
+			},
+			RequestLog: &dynamic.LogInfo{
+				Path:  "./log/proxy-req.log",
+				Level: "DEBUG",
+			},
 		},
 		Middleware: &dynamic.Config{
 			Balance: map[string]*dynamic.Balance{
@@ -26,18 +34,30 @@ func TestInitConfig(t *testing.T) {
 					NodeList: []*dynamic.Node{
 						{
 							Scheme:   "http",
-							Host:     "127.0.0.1:8701",
+							Host:     "127.0.0.1:8121",
 							Metadata: nil,
-							Weight:   0,
+							Weight:   1.0,
+						},
+						{
+							Scheme:   "http",
+							Host:     "127.0.0.1:8122",
+							Metadata: nil,
+							Weight:   2.0,
 						},
 					},
 				},
 			},
-			RateLimit: &dynamic.RateLimit{
-				Every: 10 * time.Second,
-				Burst: 2000,
-				Mode:  0,
+			AccessLog: &dynamic.LogInfo{
+				Path:  "",
+				Level: "INFO",
 			},
+			RateLimit: &dynamic.RateLimit{
+				Every: time.Second,
+				Burst: 2000,
+				Mode:  1,
+			},
+			Recovery:    true,
+			CrossDomain: false,
 		},
 	}
 	y := Yml{path: "../conf/config.yml"}

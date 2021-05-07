@@ -29,8 +29,6 @@ type httpServer struct {
 }
 
 func New(ctx context.Context, medata *config.Medata, handler http.Handler) (*httpServer, error) {
-	newCtx, cancel := context.WithCancel(ctx)
-
 	ln, err := net.Listen("tcp", medata.Host)
 	if err != nil {
 		return nil, err
@@ -46,6 +44,7 @@ func New(ctx context.Context, medata *config.Medata, handler http.Handler) (*htt
 	default:
 		return nil, fmt.Errorf("scheme is %s", medata.Scheme)
 	}
+	newCtx, cancel := context.WithCancel(ctx)
 	srv := &httpServer{
 		Server: &http.Server{
 			Handler: handler,

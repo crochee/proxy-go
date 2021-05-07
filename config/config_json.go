@@ -20,11 +20,11 @@ func (j Json) Decode() (*Spec, error) {
 		return nil, err
 	}
 	defer file.Close()
-	var config *Spec
-	if err = jsoniter.ConfigFastest.NewDecoder(file).Decode(config); err != nil {
+	var config Spec
+	if err = jsoniter.ConfigFastest.NewDecoder(file).Decode(&config); err != nil {
 		return nil, err
 	}
-	return config, nil
+	return &config, nil
 }
 
 func (j Json) Encode(c *Spec) error {

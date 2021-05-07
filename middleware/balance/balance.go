@@ -39,63 +39,9 @@ func New(cfg *dynamic.Config, next http.Handler) http.Handler {
 		hostName:     hostname,
 	}
 	for key, balance := range cfg.Balance {
-		var s Selector
-		switch strings.Title(balance.Selector) {
-		case "Random":
-			r := NewRandom()
-			for _, node := range balance.NodeList {
-				r.list = append(r.list, &Node{
-					Scheme:   node.Scheme,
-					Host:     node.Host,
-					Metadata: node.Metadata,
-					Weight:   node.Weight,
-				})
-			}
-			s = r
-		case "RoundRobin":
-			r := NewRoundRobin()
-			for _, node := range balance.NodeList {
-				r.list = append(r.list, &Node{
-					Scheme:   node.Scheme,
-					Host:     node.Host,
-					Metadata: node.Metadata,
-					Weight:   node.Weight,
-				})
-			}
-			s = r
-		case "Heap":
-			r := NewHeap()
-			for _, node := range balance.NodeList {
-				r.Push(&deadlineNode{
-					Node: &Node{
-						Scheme:   node.Scheme,
-						Host:     node.Host,
-						Metadata: node.Metadata,
-						Weight:   node.Weight,
-					},
-				})
-			}
-			s = r
-		case "Wrr":
-			fallthrough
-		default:
-			r := NewWeightRoundRobin()
-			for _, node := range balance.NodeList {
-				r.list = append(r.list, &WeightNode{
-					Node: &Node{
-						Scheme:   node.Scheme,
-						Host:     node.Host,
-						Metadata: node.Metadata,
-						Weight:   node.Weight,
-					},
-				})
-			}
-			s = r
-		}
-
 		b.NameSelector[key] = &SelectorInfo{
 			Balance:  balance,
-			Selector: s,
+			Selector: createSelector(balance),
 		}
 	}
 	return b
@@ -206,4 +152,61 @@ func forwardedPort(req *http.Request) string {
 	}
 
 	return "80"
+}
+
+func createSelector(balance *dynamic.Balance) Selector {
+	var s Selector
+	switch strings.Title(balance.Selector) {
+	case "Random":
+		r := NewRandom()
+		for _, node := range balance.NodeList {
+			r.list = append(r.list, &Node{
+				Scheme:   node.Scheme,
+				Host:     node.Host,
+				Metadata: node.Metadata,
+				Weight:   node.Weight,
+			})
+		}
+		s = r
+	case "RoundRobin":
+		r := NewRoundRobin()
+		for _, node := range balance.NodeList {
+			r.list = append(r.list, &Node{
+				Scheme:   node.Scheme,
+				Host:     node.Host,
+				Metadata: node.Metadata,
+				Weight:   node.Weight,
+			})
+		}
+		s = r
+	case "Heap":
+		r := NewHeap()
+		for _, node := range balance.NodeList {
+			r.Push(&deadlineNode{
+				Node: &Node{
+					Scheme:   node.Scheme,
+					Host:     node.Host,
+					Metadata: node.Metadata,
+					Weight:   node.Weight,
+				},
+			})
+		}
+		s = r
+	case "Wrr":
+		fallthrough
+	default:
+		r := NewWeightRoundRobin()
+		for _, node := range balance.NodeList {
+			r.list = append(r.list, &WeightNode{
+				Node: &Node{
+					Scheme:   node.Scheme,
+					Host:     node.Host,
+					Metadata: node.Metadata,
+					Weight:   node.Weight,
+				},
+			})
+		}
+		s = r
+	}
+	return s
 }

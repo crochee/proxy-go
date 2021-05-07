@@ -25,19 +25,19 @@ type App struct {
 }
 
 func NewApp(opts ...func(*option)) *App {
-	option := option{
-		sigList: []os.Signal{syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT},
-		ctx:     context.Background(),
+	app := &App{
+		option: option{
+			sigList: []os.Signal{syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT},
+			ctx:     context.Background(),
+		},
 	}
 	for _, opt := range opts {
-		opt(&option)
+		opt(&app.option)
 	}
-	ctx, cancel := context.WithCancel(option.ctx)
-	return &App{
-		option: option,
-		ctx:    ctx,
-		cancel: cancel,
-	}
+	ctx, cancel := context.WithCancel(app.option.ctx)
+	app.ctx = ctx
+	app.cancel = cancel
+	return app
 }
 
 func (a *App) Run() error {
@@ -67,10 +67,4 @@ func (a *App) Run() error {
 		}
 	})
 	return g.Wait()
-}
-
-func (a *App) stop() {
-	if a.cancel != nil {
-		a.cancel()
-	}
 }

@@ -12,7 +12,8 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-func newZap(level string, encoderFunc func(zapcore.EncoderConfig) zapcore.Encoder, skip int, w io.Writer, fields ...zap.Field) *zap.Logger {
+func newZap(level string, encoderFunc func(zapcore.EncoderConfig) zapcore.Encoder,
+	skip int, w io.Writer, fields ...zap.Field) *zap.Logger {
 	core := zapcore.NewCore(
 		encoderFunc(newEncoderConfig()),
 		zap.CombineWriteSyncers(zapcore.AddSync(w)),

@@ -80,5 +80,5 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 	defer keyFile.Close()
 	_, err = keyFile.Write(key)
-	return nil
+	return err
 }

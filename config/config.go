@@ -31,7 +31,7 @@ type Medata struct {
 }
 
 type TlsConfig struct {
-	Ca   ptls.FileOrContent `json:"cert" yaml:"cert"`
+	Ca   ptls.FileOrContent `json:"ca" yaml:"ca"`
 	Cert ptls.FileOrContent `json:"cert" yaml:"cert"`
 	Key  ptls.FileOrContent `json:"key" yaml:"key"`
 }

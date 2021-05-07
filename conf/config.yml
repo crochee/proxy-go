@@ -1,14 +1,29 @@
 medata:
+    grace_time_out: 15s
+    scheme: http
     host: :8120
+    system_log:
+        path: ./log/proxy-sys.log
+        level: DEBUG
+    request_log:
+        path: ./log/proxy-req.log
+        level: DEBUG
 middleware:
-    rate_limit:
-        every: 10s
-        burst: 2000
-        mode: 0
     balance:
         obs:
             selector: wwr
             node_list:
                 - scheme: http
-                  host: 127.0.0.1:8701
-                  weight: 0
+                  host: 127.0.0.1:8121
+                  weight: 1
+                - scheme: http
+                  host: 127.0.0.1:8122
+                  weight: 2
+    access_log:
+        path: ""
+        level: INFO
+    rate_limit:
+        every: 1s
+        burst: 2000
+        mode: 1
+    recovery: true

@@ -16,10 +16,9 @@ import (
 )
 
 type option struct {
-	maxDelay time.Duration
-	every    time.Duration
-	burst    int
-	mode     int
+	every time.Duration
+	burst int
+	mode  int
 }
 
 func Every(t time.Duration) func(*option) {
@@ -37,7 +36,9 @@ func Mode(mode int) func(*option) {
 type rateLimiter struct {
 	limiter *rate.Limiter
 	next    http.Handler
+
 	option
+	maxDelay time.Duration
 }
 
 // New returns a rate limiter middleware.
