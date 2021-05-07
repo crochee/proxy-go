@@ -22,7 +22,7 @@ func main() {
 		Version: cmd.Version,
 		RunE:    run,
 	}
-	rootCmd.Flags().StringP("host", "h", "127.0.0.1", "")
+	rootCmd.Flags().StringP("ip", "i", "127.0.0.1", "")
 	rootCmd.Flags().StringP("domain", "d", "localhost", "")
 	rootCmd.Flags().StringP("cert", "c", "./conf/cert.pem", "")
 	rootCmd.Flags().StringP("key", "k", "./conf/key.pem", "")
@@ -36,7 +36,7 @@ func main() {
 
 func run(cmd *cobra.Command, args []string) error {
 	flag := cmd.Flags()
-	host, err := flag.GetString("host")
+	host, err := flag.GetString("ip")
 	if err != nil {
 		return err
 	}

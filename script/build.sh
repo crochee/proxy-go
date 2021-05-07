@@ -1,3 +1,3 @@
 #!bin/bash
 set -ex
-go build -tags jsoniter -o proxy ./cmd/proxy
+go build -o proxy ./cmd/proxy
