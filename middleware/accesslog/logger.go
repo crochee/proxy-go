@@ -2,7 +2,7 @@
 // Author: crochee
 // Date: 2021/1/31
 
-package logger
+package accesslog
 
 import (
 	"net"
@@ -13,24 +13,21 @@ import (
 
 	"github.com/crochee/proxy-go/internal"
 	"github.com/crochee/proxy-go/logger"
-	"github.com/crochee/proxy-go/middleware"
 )
 
-type loggerHandler struct {
+type accessLog struct {
 	next http.Handler
+	log  logger.Builder
 }
 
-func New(next http.Handler) middleware.Handler {
-	return &loggerHandler{
+func New(next http.Handler, log logger.Builder) http.Handler {
+	return &accessLog{
 		next: next,
+		log:  log,
 	}
 }
 
-func (l *loggerHandler) NameSpace() string {
-	return "AccessLog"
-}
-
-func (l *loggerHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+func (l *accessLog) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	start := time.Now().Local()
 	param := &LogFormatterParams{
 		Scheme:   "HTTP",
@@ -81,7 +78,7 @@ func (l *loggerHandler) ServeHTTP(writer http.ResponseWriter, request *http.Requ
 	buf.WriteString(strconv.Itoa(int(param.Size)))
 	buf.WriteString(" | ")
 	buf.WriteString(param.Path)
-	logger.FromContext(request.Context()).Info(buf.String())
+	l.log.Info(buf.String())
 }
 
 type LogFormatterParams struct {

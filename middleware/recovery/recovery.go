@@ -10,7 +10,6 @@ import (
 
 	"github.com/crochee/proxy-go/internal"
 	"github.com/crochee/proxy-go/logger"
-	"github.com/crochee/proxy-go/middleware"
 )
 
 type recovery struct {
@@ -18,14 +17,10 @@ type recovery struct {
 }
 
 // New creates recovery middleware
-func New(next http.Handler) middleware.Handler {
+func New(next http.Handler) http.Handler {
 	return &recovery{
 		next: next,
 	}
-}
-
-func (re *recovery) NameSpace() string {
-	return "Recovery"
 }
 
 func (re *recovery) ServeHTTP(rw http.ResponseWriter, req *http.Request) {

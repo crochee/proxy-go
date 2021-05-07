@@ -13,7 +13,6 @@ import (
 
 	"github.com/crochee/proxy-go/internal"
 	"github.com/crochee/proxy-go/logger"
-	"github.com/crochee/proxy-go/middleware"
 )
 
 type option struct {
@@ -42,7 +41,7 @@ type rateLimiter struct {
 }
 
 // New returns a rate limiter middleware.
-func New(next http.Handler, opts ...func(*option)) middleware.Handler {
+func New(next http.Handler, opts ...func(*option)) http.Handler {
 	rateLimiter := &rateLimiter{
 		next: next,
 		option: option{
@@ -62,10 +61,6 @@ func New(next http.Handler, opts ...func(*option)) middleware.Handler {
 	}
 	rateLimiter.limiter = rate.NewLimiter(every, rateLimiter.burst)
 	return rateLimiter
-}
-
-func (rl *rateLimiter) NameSpace() string {
-	return "RateLimiter"
 }
 
 func (rl *rateLimiter) ServeHTTP(rw http.ResponseWriter, req *http.Request) {

@@ -14,11 +14,6 @@ import (
 	"github.com/crochee/proxy-go/ptls"
 )
 
-type Config struct {
-	*Spec
-	lc LoadConfig
-}
-
 type Spec struct {
 	Medata     *Medata         `json:"medata" yaml:"medata"`
 	Middleware *dynamic.Config `json:"middleware,omitempty" yaml:"middleware,omitempty"`
@@ -31,8 +26,8 @@ type Medata struct {
 	Scheme string `json:"scheme,omitempty" yaml:"scheme,omitempty"`
 	Host   string `json:"host" yaml:"host"`
 
-	LogPath  string `json:"log_path,omitempty" yaml:"log_path,omitempty"`
-	LogLevel string `json:"log_level,omitempty" yaml:"log_level,omitempty"`
+	SystemLog  *dynamic.LogInfo `json:"system_log,omitempty" yaml:"system_log,omitempty"`
+	RequestLog *dynamic.LogInfo `json:"request_log,omitempty" yaml:"request_log,omitempty"`
 }
 
 type TlsConfig struct {
@@ -41,7 +36,7 @@ type TlsConfig struct {
 	Key  ptls.FileOrContent `json:"key" yaml:"key"`
 }
 
-var Cfg *Config
+var Cfg *Spec
 
 // InitConfig init Config
 func InitConfig(path string) {
@@ -57,7 +52,7 @@ type LoadConfig interface {
 	Encode(*Spec) error
 }
 
-func loadConfig(path string) (*Config, error) {
+func loadConfig(path string) (*Spec, error) {
 	var lc LoadConfig
 	ext := filepath.Ext(path)
 	switch strings.ToLower(ext) {
@@ -72,8 +67,5 @@ func loadConfig(path string) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Config{
-		Spec: spec,
-		lc:   lc,
-	}, nil
+	return spec, nil
 }

@@ -8,8 +8,8 @@ import "context"
 
 type loggerKey struct{}
 
-// With Adds fields.
-func With(ctx context.Context, log Builder) context.Context {
+// Context Adds fields.
+func Context(ctx context.Context, log Builder) context.Context {
 	return context.WithValue(ctx, loggerKey{}, log)
 }
 

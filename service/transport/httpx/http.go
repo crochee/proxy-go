@@ -10,14 +10,15 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"github.com/pkg/errors"
-
 	"fmt"
-	"github.com/crochee/proxy-go/config"
-	"github.com/crochee/proxy-go/logger"
 	"net"
 	"net/http"
 	"strings"
+
+	"github.com/pkg/errors"
+
+	"github.com/crochee/proxy-go/config"
+	"github.com/crochee/proxy-go/logger"
 )
 
 type httpServer struct {
@@ -45,7 +46,7 @@ func New(ctx context.Context, medata *config.Medata, handler http.Handler) (*htt
 	default:
 		return nil, fmt.Errorf("scheme is %s", medata.Scheme)
 	}
-	return &httpServer{
+	srv := &httpServer{
 		Server: &http.Server{
 			Handler: handler,
 			BaseContext: func(_ net.Listener) context.Context {
@@ -55,7 +56,15 @@ func New(ctx context.Context, medata *config.Medata, handler http.Handler) (*htt
 		Listener: ln,
 		ctx:      newCtx,
 		cancel:   cancel,
-	}, nil
+	}
+	if medata.RequestLog != nil {
+		requestLog := logger.NewLogger(
+			logger.Path(medata.RequestLog.Path), logger.Level(medata.RequestLog.Level))
+		srv.ConnContext = func(ctx context.Context, c net.Conn) context.Context {
+			return logger.Context(ctx, requestLog)
+		}
+	}
+	return srv, nil
 }
 
 func (h *httpServer) Start() error {

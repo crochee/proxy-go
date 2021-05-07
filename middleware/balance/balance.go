@@ -5,7 +5,6 @@
 package balance
 
 import (
-	"github.com/crochee/proxy-go/middleware"
 	"net"
 	"net/http"
 	"os"
@@ -17,63 +16,89 @@ import (
 	"github.com/crochee/proxy-go/logger"
 )
 
-type BalanceSelector struct {
+type SelectorInfo struct {
 	*dynamic.Balance
 	Selector
 }
 
 type Balancer struct {
 	next         http.Handler
-	NameSelector map[string]*BalanceSelector
+	NameSelector map[string]*SelectorInfo
 	rw           sync.RWMutex
 	hostName     string
 }
 
-func New(cfg *dynamic.Config, next http.Handler) (middleware.Handler, bool) {
+func New(cfg *dynamic.Config, next http.Handler) http.Handler {
 	hostname, err := os.Hostname()
 	if err != nil {
 		hostname = "localhost"
 	}
-	if len(cfg.Balance) == 0 {
-		return nil, false
-	}
 	b := &Balancer{
 		next:         next,
-		NameSelector: make(map[string]*BalanceSelector),
+		NameSelector: make(map[string]*SelectorInfo),
 		hostName:     hostname,
 	}
 	for key, balance := range cfg.Balance {
 		var s Selector
 		switch strings.Title(balance.Selector) {
 		case "Random":
-			s = NewRandom()
+			r := NewRandom()
+			for _, node := range balance.NodeList {
+				r.list = append(r.list, &Node{
+					Scheme:   node.Scheme,
+					Host:     node.Host,
+					Metadata: node.Metadata,
+					Weight:   node.Weight,
+				})
+			}
+			s = r
 		case "RoundRobin":
-			s = NewRoundRobin()
+			r := NewRoundRobin()
+			for _, node := range balance.NodeList {
+				r.list = append(r.list, &Node{
+					Scheme:   node.Scheme,
+					Host:     node.Host,
+					Metadata: node.Metadata,
+					Weight:   node.Weight,
+				})
+			}
+			s = r
 		case "Heap":
-			s = NewHeap()
+			r := NewHeap()
+			for _, node := range balance.NodeList {
+				r.Push(&deadlineNode{
+					Node: &Node{
+						Scheme:   node.Scheme,
+						Host:     node.Host,
+						Metadata: node.Metadata,
+						Weight:   node.Weight,
+					},
+				})
+			}
+			s = r
 		case "Wrr":
 			fallthrough
 		default:
-			s = NewWeightRoundRobin()
+			r := NewWeightRoundRobin()
+			for _, node := range balance.NodeList {
+				r.list = append(r.list, &WeightNode{
+					Node: &Node{
+						Scheme:   node.Scheme,
+						Host:     node.Host,
+						Metadata: node.Metadata,
+						Weight:   node.Weight,
+					},
+				})
+			}
+			s = r
 		}
-		for _, node := range balance.NodeList {
-			s.Update(true, &Node{
-				Scheme:   node.Scheme,
-				Host:     node.Host,
-				Metadata: node.Metadata,
-				Weight:   node.Weight,
-			})
-		}
-		b.NameSelector[key] = &BalanceSelector{
+
+		b.NameSelector[key] = &SelectorInfo{
 			Balance:  balance,
 			Selector: s,
 		}
 	}
-	return b, true
-}
-
-func (b *Balancer) NameSpace() string {
-	return "LoadBalancer"
+	return b
 }
 
 func (b *Balancer) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
@@ -103,30 +128,6 @@ func (b *Balancer) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 	request.URL.Host = node.Host
 
 	b.next.ServeHTTP(writer, request)
-}
-
-func (b *Balancer) Update(add bool, namespace string, node *Node) {
-	if add && node.Weight <= 0 {
-		return
-	}
-	b.rw.RLock()
-	s, ok := b.NameSelector[namespace]
-	b.rw.RUnlock()
-	if !ok {
-		return
-	}
-	s.Update(add, node)
-}
-
-func (b *Balancer) NodeList() map[string]*dynamic.Balance {
-	b.rw.RLock()
-	ns := b.NameSelector
-	b.rw.RUnlock()
-	temp := make(map[string]*dynamic.Balance)
-	for key, value := range ns {
-		temp[key] = value.Balance
-	}
-	return temp
 }
 
 func (b *Balancer) rewrite(request *http.Request) {
