@@ -5,6 +5,7 @@
 package balance
 
 import (
+	"github.com/crochee/proxy-go/middleware"
 	"net"
 	"net/http"
 	"os"
@@ -16,26 +17,59 @@ import (
 	"github.com/crochee/proxy-go/logger"
 )
 
-type Balancer struct {
-	next     http.Handler
-	selector map[string]struct {
-		*dynamic.Balance
-		Selector
-	}
-	rw       sync.RWMutex
-	hostName string
+type BalanceSelector struct {
+	*dynamic.Balance
+	Selector
 }
 
-func New(selector Selector, next http.Handler) *Balancer {
+type Balancer struct {
+	next         http.Handler
+	NameSelector map[string]*BalanceSelector
+	rw           sync.RWMutex
+	hostName     string
+}
+
+func New(cfg *dynamic.Config, next http.Handler) (middleware.Handler, bool) {
 	hostname, err := os.Hostname()
 	if err != nil {
 		hostname = "localhost"
 	}
-	return &Balancer{
-		next:     next,
-		selector: selector,
-		hostName: hostname,
+	if len(cfg.Balance) == 0 {
+		return nil, false
 	}
+	b := &Balancer{
+		next:         next,
+		NameSelector: make(map[string]*BalanceSelector),
+		hostName:     hostname,
+	}
+	for key, balance := range cfg.Balance {
+		var s Selector
+		switch strings.Title(balance.Selector) {
+		case "Random":
+			s = NewRandom()
+		case "RoundRobin":
+			s = NewRoundRobin()
+		case "Heap":
+			s = NewHeap()
+		case "Wrr":
+			fallthrough
+		default:
+			s = NewWeightRoundRobin()
+		}
+		for _, node := range balance.NodeList {
+			s.Update(true, &Node{
+				Scheme:   node.Scheme,
+				Host:     node.Host,
+				Metadata: node.Metadata,
+				Weight:   node.Weight,
+			})
+		}
+		b.NameSelector[key] = &BalanceSelector{
+			Balance:  balance,
+			Selector: s,
+		}
+	}
+	return b, true
 }
 
 func (b *Balancer) NameSpace() string {
@@ -49,7 +83,7 @@ func (b *Balancer) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 		return
 	}
 	b.rw.RLock()
-	s, ok := b.selector[list[1]]
+	s, ok := b.NameSelector[list[1]]
 	b.rw.RUnlock()
 	if !ok {
 		http.Error(writer, internal.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
@@ -71,19 +105,28 @@ func (b *Balancer) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 	b.next.ServeHTTP(writer, request)
 }
 
-func (b *Balancer) Update(add bool, node *Node) {
+func (b *Balancer) Update(add bool, namespace string, node *Node) {
 	if add && node.Weight <= 0 {
 		return
 	}
-	b.selector.Update(add, node)
+	b.rw.RLock()
+	s, ok := b.NameSelector[namespace]
+	b.rw.RUnlock()
+	if !ok {
+		return
+	}
+	s.Update(add, node)
 }
 
-func (b *Balancer) nextNode() (*Node, error) {
-	return b.selector.Next()
-}
-
-func (b *Balancer) NodeList() []*Node {
-	return b.selector.List()
+func (b *Balancer) NodeList() map[string]*dynamic.Balance {
+	b.rw.RLock()
+	ns := b.NameSelector
+	b.rw.RUnlock()
+	temp := make(map[string]*dynamic.Balance)
+	for key, value := range ns {
+		temp[key] = value.Balance
+	}
+	return temp
 }
 
 func (b *Balancer) rewrite(request *http.Request) {

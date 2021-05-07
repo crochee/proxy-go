@@ -18,6 +18,7 @@ type Config struct {
 	*Spec
 	lc LoadConfig
 }
+
 type Spec struct {
 	Medata     *Medata         `json:"medata" yaml:"medata"`
 	Middleware *dynamic.Config `json:"middleware,omitempty" yaml:"middleware,omitempty"`

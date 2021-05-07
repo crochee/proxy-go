@@ -36,10 +36,8 @@ func (re *recovery) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				log.Debugf("Request has been aborted [%s - %s]: %v", req.RemoteAddr, req.URL, err)
 				return
 			}
-
-			log.Errorf("[Recovery] from panic in HTTP handler [%s - %s]: %+v", req.RemoteAddr, req.URL, err)
-
-			log.Errorf("Stack: %s", debug.Stack())
+			log.Errorf("[Recovery] from panic in HTTP handler [%s - %s]: %+v\nStack:\n%s",
+				req.RemoteAddr, req.URL, err, debug.Stack())
 
 			http.Error(rw, internal.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}

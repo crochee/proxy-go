@@ -230,6 +230,7 @@ func (h *Heap) List() []*Node {
 	for _, handler := range h.handlers {
 		list = append(list, handler.Node)
 	}
+	h.mutex.RUnlock()
 	return list
 }
 
@@ -240,9 +241,52 @@ type WeightNode struct {
 
 type WeightRoundRobin struct {
 	list []*WeightNode
+	mux  sync.RWMutex
+}
+
+func NewWeightRoundRobin() *WeightRoundRobin {
+	return &WeightRoundRobin{
+		list: make([]*WeightNode, 0, 4),
+	}
+}
+
+func (w *WeightRoundRobin) Update(add bool, node *Node) {
+	w.mux.Lock()
+	defer w.mux.Unlock()
+	var equal bool
+	for index, list := range w.list {
+		if reflect.DeepEqual(list.Node, node) {
+			if !add {
+				if index == len(w.list)-1 {
+					w.list = w.list[:index]
+					return
+				}
+				w.list = append(w.list[:index], w.list[index+1:]...)
+				return
+			}
+			equal = true
+		}
+	}
+	if !equal {
+		w.list = append(w.list, &WeightNode{
+			Node: node,
+		})
+	}
+}
+
+func (w *WeightRoundRobin) List() []*Node {
+	w.mux.RLock()
+	defer w.mux.RUnlock()
+	list := make([]*Node, 0, len(w.list))
+	for _, node := range w.list {
+		list = append(list, node.Node)
+	}
+	return list
 }
 
 func (w *WeightRoundRobin) Next() (*Node, error) {
+	w.mux.Lock()
+	defer w.mux.Unlock()
 	var best *WeightNode
 	var total float64
 	for _, node := range w.list {
