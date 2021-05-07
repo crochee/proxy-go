@@ -15,7 +15,7 @@ import (
 	"github.com/crochee/proxy-go/service/transport/httpx"
 )
 
-var configFile = flag.String("f", "./conf/config.yml", "the config file")
+var configFile = flag.String("c", "./conf/config.yml", "the config file")
 
 func main() {
 	flag.Parse()
