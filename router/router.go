@@ -18,7 +18,7 @@ import (
 )
 
 func Handler(cfg *dynamic.Config) http.Handler {
-	handler := proxy.NewProxyBuilder()
+	handler := proxy.New()
 	// 中间件组合
 	if cfg != nil {
 		if len(cfg.Balance) != 0 {

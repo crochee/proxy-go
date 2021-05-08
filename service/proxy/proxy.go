@@ -16,7 +16,7 @@ import (
 	"github.com/crochee/proxy-go/logger"
 )
 
-func NewProxyBuilder() http.Handler {
+func New() http.Handler {
 	return &httputil.ReverseProxy{
 		Director: func(request *http.Request) {
 			request.RequestURI = "" // Outgoing request should not have RequestURI
