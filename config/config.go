@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/crochee/proxy-go/config/dynamic"
-	"github.com/crochee/proxy-go/ptls"
+	"github.com/crochee/proxy-go/internal/tlsx"
 )
 
 type Spec struct {
@@ -31,9 +31,9 @@ type Medata struct {
 }
 
 type TlsConfig struct {
-	Ca   ptls.FileOrContent `json:"ca" yaml:"ca"`
-	Cert ptls.FileOrContent `json:"cert" yaml:"cert"`
-	Key  ptls.FileOrContent `json:"key" yaml:"key"`
+	Ca   tlsx.FileOrContent `json:"ca" yaml:"ca"`
+	Cert tlsx.FileOrContent `json:"cert" yaml:"cert"`
+	Key  tlsx.FileOrContent `json:"key" yaml:"key"`
 }
 
 var Cfg *Spec

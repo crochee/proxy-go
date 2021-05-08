@@ -2,7 +2,7 @@
 // Author: crochee
 // Date: 2021/2/28
 
-package ptls
+package tlsx
 
 import "testing"
 

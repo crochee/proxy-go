@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/crochee/proxy-go/cmd"
-	"github.com/crochee/proxy-go/ptls"
+	"github.com/crochee/proxy-go/internal/tlsx"
 )
 
 func main() {
@@ -48,7 +48,7 @@ func run(cmd *cobra.Command, args []string) error {
 		cert []byte
 		key  []byte
 	)
-	if cert, key, err = ptls.GenerateSelfSignedCertKey(
+	if cert, key, err = tlsx.GenerateSelfSignedCertKey(
 		host,
 		[]net.IP{
 			net.ParseIP(host),
