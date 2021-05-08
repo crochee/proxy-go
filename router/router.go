@@ -29,7 +29,10 @@ func Handler(cfg *dynamic.Config) http.Handler {
 				logger.Path(cfg.AccessLog.Path), logger.Level(cfg.AccessLog.Level)))
 		}
 		if cfg.RateLimit != nil {
-			handler = ratelimit.New(handler)
+			handler = ratelimit.New(handler,
+				ratelimit.Burst(cfg.RateLimit.Burst),
+				ratelimit.Every(cfg.RateLimit.Every),
+				ratelimit.Mode(cfg.RateLimit.Mode))
 		}
 		if cfg.Recovery {
 			handler = recovery.New(handler)
