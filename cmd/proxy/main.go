@@ -6,9 +6,10 @@
 package main
 
 import (
+	"bytes"
 	"context"
-	"fmt"
-	"os"
+	"errors"
+	"log"
 
 	"github.com/spf13/cobra"
 
@@ -20,6 +21,16 @@ func main() {
 		Short:   "proxy tools",
 		Version: cmd.Version,
 	}
+
+	serverCmd := &cobra.Command{
+		Use:    "server",
+		Short:  "start server",
+		Long:   "start multi server",
+		RunE:   server,
+		Hidden: true,
+	}
+	serverCmd.Flags().StringP("config", "c", "./conf/config.yml", "")
+
 	tlsCmd := &cobra.Command{
 		Use:   "tls",
 		Short: "generate tls file",
@@ -31,19 +42,10 @@ func main() {
 	tlsCmd.Flags().StringP("cert", "c", "./conf/cert.pem", "")
 	tlsCmd.Flags().StringP("key", "k", "./conf/key.pem", "")
 
-	serverCmd := &cobra.Command{
-		Use:   "server",
-		Short: "start server",
-		Long:  "start multi server",
-		RunE:  server,
-	}
-
-	serverCmd.Flags().StringP("config", "c", "./conf/config.yml", "")
-
 	rootCmd.AddCommand(tlsCmd, serverCmd)
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	if err := rootCmd.ExecuteContext(ctx); err != nil {
-		_, _ = fmt.Fprintln(os.Stderr, err)
+	rootCmd.SetErr(bytes.NewBuffer(nil))
+
+	if err := rootCmd.Execute(); err != nil && !errors.Is(err, context.Canceled) {
+		log.Println(err)
 	}
 }
