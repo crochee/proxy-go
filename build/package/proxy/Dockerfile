@@ -5,18 +5,24 @@ RUN git clone ${URL} &&\
     cd proxy-go &&\
     go mod tidy &&\
     go build -ldflags="-s -w" -o proxy -tags jsoniter cmd/proxy
+RUN go install github.com/tianon/gosu &&\
+    cp ${GO_PATH}/bin/gosu .
+
 
 FROM centos:latest
 WORKDIR /opt/cloud/proxy-go
-RUN mkdir -p /opt/cloud/obs/conf
+RUN mkdir -p /opt/cloud/proxy-go/conf
 COPY --from=builder /opt/cloud/proxy-go/proxy .
-COPY --from=builder /opt/cloud/obs/conf ./conf
-COPY --from=builder /opt/cloud/obs/.build/obs/entrypoint.sh .
-RUN chmod +x ./proxy && chmod +x ./entrypoint.sh
-VOLUME /obs
+COPY --from=builder /opt/cloud/proxy-go/conf ./conf
+COPY --from=builder /opt/cloud/proxy-go/gosu .
+COPY --from=builder /opt/cloud/proxy-go/build/package/proxy/entrypoint.sh .
+
+ENV PATH=/opt/cloud/proxy-go:$PATH
+RUN chmod +x gosu proxy entrypoint.sh
+VOLUME /proxy
 
 EXPOSE 8120
-STOPSIGNAL 2
+STOPSIGNAL SIGINT
 
-ENTRYPOINT ["./entrypoint.sh"]
-CMD ["./proxy"]
+ENTRYPOINT ["entrypoint.sh"]
+CMD ["proxy","server"]
