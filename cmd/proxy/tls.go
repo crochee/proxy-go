@@ -5,36 +5,15 @@
 package main
 
 import (
-	"context"
-	"fmt"
 	"net"
 	"os"
 
 	"github.com/spf13/cobra"
 
-	"github.com/crochee/proxy-go/cmd"
 	"github.com/crochee/proxy-go/internal/tlsx"
 )
 
-func main() {
-	rootCmd := &cobra.Command{
-		Args:    cobra.MinimumNArgs(1),
-		Version: cmd.Version,
-		RunE:    run,
-	}
-	rootCmd.Flags().StringP("ip", "i", "127.0.0.1", "")
-	rootCmd.Flags().StringP("domain", "d", "localhost", "")
-	rootCmd.Flags().StringP("cert", "c", "./conf/cert.pem", "")
-	rootCmd.Flags().StringP("key", "k", "./conf/key.pem", "")
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	if err := rootCmd.ExecuteContext(ctx); err != nil {
-		_, _ = fmt.Fprintln(os.Stderr, err)
-	}
-}
-
-func run(cmd *cobra.Command, args []string) error {
+func tls(cmd *cobra.Command, _ []string) error {
 	flag := cmd.Flags()
 	host, err := flag.GetString("ip")
 	if err != nil {

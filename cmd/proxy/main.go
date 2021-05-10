@@ -1,45 +1,49 @@
-// Copyright 2021, The Go Authors. All rights reserved.
-// Author: crochee
-// Date: 2021/1/18
+// Copyright (c) Huawei Technologies Co., Ltd. 2021-2021. All rights reserved.
+// Description:
+// Author: licongfu
+// Create: 2021/5/10
 
 package main
 
 import (
 	"context"
-	"flag"
+	"fmt"
+	"os"
 
-	"github.com/crochee/proxy-go/config"
-	"github.com/crochee/proxy-go/logger"
-	"github.com/crochee/proxy-go/router"
-	"github.com/crochee/proxy-go/service/transport"
-	"github.com/crochee/proxy-go/service/transport/httpx"
+	"github.com/spf13/cobra"
+
+	"github.com/crochee/proxy-go/cmd"
 )
 
-var configFile = flag.String("c", "./conf/config.yml", "the config file")
-
 func main() {
-	flag.Parse()
+	rootCmd := &cobra.Command{
+		Short:   "proxy tools",
+		Version: cmd.Version,
+	}
+	tlsCmd := &cobra.Command{
+		Use:   "tls",
+		Short: "generate tls file",
+		Long:  "generate self tls file",
+		RunE:  tls,
+	}
+	tlsCmd.Flags().StringP("ip", "i", "127.0.0.1", "")
+	tlsCmd.Flags().StringP("domain", "d", "localhost", "")
+	tlsCmd.Flags().StringP("cert", "c", "./conf/cert.pem", "")
+	tlsCmd.Flags().StringP("key", "k", "./conf/key.pem", "")
 
+	serverCmd := &cobra.Command{
+		Use:   "server",
+		Short: "start server",
+		Long:  "start multi server",
+		RunE:  server,
+	}
+
+	serverCmd.Flags().StringP("config", "c", "./conf/config.yml", "")
+
+	rootCmd.AddCommand(tlsCmd, serverCmd)
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel() // 全局取消
-	// 初始化配置
-	config.InitConfig(*configFile)
-	// 初始化系统日志
-	if config.Cfg.Medata.SystemLog != nil {
-		logger.InitSystemLogger(logger.Path(config.Cfg.Medata.SystemLog.Path),
-			logger.Level(config.Cfg.Medata.SystemLog.Level))
+	defer cancel()
+	if err := rootCmd.ExecuteContext(ctx); err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, err)
 	}
-
-	httpSrv, err := httpx.New(ctx, config.Cfg.Medata, router.Handler(config.Cfg.Middleware))
-	if err != nil {
-		logger.Fatal(err.Error())
-	}
-	app := transport.NewApp(
-		transport.Context(ctx),
-		transport.Servers(httpSrv),
-	)
-	if err := app.Run(); err != nil {
-		logger.Error(err.Error())
-	}
-	logger.Exit("server exit!")
 }
