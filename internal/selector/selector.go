@@ -2,7 +2,7 @@
 // Author: crochee
 // Date: 2021/2/6
 
-package balance
+package selector
 
 import (
 	"container/heap"
@@ -27,6 +27,8 @@ func init() {
 
 // selector strategy algorithm
 type Selector interface {
+	// 只能在初始化阶段使用
+	AddNode(*Node)
 	Next() (*Node, error)
 }
 
@@ -38,6 +40,10 @@ func NewRandom() *Random {
 	return &Random{
 		list: make([]*Node, 0, 4),
 	}
+}
+
+func (r *Random) AddNode(node *Node) {
+	r.list = append(r.list, node)
 }
 
 func (r *Random) Next() (*Node, error) {
@@ -60,6 +66,10 @@ func NewRoundRobin() *RoundRobin {
 		randIndex: rand.Int(),
 		list:      make([]*Node, 0, 4),
 	}
+}
+
+func (r *RoundRobin) AddNode(node *Node) {
+	r.list = append(r.list, node)
 }
 
 func (r *RoundRobin) Next() (*Node, error) {
@@ -121,6 +131,12 @@ func (h *Heap) Pop() interface{} {
 	return handler
 }
 
+func (h *Heap) AddNode(node *Node) {
+	h.Push(&deadlineNode{
+		Node: node,
+	})
+}
+
 func (h *Heap) Next() (*Node, error) {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
@@ -154,6 +170,12 @@ func NewWeightRoundRobin() *WeightRoundRobin {
 	return &WeightRoundRobin{
 		list: make([]*WeightNode, 0, 4),
 	}
+}
+
+func (w *WeightRoundRobin) AddNode(node *Node) {
+	w.list = append(w.list, &WeightNode{
+		Node: node,
+	})
 }
 
 func (w *WeightRoundRobin) Next() (*Node, error) {

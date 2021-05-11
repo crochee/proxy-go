@@ -13,12 +13,13 @@ import (
 
 	"github.com/crochee/proxy-go/config/dynamic"
 	"github.com/crochee/proxy-go/internal"
+	"github.com/crochee/proxy-go/internal/selector"
 	"github.com/crochee/proxy-go/logger"
 )
 
 type SelectorInfo struct {
 	*dynamic.Balance
-	Selector
+	selector.Selector
 }
 
 type Balancer struct {
@@ -154,59 +155,27 @@ func forwardedPort(req *http.Request) string {
 	return "80"
 }
 
-func createSelector(balance *dynamic.Balance) Selector {
-	var s Selector
+func createSelector(balance *dynamic.Balance) selector.Selector {
+	var s selector.Selector
 	switch strings.Title(balance.Selector) {
 	case "Random":
-		r := NewRandom()
-		for _, node := range balance.NodeList {
-			r.list = append(r.list, &Node{
-				Scheme:   node.Scheme,
-				Host:     node.Host,
-				Metadata: node.Metadata,
-				Weight:   node.Weight,
-			})
-		}
-		s = r
+		s = selector.NewRandom()
 	case "RoundRobin":
-		r := NewRoundRobin()
-		for _, node := range balance.NodeList {
-			r.list = append(r.list, &Node{
-				Scheme:   node.Scheme,
-				Host:     node.Host,
-				Metadata: node.Metadata,
-				Weight:   node.Weight,
-			})
-		}
-		s = r
+		s = selector.NewRoundRobin()
 	case "Heap":
-		r := NewHeap()
-		for _, node := range balance.NodeList {
-			r.Push(&deadlineNode{
-				Node: &Node{
-					Scheme:   node.Scheme,
-					Host:     node.Host,
-					Metadata: node.Metadata,
-					Weight:   node.Weight,
-				},
-			})
-		}
-		s = r
+		s = selector.NewHeap()
 	case "Wrr":
 		fallthrough
 	default:
-		r := NewWeightRoundRobin()
-		for _, node := range balance.NodeList {
-			r.list = append(r.list, &WeightNode{
-				Node: &Node{
-					Scheme:   node.Scheme,
-					Host:     node.Host,
-					Metadata: node.Metadata,
-					Weight:   node.Weight,
-				},
-			})
-		}
-		s = r
+		s = selector.NewWeightRoundRobin()
+	}
+	for _, node := range balance.NodeList {
+		s.AddNode(&selector.Node{
+			Scheme:   node.Scheme,
+			Host:     node.Host,
+			Metadata: node.Metadata,
+			Weight:   node.Weight,
+		})
 	}
 	return s
 }

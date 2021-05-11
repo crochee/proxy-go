@@ -14,11 +14,11 @@ import (
 	"github.com/crochee/proxy-go/middleware/cros"
 	"github.com/crochee/proxy-go/middleware/ratelimit"
 	"github.com/crochee/proxy-go/middleware/recovery"
-	"github.com/crochee/proxy-go/service/proxy"
+	"github.com/crochee/proxy-go/service/proxy/httpx"
 )
 
 func Handler(cfg *config.Spec) http.Handler {
-	handler := proxy.New(cfg.Proxy)
+	handler := httpx.New(cfg.Proxy)
 	// 中间件组合
 	if cfg.Middleware != nil {
 		if len(cfg.Middleware.Balance) != 0 {

@@ -2,7 +2,7 @@
 // Author: crochee
 // Date: 2021/1/17
 
-package proxy
+package httpx
 
 import (
 	"context"
