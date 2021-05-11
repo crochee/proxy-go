@@ -14,9 +14,13 @@ import (
 func TestInitConfig(t *testing.T) {
 	cf := &Spec{
 		Medata: &Medata{
-			Tls:          nil,
+			Tls: &TlsConfig{
+				Ca:   "./build/package/proxy/ca.pem",
+				Cert: "./build/package/proxy/proxy.pem",
+				Key:  "./build/package/proxy/proxy-key.pem",
+			},
 			GraceTimeOut: 15 * time.Second,
-			Scheme:       "http",
+			Scheme:       "https",
 			Host:         ":8120",
 			SystemLog: &dynamic.LogInfo{
 				Path:  "./log/proxy-sys.log",
@@ -58,6 +62,11 @@ func TestInitConfig(t *testing.T) {
 			},
 			Recovery:    true,
 			CrossDomain: false,
+		},
+		Proxy: &TlsConfig{
+			Ca:   "./build/package/proxy/ca.pem",
+			Cert: "./build/package/proxy/proxy.pem",
+			Key:  "./build/package/proxy/proxy-key.pem",
 		},
 	}
 	y := Yml{path: "../conf/config.yml"}

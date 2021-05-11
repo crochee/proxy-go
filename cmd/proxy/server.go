@@ -31,7 +31,7 @@ func server(cmd *cobra.Command, _ []string) error {
 			logger.Level(config.Cfg.Medata.SystemLog.Level))
 	}
 
-	httpSrv, err := httpx.New(ctx, config.Cfg.Medata, router.Handler(config.Cfg.Middleware))
+	httpSrv, err := httpx.New(ctx, config.Cfg.Medata, router.Handler(config.Cfg))
 	if err != nil {
 		return err
 	}

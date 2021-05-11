@@ -34,7 +34,7 @@ func New(ctx context.Context, medata *config.Medata, handler http.Handler) (*htt
 		return nil, err
 	}
 
-	logger.Infof("server medata:%+v running...", medata)
+	logger.Infof("server with medata:%+v start to run", medata)
 	switch strings.ToLower(medata.Scheme) {
 	case "http":
 	case "https":

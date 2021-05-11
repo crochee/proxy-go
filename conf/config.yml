@@ -1,6 +1,10 @@
 medata:
+    tls:
+        ca: ./build/package/proxy/ca.pem
+        cert: ./build/package/proxy/proxy.pem
+        key: ./build/package/proxy/proxy-key.pem
     grace_time_out: 15s
-    scheme: http
+    scheme: https
     host: :8120
     system_log:
         path: ./log/proxy-sys.log
@@ -27,3 +31,7 @@ middleware:
         burst: 2000
         mode: 1
     recovery: true
+proxy:
+    ca: ./build/package/proxy/ca.pem
+    cert: ./build/package/proxy/proxy.pem
+    key: ./build/package/proxy/proxy-key.pem

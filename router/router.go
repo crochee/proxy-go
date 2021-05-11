@@ -7,7 +7,7 @@ package router
 import (
 	"net/http"
 
-	"github.com/crochee/proxy-go/config/dynamic"
+	"github.com/crochee/proxy-go/config"
 	"github.com/crochee/proxy-go/logger"
 	"github.com/crochee/proxy-go/middleware/accesslog"
 	"github.com/crochee/proxy-go/middleware/balance"
@@ -17,27 +17,28 @@ import (
 	"github.com/crochee/proxy-go/service/proxy"
 )
 
-func Handler(cfg *dynamic.Config) http.Handler {
-	handler := proxy.New()
+func Handler(cfg *config.Spec) http.Handler {
+	handler := proxy.New(cfg.Proxy)
 	// 中间件组合
-	if cfg != nil {
-		if len(cfg.Balance) != 0 {
-			handler = balance.New(cfg, handler)
+	if cfg.Middleware != nil {
+		if len(cfg.Middleware.Balance) != 0 {
+			handler = balance.New(cfg.Middleware, handler)
 		}
-		if cfg.AccessLog != nil {
+		if cfg.Middleware.AccessLog != nil {
 			handler = accesslog.New(handler, logger.NewLogger(
-				logger.Path(cfg.AccessLog.Path), logger.Level(cfg.AccessLog.Level)))
+				logger.Path(cfg.Middleware.AccessLog.Path),
+				logger.Level(cfg.Middleware.AccessLog.Level)))
 		}
-		if cfg.RateLimit != nil {
+		if cfg.Middleware.RateLimit != nil {
 			handler = ratelimit.New(handler,
-				ratelimit.Burst(cfg.RateLimit.Burst),
-				ratelimit.Every(cfg.RateLimit.Every),
-				ratelimit.Mode(cfg.RateLimit.Mode))
+				ratelimit.Burst(cfg.Middleware.RateLimit.Burst),
+				ratelimit.Every(cfg.Middleware.RateLimit.Every),
+				ratelimit.Mode(cfg.Middleware.RateLimit.Mode))
 		}
-		if cfg.Recovery {
+		if cfg.Middleware.Recovery {
 			handler = recovery.New(handler)
 		}
-		if cfg.CrossDomain {
+		if cfg.Middleware.CrossDomain {
 			handler = cros.New(handler, cros.Options{
 				AllowedOrigins: []string{"*"},
 				AllowedMethods: []string{http.MethodGet, http.MethodPost, http.MethodDelete,

@@ -17,6 +17,7 @@ import (
 type Spec struct {
 	Medata     *Medata         `json:"medata" yaml:"medata"`
 	Middleware *dynamic.Config `json:"middleware,omitempty" yaml:"middleware,omitempty"`
+	Proxy      *TlsConfig      `json:"proxy,omitempty" yaml:"proxy,omitempty"`
 }
 
 type Medata struct {
