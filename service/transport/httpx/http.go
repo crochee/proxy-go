@@ -105,7 +105,7 @@ func tlsListener(listener net.Listener, medata *config.Medata) (net.Listener, er
 
 	return tls.NewListener(listener, &tls.Config{
 		Certificates: []tls.Certificate{certificate},
-		ClientAuth:   tls.RequireAndVerifyClientCert,
+		ClientAuth:   tls.NoClientCert,
 		ClientCAs:    pool,
 		CipherSuites: []uint16{tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256},
 		MinVersion:   tls.VersionTLS12,
