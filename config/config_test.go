@@ -15,9 +15,9 @@ func TestInitConfig(t *testing.T) {
 	cf := &Spec{
 		Medata: &Medata{
 			Tls: &TlsConfig{
-				Ca:   "./build/package/proxy/ca.pem",
-				Cert: "./build/package/proxy/proxy.pem",
-				Key:  "./build/package/proxy/proxy-key.pem",
+				Ca:   "./build/package/proxy/cert/ca.pem",
+				Cert: "./build/package/proxy/cert/proxy.pem",
+				Key:  "./build/package/proxy/cert/proxy-key.pem",
 			},
 			GraceTimeOut: 15 * time.Second,
 			Scheme:       "https",
@@ -64,9 +64,9 @@ func TestInitConfig(t *testing.T) {
 			CrossDomain: false,
 		},
 		Proxy: &TlsConfig{
-			Ca:   "./build/package/proxy/ca.pem",
-			Cert: "./build/package/proxy/proxy.pem",
-			Key:  "./build/package/proxy/proxy-key.pem",
+			Ca:   "./build/package/proxy/cert/ca.pem",
+			Cert: "./build/package/proxy/cert/proxy.pem",
+			Key:  "./build/package/proxy/cert/proxy-key.pem",
 		},
 	}
 	y := Yml{path: "../conf/config.yml"}

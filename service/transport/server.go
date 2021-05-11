@@ -18,14 +18,14 @@ type Server interface {
 	Stop() error
 }
 
-type App struct {
+type app struct {
 	option
 	ctx    context.Context
 	cancel context.CancelFunc
 }
 
-func NewApp(opts ...func(*option)) *App {
-	app := &App{
+func NewApp(opts ...func(*option)) *app {
+	app := &app{
 		option: option{
 			sigList: []os.Signal{syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT},
 			ctx:     context.Background(),
@@ -40,7 +40,7 @@ func NewApp(opts ...func(*option)) *App {
 	return app
 }
 
-func (a *App) Run() error {
+func (a *app) Run() error {
 	g := safe.NewErrGroup(a.ctx)
 	for _, srv := range a.serverList {
 		realSrv := srv

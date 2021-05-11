@@ -1,8 +1,8 @@
 medata:
     tls:
-        ca: ./build/package/proxy/ca.pem
-        cert: ./build/package/proxy/proxy.pem
-        key: ./build/package/proxy/proxy-key.pem
+        ca: ./build/package/proxy/cert/ca.pem
+        cert: ./build/package/proxy/cert/proxy.pem
+        key: ./build/package/proxy/cert/proxy-key.pem
     grace_time_out: 15s
     scheme: https
     host: :8120
@@ -32,6 +32,6 @@ middleware:
         mode: 1
     recovery: true
 proxy:
-    ca: ./build/package/proxy/ca.pem
-    cert: ./build/package/proxy/proxy.pem
-    key: ./build/package/proxy/proxy-key.pem
+    ca: ./build/package/proxy/cert/ca.pem
+    cert: ./build/package/proxy/cert/proxy.pem
+    key: ./build/package/proxy/cert/proxy-key.pem
