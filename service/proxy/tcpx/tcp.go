@@ -106,7 +106,7 @@ func (p *Proxy) connCopy(dst, src WriteCloser, errCh chan error) {
 	}
 
 	if p.terminationDelay >= 0 {
-		err := dst.SetReadDeadline(time.Now().Add(p.terminationDelay))
+		err = dst.SetReadDeadline(time.Now().Add(p.terminationDelay))
 		if err != nil {
 			p.log.Debugf("Error while setting deadline: %v", err)
 		}
