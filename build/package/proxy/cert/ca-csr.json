@@ -1,0 +1,16 @@
+{
+  "CN": "MySite",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "CN",
+      "ST": "GuangDong",
+      "L": "ShenZhen",
+      "O": "HW",
+      "OU": "BU"
+    }
+  ]
+}
