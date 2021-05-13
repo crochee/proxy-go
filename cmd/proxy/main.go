@@ -9,7 +9,8 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"log"
+	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -46,6 +47,6 @@ func main() {
 	rootCmd.SetErr(bytes.NewBuffer(nil))
 
 	if err := rootCmd.Execute(); err != nil && !errors.Is(err, context.Canceled) {
-		log.Println(err)
+		_, _ = fmt.Fprintln(os.Stderr, err)
 	}
 }
