@@ -168,3 +168,9 @@ func SetError(r *http.Request) {
 		ext.Error.Set(span, true)
 	}
 }
+
+// SetErrorWithEvent flags the span associated with this request as in error and log an event.
+func SetErrorWithEvent(r *http.Request, format string, args ...interface{}) {
+	SetError(r)
+	RecordEventf(r, format, args...)
+}

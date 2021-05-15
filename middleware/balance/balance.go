@@ -32,7 +32,7 @@ type Balancer struct {
 	hostName     string
 }
 
-func New(cfg *dynamic.BalanceConfig, next http.Handler) http.Handler {
+func New(cfg dynamic.BalanceConfig, next http.Handler) http.Handler {
 	hostname, err := os.Hostname()
 	if err != nil {
 		hostname = "localhost"
