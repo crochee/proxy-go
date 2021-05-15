@@ -23,39 +23,54 @@ type SelectorInfo struct {
 }
 
 type Balancer struct {
-	next         http.Handler
+	next http.Handler
+	// path method service
+	serviceApi map[string]map[string]string
+	// service selector
 	NameSelector map[string]*SelectorInfo
 	rw           sync.RWMutex
 	hostName     string
 }
 
-func New(cfg *dynamic.Config, next http.Handler) http.Handler {
+func New(cfg *dynamic.BalanceConfig, next http.Handler) http.Handler {
 	hostname, err := os.Hostname()
 	if err != nil {
 		hostname = "localhost"
 	}
 	b := &Balancer{
 		next:         next,
+		serviceApi:   make(map[string]map[string]string),
 		NameSelector: make(map[string]*SelectorInfo),
 		hostName:     hostname,
 	}
-	for key, balance := range cfg.Balance {
-		b.NameSelector[key] = &SelectorInfo{
-			Balance:  balance,
-			Selector: createSelector(balance),
+	for _, api := range cfg.RegisterApis {
+		if _, ok := b.serviceApi[api.Path]; !ok {
+			b.serviceApi[api.Path] = make(map[string]string)
+		}
+		b.serviceApi[api.Path][api.Method] = api.ServiceName
+	}
+	for _, balance := range cfg.Transfers {
+		b.NameSelector[balance.ServiceName] = &SelectorInfo{
+			Balance:  &balance.Balance,
+			Selector: createSelector(&balance.Balance),
 		}
 	}
 	return b
 }
 
 func (b *Balancer) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	list := strings.SplitN(request.URL.Path, "/", 3)
-	if len(list) < 1 {
+	apis, ok := b.serviceApi[request.URL.Path]
+	if !ok {
+		http.Error(writer, internal.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
+		return
+	}
+	var serviceName string
+	if serviceName, ok = apis[request.Method]; !ok {
 		http.Error(writer, internal.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
 		return
 	}
 	b.rw.RLock()
-	s, ok := b.NameSelector[list[1]]
+	s, ok := b.NameSelector[serviceName]
 	b.rw.RUnlock()
 	if !ok {
 		http.Error(writer, internal.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
@@ -169,7 +184,7 @@ func createSelector(balance *dynamic.Balance) selector.Selector {
 	default:
 		s = selector.NewWeightRoundRobin()
 	}
-	for _, node := range balance.NodeList {
+	for _, node := range balance.Nodes {
 		s.AddNode(&selector.Node{
 			Scheme:   node.Scheme,
 			Host:     node.Host,

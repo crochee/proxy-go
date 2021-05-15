@@ -127,7 +127,7 @@ func createSelector(balance *dynamic.Balance) selector.Selector {
 	default:
 		s = selector.NewWeightRoundRobin()
 	}
-	for _, node := range balance.NodeList {
+	for _, node := range balance.Nodes {
 		s.AddNode(&selector.Node{
 			Scheme:   node.Scheme,
 			Host:     node.Host,

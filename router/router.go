@@ -21,8 +21,8 @@ func Handler(cfg *config.Spec) http.Handler {
 	handler := httpx.New(cfg.Proxy)
 	// 中间件组合
 	if cfg.Middleware != nil {
-		if len(cfg.Middleware.Balance) != 0 {
-			handler = balance.New(cfg.Middleware, handler)
+		if cfg.Middleware.Balance != nil {
+			handler = balance.New(cfg.Middleware.Balance, handler)
 		}
 		if cfg.Middleware.AccessLog != nil {
 			handler = accesslog.New(handler, logger.NewLogger(
