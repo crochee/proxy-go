@@ -36,9 +36,9 @@ func Handler(cfg *config.Spec) http.Handler {
 			})
 		}
 		if cfg.Middleware.AccessLog != nil {
-			handler = accesslog.New(handler, logger.NewLogger(
+			handler = accesslog.New(cmd.ServiceName, logger.NewLogger(
 				logger.Path(cfg.Middleware.AccessLog.Path),
-				logger.Level(cfg.Middleware.AccessLog.Level)))
+				logger.Level(cfg.Middleware.AccessLog.Level)), handler)
 		}
 		if cfg.Middleware.Trace != nil && cfg.Middleware.Trace.Jaeger != nil {
 			t, err := tracex.NewTracer(cmd.ServiceName, 20, cfg.Middleware.Trace.Jaeger)

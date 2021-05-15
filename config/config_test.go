@@ -32,6 +32,11 @@ func TestInitConfig(t *testing.T) {
 			},
 		},
 		Middleware: &dynamic.Config{
+			AccessLog: &dynamic.LogInfo{
+				Path:  "",
+				Level: "INFO",
+			},
+			Trace: nil,
 			Balance: &dynamic.BalanceConfig{
 				RegisterApis: []*dynamic.ServiceApi{
 					{
@@ -63,17 +68,14 @@ func TestInitConfig(t *testing.T) {
 					},
 				},
 			},
-			AccessLog: &dynamic.LogInfo{
-				Path:  "",
-				Level: "INFO",
-			},
 			RateLimit: &dynamic.RateLimit{
 				Every: time.Second,
 				Burst: 2000,
 				Mode:  1,
 			},
-			Recovery:    true,
-			CrossDomain: false,
+			Recovery:       true,
+			CrossDomain:    false,
+			CircuitBreaker: nil,
 		},
 		Proxy: &TlsConfig{
 			Ca:   "./build/package/proxy/cert/ca.pem",

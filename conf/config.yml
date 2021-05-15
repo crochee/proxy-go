@@ -13,6 +13,9 @@ medata:
         path: ./log/proxy-req.log
         level: DEBUG
 middleware:
+    access_log:
+        path: ""
+        level: INFO
     balance:
         register_apis:
             - service_name: OBS
@@ -29,9 +32,6 @@ middleware:
                     - scheme: http
                       host: 127.0.0.1:8122
                       weight: 2
-    access_log:
-        path: ""
-        level: INFO
     rate_limit:
         every: 1s
         burst: 2000
