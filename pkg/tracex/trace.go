@@ -8,11 +8,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/crochee/proxy-go/logger"
-	"github.com/opentracing/opentracing-go"
-	"github.com/opentracing/opentracing-go/ext"
 	"io"
 	"net/http"
+
+	"github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
+
+	"github.com/crochee/proxy-go/logger"
 )
 
 type tracerKey struct{}

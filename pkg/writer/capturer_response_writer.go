@@ -2,7 +2,7 @@
 // Author: crochee
 // Date: 2021/1/31
 
-package internal
+package writer
 
 import "net/http"
 

@@ -17,8 +17,8 @@ import (
 	"github.com/crochee/proxy-go/middleware/ratelimit"
 	"github.com/crochee/proxy-go/middleware/recovery"
 	"github.com/crochee/proxy-go/middleware/trace"
-	"github.com/crochee/proxy-go/service/proxy/httpx"
-	"github.com/crochee/proxy-go/service/tracex"
+	"github.com/crochee/proxy-go/pkg/proxy/httpx"
+	"github.com/crochee/proxy-go/pkg/tracex"
 )
 
 func Handler(cfg *config.Spec) http.Handler {

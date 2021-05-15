@@ -10,9 +10,9 @@ import (
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 
-	"github.com/crochee/proxy-go/internal"
 	"github.com/crochee/proxy-go/logger"
-	"github.com/crochee/proxy-go/service/tracex"
+	"github.com/crochee/proxy-go/pkg/tracex"
+	"github.com/crochee/proxy-go/pkg/writer"
 )
 
 type entryPoint struct {
@@ -30,7 +30,7 @@ func NewTraceEntryPoint(t *tracex.Tracer, entryPointName string, next http.Handl
 	}
 }
 
-func (e *entryPoint) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+func (e *entryPoint) ServeHTTP(rw http.ResponseWriter, request *http.Request) {
 	spanCtx, err := e.Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(request.Header))
 	if err != nil {
 		logger.FromContext(request.Context()).Errorf("Failed to extract the context: %v", err)
@@ -45,9 +45,9 @@ func (e *entryPoint) ServeHTTP(writer http.ResponseWriter, request *http.Request
 
 	req = req.WithContext(tracex.WithTracer(req.Context(), e.Tracer))
 
-	e.next.ServeHTTP(writer, req)
+	e.next.ServeHTTP(rw, req)
 
-	if recorder, ok := writer.(internal.Capture); ok {
+	if recorder, ok := rw.(writer.Capture); ok {
 		tracex.RecordResponseCode(span, recorder.Status())
 	}
 }

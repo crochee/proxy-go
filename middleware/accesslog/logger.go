@@ -13,6 +13,7 @@ import (
 
 	"github.com/crochee/proxy-go/internal"
 	"github.com/crochee/proxy-go/logger"
+	"github.com/crochee/proxy-go/pkg/writer"
 )
 
 type accessLog struct {
@@ -27,7 +28,7 @@ func New(next http.Handler, log logger.Builder) http.Handler {
 	}
 }
 
-func (l *accessLog) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+func (l *accessLog) ServeHTTP(rw http.ResponseWriter, request *http.Request) {
 	start := time.Now().Local()
 	param := &LogFormatterParams{
 		Scheme:   "HTTP",
@@ -48,7 +49,7 @@ func (l *accessLog) ServeHTTP(writer http.ResponseWriter, request *http.Request)
 		buf.Reset()
 	}
 
-	crw := internal.NewCaptureResponseWriter(writer)
+	crw := writer.NewCaptureResponseWriter(rw)
 
 	l.next.ServeHTTP(crw, request)
 
