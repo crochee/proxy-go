@@ -36,8 +36,8 @@ func New(log logger.Builder, cfg *dynamic.Config) Handler {
 		TargetSelector:   make(map[string]selector.Selector),
 		terminationDelay: 0,
 	}
-	for key, balance := range cfg.Balance {
-		p.TargetSelector[key] = createSelector(balance)
+	for _, balance := range cfg.Balance.Transfers {
+		p.TargetSelector[balance.ServiceName] = createSelector(&balance.Balance)
 	}
 	return p
 }
