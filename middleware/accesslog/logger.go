@@ -48,7 +48,7 @@ func (l *accessLog) ServeHTTP(writer http.ResponseWriter, request *http.Request)
 		buf.Reset()
 	}
 
-	crw := newCaptureResponseWriter(writer)
+	crw := internal.NewCaptureResponseWriter(writer)
 
 	l.next.ServeHTTP(crw, request)
 

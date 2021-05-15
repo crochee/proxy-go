@@ -1,0 +1,53 @@
+// Copyright 2021, The Go Authors. All rights reserved.
+// Author: crochee
+// Date: 2021/5/15
+
+package trace
+
+import (
+	"net/http"
+
+	"github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
+
+	"github.com/crochee/proxy-go/internal"
+	"github.com/crochee/proxy-go/logger"
+	"github.com/crochee/proxy-go/service/tracex"
+)
+
+type entryPoint struct {
+	*tracex.Tracer
+	entryPoint string
+	next       http.Handler
+}
+
+// NewEntryPoint creates a new middleware that the incoming request.
+func NewTraceEntryPoint(t *tracex.Tracer, entryPointName string, next http.Handler) http.Handler {
+	return &entryPoint{
+		Tracer:     t,
+		entryPoint: entryPointName,
+		next:       next,
+	}
+}
+
+func (e *entryPoint) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	spanCtx, err := e.Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(request.Header))
+	if err != nil {
+		logger.FromContext(request.Context()).Errorf("Failed to extract the context: %v", err)
+	}
+
+	span, req, finish := e.StartSpanf(request, ext.SpanKindRPCServerEnum, "EntryPoint",
+		[]string{e.entryPoint, request.Host}, " ", ext.RPCServerOption(spanCtx))
+	defer finish()
+
+	ext.Component.Set(span, e.ServiceName)
+	tracex.RecordRequest(span, req)
+
+	req = req.WithContext(tracex.WithTracer(req.Context(), e.Tracer))
+
+	e.next.ServeHTTP(writer, req)
+
+	if recorder, ok := writer.(internal.Capture); ok {
+		tracex.RecordResponseCode(span, recorder.Status())
+	}
+}

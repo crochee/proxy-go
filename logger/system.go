@@ -50,6 +50,21 @@ func Info(message string) {
 	systemLogger.Info(message)
 }
 
+// Warnf 打印Warn信息
+//
+// @param: format 格式信息
+// @param: v 参数信息
+func Warnf(format string, v ...interface{}) {
+	systemLogger.Warnf(format, v...)
+}
+
+// Warn 打印Warn信息
+//
+// @param: message 信息
+func Warn(message string) {
+	systemLogger.Warn(message)
+}
+
 // Errorf 打印Error信息
 //
 // @param: format 格式信息
