@@ -17,8 +17,8 @@ import (
 
 	"github.com/crochee/proxy-go/config/dynamic"
 	"github.com/crochee/proxy-go/internal"
-	"github.com/crochee/proxy-go/internal/selector"
 	"github.com/crochee/proxy-go/logger"
+	"github.com/crochee/proxy-go/pkg/selector"
 )
 
 type Proxy struct {
@@ -36,8 +36,8 @@ func New(log logger.Builder, cfg *dynamic.Config) Handler {
 		TargetSelector:   make(map[string]selector.Selector),
 		terminationDelay: 0,
 	}
-	for key, balance := range cfg.Balance {
-		p.TargetSelector[key] = createSelector(balance)
+	for _, balance := range cfg.Balance.Transfers {
+		p.TargetSelector[balance.ServiceName] = createSelector(&balance.Balance)
 	}
 	return p
 }
@@ -127,7 +127,7 @@ func createSelector(balance *dynamic.Balance) selector.Selector {
 	default:
 		s = selector.NewWeightRoundRobin()
 	}
-	for _, node := range balance.NodeList {
+	for _, node := range balance.Nodes {
 		s.AddNode(&selector.Node{
 			Scheme:   node.Scheme,
 			Host:     node.Host,

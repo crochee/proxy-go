@@ -43,7 +43,7 @@ type rateLimiter struct {
 
 // New returns a rate limiter middleware.
 func New(next http.Handler, opts ...func(*option)) http.Handler {
-	rateLimiter := &rateLimiter{
+	l := &rateLimiter{
 		next: next,
 		option: option{
 			every: 500 * time.Millisecond,
@@ -52,16 +52,16 @@ func New(next http.Handler, opts ...func(*option)) http.Handler {
 		},
 	}
 	for _, opt := range opts {
-		opt(&rateLimiter.option)
+		opt(&l.option)
 	}
-	every := rate.Every(rateLimiter.every)
+	every := rate.Every(l.every)
 	if every < 1 {
-		rateLimiter.maxDelay = 500 * time.Millisecond
+		l.maxDelay = 500 * time.Millisecond
 	} else {
-		rateLimiter.maxDelay = time.Second / (time.Duration(every) * 2)
+		l.maxDelay = time.Second / (time.Duration(every) * 2)
 	}
-	rateLimiter.limiter = rate.NewLimiter(every, rateLimiter.burst)
-	return rateLimiter
+	l.limiter = rate.NewLimiter(every, l.burst)
+	return l
 }
 
 func (rl *rateLimiter) ServeHTTP(rw http.ResponseWriter, req *http.Request) {

@@ -10,7 +10,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/crochee/proxy-go/internal/safe"
+	"github.com/crochee/proxy-go/pkg/safe"
 )
 
 type Server interface {

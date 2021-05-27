@@ -13,21 +13,27 @@ import (
 
 	"github.com/crochee/proxy-go/internal"
 	"github.com/crochee/proxy-go/logger"
+	"github.com/crochee/proxy-go/pkg/writer"
 )
 
 type accessLog struct {
-	next http.Handler
-	log  logger.Builder
+	next        http.Handler
+	log         logger.Builder
+	serviceName string
 }
 
-func New(next http.Handler, log logger.Builder) http.Handler {
+func New(serviceName string, log logger.Builder, next http.Handler) http.Handler {
+	if log == nil {
+		log = logger.NoLogger{}
+	}
 	return &accessLog{
-		next: next,
-		log:  log,
+		next:        next,
+		log:         log,
+		serviceName: serviceName,
 	}
 }
 
-func (l *accessLog) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+func (l *accessLog) ServeHTTP(rw http.ResponseWriter, request *http.Request) {
 	start := time.Now().Local()
 	param := &LogFormatterParams{
 		Scheme:   "HTTP",
@@ -48,7 +54,7 @@ func (l *accessLog) ServeHTTP(writer http.ResponseWriter, request *http.Request)
 		buf.Reset()
 	}
 
-	crw := newCaptureResponseWriter(writer)
+	crw := writer.NewCaptureResponseWriter(rw)
 
 	l.next.ServeHTTP(crw, request)
 
@@ -60,7 +66,9 @@ func (l *accessLog) ServeHTTP(writer http.ResponseWriter, request *http.Request)
 		// Truncate in a golang < 1.8 safe way
 		param.Last = param.Last - param.Last%time.Second
 	}
-	buf.WriteString("[PROXY] ")
+	buf.WriteByte('[')
+	buf.WriteString(l.serviceName)
+	buf.WriteString("] ")
 	buf.WriteString(param.Now.Format("2006/01/02 - 15:04:05"))
 	buf.WriteString(" | ")
 	buf.WriteString(strconv.Itoa(param.Status))

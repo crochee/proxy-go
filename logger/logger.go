@@ -97,6 +97,21 @@ func (l *Logger) Info(message string) {
 	l.Logger.Info(message)
 }
 
+// Warnf 打印Warn信息
+//
+// @param: format 格式信息
+// @param: v 参数信息
+func (l *Logger) Warnf(format string, v ...interface{}) {
+	l.LoggerSugar.Warnf(format, v...)
+}
+
+// Warn 打印Warn信息
+//
+// @param: message 信息
+func (l *Logger) Warn(message string) {
+	l.Logger.Warn(message)
+}
+
 // Errorf 打印Error信息
 //
 // @param: format 格式信息

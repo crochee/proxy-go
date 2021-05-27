@@ -2,7 +2,7 @@
 // Author: crochee
 // Date: 2021/1/31
 
-package accesslog
+package writer
 
 import "net/http"
 
@@ -50,7 +50,7 @@ type captureResponseWriterWithCloseNotify struct {
 	*captureResponseWriter
 }
 
-func newCaptureResponseWriter(rw http.ResponseWriter) Capture {
+func NewCaptureResponseWriter(rw http.ResponseWriter) Capture {
 	capt := &captureResponseWriter{rw: rw}
 	if _, ok := rw.(http.CloseNotifier); !ok {
 		return capt

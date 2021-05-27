@@ -32,36 +32,50 @@ func TestInitConfig(t *testing.T) {
 			},
 		},
 		Middleware: &dynamic.Config{
-			Balance: map[string]*dynamic.Balance{
-				"obs": {
-					Selector: "wwr",
-					NodeList: []*dynamic.Node{
-						{
-							Scheme:   "http",
-							Host:     "127.0.0.1:8121",
-							Metadata: nil,
-							Weight:   1.0,
-						},
-						{
-							Scheme:   "http",
-							Host:     "127.0.0.1:8122",
-							Metadata: nil,
-							Weight:   2.0,
-						},
-					},
-				},
-			},
 			AccessLog: &dynamic.LogInfo{
 				Path:  "",
 				Level: "INFO",
+			},
+			Trace: nil,
+			Balance: &dynamic.BalanceConfig{
+				RegisterApis: []*dynamic.ServiceApi{
+					{
+						ServiceName: "OBS",
+						Path:        "/proxy",
+						Method:      "POST",
+					},
+				},
+				Transfers: []*dynamic.ServiceBalance{
+					{
+						ServiceName: "OBS",
+						Balance: dynamic.Balance{
+							Selector: "wrr",
+							Nodes: []*dynamic.Node{
+								{
+									Scheme:   "http",
+									Host:     "127.0.0.1:8121",
+									Metadata: nil,
+									Weight:   1.0,
+								},
+								{
+									Scheme:   "http",
+									Host:     "127.0.0.1:8122",
+									Metadata: nil,
+									Weight:   2.0,
+								},
+							},
+						},
+					},
+				},
 			},
 			RateLimit: &dynamic.RateLimit{
 				Every: time.Second,
 				Burst: 2000,
 				Mode:  1,
 			},
-			Recovery:    true,
-			CrossDomain: false,
+			Recovery:       true,
+			CrossDomain:    false,
+			CircuitBreaker: nil,
 		},
 		Proxy: &TlsConfig{
 			Ca:   "./build/package/proxy/cert/ca.pem",
