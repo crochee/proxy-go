@@ -14,6 +14,7 @@ import (
 	"github.com/crochee/proxy-go/router"
 	"github.com/crochee/proxy-go/service/transport"
 	"github.com/crochee/proxy-go/service/transport/httpx"
+	"github.com/crochee/proxy-go/service/transport/prometheusx"
 )
 
 func server(cmd *cobra.Command, _ []string) error {
@@ -37,7 +38,10 @@ func server(cmd *cobra.Command, _ []string) error {
 	}
 	app := transport.NewApp(
 		transport.Context(ctx),
-		transport.Servers(httpSrv),
+		transport.Servers(
+			httpSrv,
+			prometheusx.New(ctx, config.Cfg.PrometheusAgent.Host, config.Cfg.PrometheusAgent.Path),
+		),
 	)
 	if err = app.Run(); err != nil {
 		return err

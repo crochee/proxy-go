@@ -10,4 +10,5 @@ type Config struct {
 	RateLimit   *RateLimit          `json:"rate_limit,omitempty" yaml:"rate_limit,omitempty"`
 	Recovery    bool                `json:"recovery,omitempty" yaml:"recovery,omitempty"`
 	CrossDomain bool                `json:"cross_domain,omitempty" yaml:"cross_domain,omitempty"`
+	Prometheus  bool                `json:"prometheus,omitempty" yaml:"prometheus,omitempty"`
 }

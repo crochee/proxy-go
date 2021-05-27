@@ -24,8 +24,7 @@ import (
 type httpServer struct {
 	*http.Server
 	net.Listener
-	ctx    context.Context
-	cancel context.CancelFunc
+	ctx context.Context
 }
 
 func New(ctx context.Context, medata *config.Medata, handler http.Handler) (*httpServer, error) {
@@ -44,17 +43,15 @@ func New(ctx context.Context, medata *config.Medata, handler http.Handler) (*htt
 	default:
 		return nil, fmt.Errorf("scheme is %s", medata.Scheme)
 	}
-	newCtx, cancel := context.WithCancel(ctx)
 	srv := &httpServer{
 		Server: &http.Server{
 			Handler: handler,
 			BaseContext: func(_ net.Listener) context.Context {
-				return newCtx
+				return ctx
 			},
 		},
 		Listener: ln,
-		ctx:      newCtx,
-		cancel:   cancel,
+		ctx:      ctx,
 	}
 	if medata.RequestLog != nil {
 		requestLog := logger.NewLogger(
@@ -71,11 +68,7 @@ func (h *httpServer) Start() error {
 }
 
 func (h *httpServer) Stop() error {
-	if err := h.Shutdown(h.ctx); err != nil {
-		return err
-	}
-	h.cancel()
-	return nil
+	return h.Shutdown(h.ctx)
 }
 
 func tlsListener(listener net.Listener, medata *config.Medata) (net.Listener, error) {
