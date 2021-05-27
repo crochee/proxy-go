@@ -13,10 +13,8 @@ import (
 	"github.com/crochee/proxy-go/logger"
 	"github.com/crochee/proxy-go/pkg/transport"
 	"github.com/crochee/proxy-go/pkg/transport/httpx"
+	"github.com/crochee/proxy-go/pkg/transport/prometheusx"
 	"github.com/crochee/proxy-go/router"
-	"github.com/crochee/proxy-go/service/transport"
-	"github.com/crochee/proxy-go/service/transport/httpx"
-	"github.com/crochee/proxy-go/service/transport/prometheusx"
 )
 
 func server(cmd *cobra.Command, _ []string) error {

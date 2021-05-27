@@ -11,18 +11,22 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+
+	"github.com/crochee/proxy-go/logger"
+	"github.com/crochee/proxy-go/pkg/metrics"
 )
 
 type prometheusAgent struct {
 	*http.Server
-	ctx  context.Context
-	host string
-	port string
-	path string
+	ctx context.Context
 }
 
 func New(ctx context.Context, host, path string) *prometheusAgent {
+	logger.Infof("new prometheus agent host:%s path:%s", host, path)
+	prometheus.MustRegister(metrics.ReqDurHistogramVec, metrics.ReqCodeTotalCounter)
+
 	mux := http.NewServeMux()
 	mux.Handle(path, promhttp.Handler())
 	return &prometheusAgent{
@@ -42,5 +46,7 @@ func (p *prometheusAgent) Start() error {
 }
 
 func (p *prometheusAgent) Stop() error {
+	prometheus.Unregister(metrics.ReqDurHistogramVec)
+	prometheus.Unregister(metrics.ReqCodeTotalCounter)
 	return p.Shutdown(p.ctx)
 }

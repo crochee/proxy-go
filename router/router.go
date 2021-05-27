@@ -14,9 +14,11 @@ import (
 	"github.com/crochee/proxy-go/middleware/balance"
 	"github.com/crochee/proxy-go/middleware/circuitbreaker"
 	"github.com/crochee/proxy-go/middleware/cros"
+	"github.com/crochee/proxy-go/middleware/metric"
 	"github.com/crochee/proxy-go/middleware/ratelimit"
 	"github.com/crochee/proxy-go/middleware/recovery"
 	"github.com/crochee/proxy-go/middleware/trace"
+	"github.com/crochee/proxy-go/pkg/metrics"
 	"github.com/crochee/proxy-go/pkg/proxy/httpx"
 	"github.com/crochee/proxy-go/pkg/tracex"
 )
@@ -68,6 +70,9 @@ func Handler(cfg *config.Spec) http.Handler {
 			} else {
 				handler = cb
 			}
+		}
+		if cfg.Middleware.Metric {
+			handler = metric.New(handler, metrics.ReqDurHistogramVec, metrics.ReqCodeTotalCounter)
 		}
 	}
 	return handler

@@ -76,6 +76,7 @@ func TestInitConfig(t *testing.T) {
 			Recovery:       true,
 			CrossDomain:    false,
 			CircuitBreaker: nil,
+			Metric:         true,
 		},
 		Proxy: &TlsConfig{
 			Ca:   "./build/package/proxy/cert/ca.pem",

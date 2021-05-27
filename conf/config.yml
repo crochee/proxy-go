@@ -37,6 +37,7 @@ middleware:
         burst: 2000
         mode: 1
     recovery: true
+    metric: true
 proxy:
     ca: ./build/package/proxy/cert/ca.pem
     cert: ./build/package/proxy/cert/proxy.pem
