@@ -11,6 +11,7 @@ require (
 	github.com/spf13/cobra v1.1.3
 	github.com/uber/jaeger-client-go v2.28.0+incompatible
 	github.com/uber/jaeger-lib v2.4.1+incompatible
+	github.com/vugu/vugu v0.3.4 // indirect
 	github.com/vulcand/oxy v1.3.0
 	go.uber.org/multierr v1.5.0
 	go.uber.org/zap v1.16.0

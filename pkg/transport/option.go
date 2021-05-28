@@ -12,18 +12,18 @@ import (
 )
 
 type option struct {
-	sigList    []os.Signal
-	serverList []Server
+	signals    []os.Signal
+	serverList []AppServer
 	ctx        context.Context
 }
 
 // Signal with exit signals.
 func Signal(sigList ...os.Signal) func(*option) {
-	return func(o *option) { o.sigList = sigList }
+	return func(o *option) { o.signals = sigList }
 }
 
 // Servers with transport servers.
-func Servers(servers ...Server) func(*option) {
+func Servers(servers ...AppServer) func(*option) {
 	return func(o *option) { o.serverList = servers }
 }
 

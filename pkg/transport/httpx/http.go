@@ -9,40 +9,36 @@ package httpx
 import (
 	"context"
 	"crypto/tls"
-	"crypto/x509"
-	"fmt"
 	"net"
 	"net/http"
-	"strings"
 
-	"github.com/pkg/errors"
-
-	"github.com/crochee/proxy-go/config"
 	"github.com/crochee/proxy-go/logger"
 )
+
+type option struct {
+	tlsConfig  *tls.Config
+	requestLog logger.Builder
+}
+
+// TlsConfig
+func TlsConfig(cfg *tls.Config) func(*option) {
+	return func(o *option) { o.tlsConfig = cfg }
+}
+
+// RequestLog
+func RequestLog(log logger.Builder) func(*option) {
+	return func(o *option) { o.requestLog = log }
+}
 
 type httpServer struct {
 	*http.Server
 	net.Listener
 	ctx context.Context
+	option
 }
 
-func New(ctx context.Context, medata *config.Medata, handler http.Handler) (*httpServer, error) {
-	ln, err := net.Listen("tcp", medata.Host)
-	if err != nil {
-		return nil, err
-	}
-
-	logger.Infof("server with medata:%+v start to run", medata)
-	switch strings.ToLower(medata.Scheme) {
-	case "http":
-	case "https":
-		if ln, err = tlsListener(ln, medata); err != nil {
-			return nil, err
-		}
-	default:
-		return nil, fmt.Errorf("scheme is %s", medata.Scheme)
-	}
+// New new http AppServer
+func New(ctx context.Context, host string, handler http.Handler, opts ...func(*option)) (*httpServer, error) {
 	srv := &httpServer{
 		Server: &http.Server{
 			Handler: handler,
@@ -50,14 +46,22 @@ func New(ctx context.Context, medata *config.Medata, handler http.Handler) (*htt
 				return ctx
 			},
 		},
-		Listener: ln,
-		ctx:      ctx,
+		ctx: ctx,
 	}
-	if medata.RequestLog != nil {
-		requestLog := logger.NewLogger(
-			logger.Path(medata.RequestLog.Path), logger.Level(medata.RequestLog.Level))
+	for _, opt := range opts {
+		opt(&srv.option)
+	}
+	ln, err := net.Listen("tcp", host)
+	if err != nil {
+		return nil, err
+	}
+	if srv.tlsConfig != nil {
+		ln = tls.NewListener(ln, srv.tlsConfig)
+	}
+	srv.Listener = ln
+	if srv.requestLog != nil {
 		srv.ConnContext = func(ctx context.Context, c net.Conn) context.Context {
-			return logger.Context(ctx, requestLog)
+			return logger.Context(ctx, srv.requestLog)
 		}
 	}
 	return srv, nil
@@ -69,38 +73,4 @@ func (h *httpServer) Start() error {
 
 func (h *httpServer) Stop() error {
 	return h.Shutdown(h.ctx)
-}
-
-func tlsListener(listener net.Listener, medata *config.Medata) (net.Listener, error) {
-	if medata.Tls == nil {
-		return nil, errors.New("https haven't tls")
-	}
-	caPEMBlock, err := medata.Tls.Ca.Read()
-	if err != nil {
-		return nil, err
-	}
-	var certPEMBlock []byte
-	if certPEMBlock, err = medata.Tls.Cert.Read(); err != nil {
-		return nil, err
-	}
-	var keyPEMBlock []byte
-	if keyPEMBlock, err = medata.Tls.Key.Read(); err != nil {
-		return nil, err
-	}
-	pool := x509.NewCertPool()
-	if !pool.AppendCertsFromPEM(caPEMBlock) {
-		return nil, errors.New("failed to parse root certificate")
-	}
-	var certificate tls.Certificate
-	if certificate, err = tls.X509KeyPair(certPEMBlock, keyPEMBlock); err != nil {
-		return nil, err
-	}
-
-	return tls.NewListener(listener, &tls.Config{
-		Certificates: []tls.Certificate{certificate},
-		ClientAuth:   tls.NoClientCert,
-		ClientCAs:    pool,
-		CipherSuites: []uint16{tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256},
-		MinVersion:   tls.VersionTLS12,
-	}), nil
 }

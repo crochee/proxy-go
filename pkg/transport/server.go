@@ -6,14 +6,15 @@ package transport
 
 import (
 	"context"
+	"errors"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/crochee/proxy-go/pkg/safe"
+	"github.com/crochee/proxy-go/pkg/routine"
 )
 
-type Server interface {
+type AppServer interface {
 	Start() error
 	Stop() error
 }
@@ -27,7 +28,7 @@ type app struct {
 func NewApp(opts ...func(*option)) *app {
 	a := &app{
 		option: option{
-			sigList: []os.Signal{syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT},
+			signals: []os.Signal{syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT},
 			ctx:     context.Background(),
 		},
 	}
@@ -41,7 +42,7 @@ func NewApp(opts ...func(*option)) *app {
 }
 
 func (a *app) Run() error {
-	g := safe.NewErrGroup(a.ctx)
+	g := routine.NewGroup(a.ctx)
 	for _, srv := range a.serverList {
 		realSrv := srv
 		g.Go(func(ctx context.Context) error {
@@ -54,17 +55,19 @@ func (a *app) Run() error {
 	}
 	g.Go(func(ctx context.Context) error {
 		quit := make(chan os.Signal, 1)
-		signal.Notify(quit, a.option.sigList...)
+		signal.Notify(quit, a.option.signals...)
 		for {
 			select {
 			case <-ctx.Done():
+				close(quit)
 				return ctx.Err()
 			case <-quit:
-				if a.cancel != nil {
-					a.cancel()
-				}
+				a.cancel()
 			}
 		}
 	})
-	return g.Wait()
+	if err := g.Wait(); err != nil && !errors.Is(err, context.Canceled) {
+		return err
+	}
+	return nil
 }

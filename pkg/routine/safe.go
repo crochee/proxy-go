@@ -1,39 +1,47 @@
 // Copyright 2021, The Go Authors. All rights reserved.
-// Author: OnlyOneFace
-// Date: 2021/1/1
+// Author: crochee
+// Date: 2021/5/16
 
-package safe
+package routine
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"runtime/debug"
 	"sync"
-
-	"github.com/crochee/proxy-go/logger"
 )
 
 type pool struct {
 	waitGroup sync.WaitGroup
 	ctx       context.Context
 	cancel    context.CancelFunc
+	option
 }
 
 // NewPool creates a Pool.
-func NewPool(parentCtx context.Context) *pool {
+func NewPool(parentCtx context.Context, opts ...func(*option)) *pool {
 	ctx, cancel := context.WithCancel(parentCtx)
-	return &pool{
+	p := &pool{
 		ctx:    ctx,
 		cancel: cancel,
+		option: option{recoverFunc: defaultRecoverGoroutine},
 	}
+	for _, opt := range opts {
+		opt(&p.option)
+	}
+	return p
 }
 
 // Go starts a recoverable goroutine with a context.
-func (p *pool) Go(goroutine func(ctx context.Context)) {
+func (p *pool) Go(goroutine func(context.Context)) {
 	p.waitGroup.Add(1)
 	go func() {
 		defer func() {
-			if err := recover(); err != nil {
-				logger.FromContext(p.ctx).Errorf("[Recovery] panic happened.Error:%v\n.Stack:\n%s", debug.Stack())
+			if r := recover(); r != nil {
+				if p.recoverFunc != nil {
+					p.recoverFunc(r)
+				}
 			}
 			p.waitGroup.Done()
 		}()
@@ -45,4 +53,8 @@ func (p *pool) Go(goroutine func(ctx context.Context)) {
 func (p *pool) Stop() {
 	p.cancel()
 	p.waitGroup.Wait()
+}
+
+func defaultRecoverGoroutine(err interface{}) {
+	_, _ = fmt.Fprintf(os.Stderr, "Error:%v\nStack: %s", err, debug.Stack())
 }
