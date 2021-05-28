@@ -23,12 +23,12 @@ type prometheusAgent struct {
 	ctx context.Context
 }
 
-func New(ctx context.Context, host, path string) *prometheusAgent {
-	logger.Infof("new prometheus agent host:%s path:%s", host, path)
+func New(ctx context.Context, host string) *prometheusAgent {
+	logger.Infof("new prometheus agent host:%s", host)
 	prometheus.MustRegister(metrics.ReqDurHistogramVec, metrics.ReqCodeTotalCounter)
 
 	mux := http.NewServeMux()
-	mux.Handle(path, promhttp.Handler())
+	mux.Handle("/metrics", promhttp.Handler())
 	return &prometheusAgent{
 		Server: &http.Server{
 			Addr:    host,

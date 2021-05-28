@@ -4,8 +4,6 @@
 
 package logger
 
-import "os"
-
 var systemLogger Builder = NoLogger{}
 
 // InitSystemLogger 初始化系统级日志对象
@@ -101,5 +99,4 @@ func Fatal(message string) {
 func Exit(message string) {
 	systemLogger.Info(message)
 	_ = systemLogger.Sync()
-	os.Exit(1)
 }

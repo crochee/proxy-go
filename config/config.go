@@ -6,19 +6,19 @@ package config
 
 import (
 	"fmt"
-	"github.com/crochee/proxy-go/pkg/filecontent"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/crochee/proxy-go/config/dynamic"
+	"github.com/crochee/proxy-go/pkg/filecontent"
 )
 
 type Spec struct {
-	Medata          *Medata         `json:"medata" yaml:"medata"`
-	Middleware      *dynamic.Config `json:"middleware,omitempty" yaml:"middleware,omitempty"`
-	Proxy           *TlsConfig      `json:"proxy,omitempty" yaml:"proxy,omitempty"`
-	PrometheusAgent *NodeInfo       `json:"prometheus_agent,omitempty" yaml:"prometheus_agent,omitempty"`
+	Medata         *Medata         `json:"medata" yaml:"medata"`
+	Middleware     *dynamic.Config `json:"middleware,omitempty" yaml:"middleware,omitempty"`
+	Proxy          *TlsConfig      `json:"proxy,omitempty" yaml:"proxy,omitempty"`
+	PrometheusHost string          `json:"prometheus_agent,omitempty" yaml:"prometheus_agent,omitempty"`
 }
 
 type Medata struct {
@@ -36,11 +36,6 @@ type TlsConfig struct {
 	Ca   filecontent.FileOrContent `json:"ca" yaml:"ca"`
 	Cert filecontent.FileOrContent `json:"cert" yaml:"cert"`
 	Key  filecontent.FileOrContent `json:"key" yaml:"key"`
-}
-
-type NodeInfo struct {
-	Host string `json:"host" yaml:"host"`
-	Path string `json:"path" yaml:"path"`
 }
 
 var Cfg *Spec

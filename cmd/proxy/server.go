@@ -47,7 +47,7 @@ func server(cmd *cobra.Command, _ []string) error {
 		transport.Context(ctx),
 		transport.Servers(
 			httpSrv,
-			prometheusx.New(ctx, config.Cfg.PrometheusAgent.Host, config.Cfg.PrometheusAgent.Path),
+			prometheusx.New(ctx, config.Cfg.PrometheusHost),
 		),
 	)
 	if err = app.Run(); err != nil {

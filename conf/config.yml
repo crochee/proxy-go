@@ -42,6 +42,4 @@ proxy:
     ca: ./build/package/proxy/cert/ca.pem
     cert: ./build/package/proxy/cert/proxy.pem
     key: ./build/package/proxy/cert/proxy-key.pem
-prometheus_agent:
-    host: :8190
-    path: /metrics
+prometheus_agent: :8190
