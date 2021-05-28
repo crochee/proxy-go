@@ -6,11 +6,13 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 
 	"github.com/spf13/cobra"
 
 	"github.com/crochee/proxy-go/config"
 	"github.com/crochee/proxy-go/logger"
+	"github.com/crochee/proxy-go/pkg/tlsx"
 	"github.com/crochee/proxy-go/pkg/transport"
 	"github.com/crochee/proxy-go/pkg/transport/httpx"
 	"github.com/crochee/proxy-go/pkg/transport/prometheusx"
@@ -31,8 +33,13 @@ func server(cmd *cobra.Command, _ []string) error {
 		logger.InitSystemLogger(logger.Path(config.Cfg.Medata.SystemLog.Path),
 			logger.Level(config.Cfg.Medata.SystemLog.Level))
 	}
-
-	httpSrv, err := httpx.New(ctx, config.Cfg.Medata, router.Handler(config.Cfg))
+	var tlsConfig *tls.Config
+	if tlsConfig, err = tlsx.TlsConfig(tls.NoClientCert, config.Cfg.Medata.Tls.Ca,
+		config.Cfg.Medata.Tls.Cert, config.Cfg.Medata.Tls.Key); err != nil {
+		return err
+	}
+	httpSrv, err := httpx.New(ctx, config.Cfg.Medata.Host, router.Handler(config.Cfg),
+		httpx.TlsConfig(tlsConfig))
 	if err != nil {
 		return err
 	}

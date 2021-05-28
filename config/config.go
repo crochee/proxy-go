@@ -6,12 +6,12 @@ package config
 
 import (
 	"fmt"
+	"github.com/crochee/proxy-go/pkg/filecontent"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/crochee/proxy-go/config/dynamic"
-	"github.com/crochee/proxy-go/internal/tlsx"
 )
 
 type Spec struct {
@@ -33,9 +33,9 @@ type Medata struct {
 }
 
 type TlsConfig struct {
-	Ca   tlsx.FileOrContent `json:"ca" yaml:"ca"`
-	Cert tlsx.FileOrContent `json:"cert" yaml:"cert"`
-	Key  tlsx.FileOrContent `json:"key" yaml:"key"`
+	Ca   filecontent.FileOrContent `json:"ca" yaml:"ca"`
+	Cert filecontent.FileOrContent `json:"cert" yaml:"cert"`
+	Key  filecontent.FileOrContent `json:"key" yaml:"key"`
 }
 
 type NodeInfo struct {

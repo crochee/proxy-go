@@ -10,10 +10,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/crochee/proxy-go/internal/tlsx"
+	"github.com/crochee/proxy-go/internal"
 )
 
-func tls(cmd *cobra.Command, _ []string) error {
+func tlsTool(cmd *cobra.Command, _ []string) error {
 	flag := cmd.Flags()
 	host, err := flag.GetString("ip")
 	if err != nil {
@@ -27,7 +27,7 @@ func tls(cmd *cobra.Command, _ []string) error {
 		cert []byte
 		key  []byte
 	)
-	if cert, key, err = tlsx.GenerateSelfSignedCertKey(
+	if cert, key, err = internal.GenerateSelfSignedCertKey(
 		host,
 		[]net.IP{
 			net.ParseIP(host),

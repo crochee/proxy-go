@@ -9,12 +9,16 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
+	"os"
+
+	"github.com/vugu/vugu/simplehttp"
+
 	"github.com/crochee/proxy-go/config"
 	"github.com/crochee/proxy-go/logger"
 	"github.com/crochee/proxy-go/pkg/transport"
 	"github.com/crochee/proxy-go/pkg/transport/httpx"
 	"github.com/crochee/proxy-go/pkg/transport/prometheusx"
-	"github.com/vugu/vugu/simplehttp"
 )
 
 var (
@@ -29,7 +33,8 @@ func main() {
 
 	httpSrv, err := httpx.New(ctx, *host, simplehttp.New(*host, *mode))
 	if err != nil {
-		return err
+		_, _ = fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 	app := transport.NewApp(
 		transport.Context(ctx),
@@ -39,8 +44,8 @@ func main() {
 		),
 	)
 	if err = app.Run(); err != nil {
-		return err
+		_, _ = fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 	logger.Exit("server exit!")
-	return nil
 }

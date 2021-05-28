@@ -36,7 +36,7 @@ func main() {
 		Use:   "tls",
 		Short: "generate tls file",
 		Long:  "generate self tls file",
-		RunE:  tls,
+		RunE:  tlsTool,
 	}
 	tlsCmd.Flags().StringP("ip", "i", "127.0.0.1", "")
 	tlsCmd.Flags().StringP("domain", "d", "localhost", "")

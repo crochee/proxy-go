@@ -8,7 +8,8 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
-	"github.com/crochee/object/pkg/filecontent"
+
+	"github.com/crochee/proxy-go/pkg/filecontent"
 )
 
 // TlsConfig output tls
