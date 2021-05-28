@@ -48,4 +48,5 @@ func main() {
 		os.Exit(1)
 	}
 	logger.Exit("server exit!")
+	os.Exit(0)
 }
