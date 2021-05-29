@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/crochee/proxy-go/config"
-	"github.com/crochee/proxy-go/logger"
+	"github.com/crochee/proxy-go/pkg/logger"
 	"github.com/crochee/proxy-go/pkg/router"
 	"github.com/crochee/proxy-go/pkg/tlsx"
 	"github.com/crochee/proxy-go/pkg/transport"

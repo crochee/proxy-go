@@ -9,7 +9,7 @@ import (
 	"runtime/debug"
 
 	"github.com/crochee/proxy-go/internal"
-	"github.com/crochee/proxy-go/logger"
+	"github.com/crochee/proxy-go/pkg/logger"
 )
 
 type recovery struct {

@@ -13,7 +13,7 @@ import (
 
 	"github.com/vugu/vugu/simplehttp"
 
-	"github.com/crochee/proxy-go/logger"
+	"github.com/crochee/proxy-go/pkg/logger"
 	"github.com/crochee/proxy-go/pkg/transport"
 	"github.com/crochee/proxy-go/pkg/transport/httpx"
 )

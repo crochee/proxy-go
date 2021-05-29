@@ -14,7 +14,7 @@ import (
 	"github.com/uber/jaeger-client-go/zipkin"
 	jaegermet "github.com/uber/jaeger-lib/metrics"
 
-	"github.com/crochee/proxy-go/logger"
+	"github.com/crochee/proxy-go/pkg/logger"
 )
 
 // Name sets the name of this tracer.

@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/crochee/proxy-go/logger"
+	"github.com/crochee/proxy-go/pkg/logger"
 )
 
 // TraceNameHashLength defines the number of characters to use from the head of the generated hash.

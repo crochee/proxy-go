@@ -12,7 +12,7 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/crochee/proxy-go/logger"
+	"github.com/crochee/proxy-go/pkg/logger"
 )
 
 type option struct {

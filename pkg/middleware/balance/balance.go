@@ -13,7 +13,7 @@ import (
 
 	"github.com/crochee/proxy-go/config/dynamic"
 	"github.com/crochee/proxy-go/internal"
-	"github.com/crochee/proxy-go/logger"
+	"github.com/crochee/proxy-go/pkg/logger"
 	"github.com/crochee/proxy-go/pkg/selector"
 )
 

@@ -9,7 +9,7 @@ import (
 
 	"github.com/crochee/proxy-go/cmd"
 	"github.com/crochee/proxy-go/config"
-	"github.com/crochee/proxy-go/logger"
+	"github.com/crochee/proxy-go/pkg/logger"
 	"github.com/crochee/proxy-go/pkg/metrics"
 	"github.com/crochee/proxy-go/pkg/middleware/accesslog"
 	"github.com/crochee/proxy-go/pkg/middleware/balance"

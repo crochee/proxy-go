@@ -17,7 +17,7 @@ import (
 
 	"github.com/crochee/proxy-go/config"
 	"github.com/crochee/proxy-go/internal"
-	"github.com/crochee/proxy-go/logger"
+	"github.com/crochee/proxy-go/pkg/logger"
 )
 
 func New(cfg *config.TlsConfig) http.Handler {

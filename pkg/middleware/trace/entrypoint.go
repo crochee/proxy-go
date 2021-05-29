@@ -10,7 +10,7 @@ import (
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 
-	"github.com/crochee/proxy-go/logger"
+	"github.com/crochee/proxy-go/pkg/logger"
 	"github.com/crochee/proxy-go/pkg/tracex"
 	"github.com/crochee/proxy-go/pkg/writer"
 )

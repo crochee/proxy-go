@@ -12,7 +12,7 @@ import (
 	"golang.org/x/time/rate"
 
 	"github.com/crochee/proxy-go/internal"
-	"github.com/crochee/proxy-go/logger"
+	"github.com/crochee/proxy-go/pkg/logger"
 )
 
 type option struct {
