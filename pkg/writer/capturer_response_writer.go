@@ -52,12 +52,12 @@ type captureResponseWriterWithCloseNotify struct {
 
 func NewCaptureResponseWriter(rw http.ResponseWriter) Capture {
 	capt := &captureResponseWriter{rw: rw}
-	if _, ok := rw.(http.CloseNotifier); !ok {
+	if _, ok := rw.(http.CloseNotifier); !ok { // nolint:staticcheck
 		return capt
 	}
 	return &captureResponseWriterWithCloseNotify{capt}
 }
 
 func (c *captureResponseWriterWithCloseNotify) CloseNotify() <-chan bool {
-	return c.rw.(http.CloseNotifier).CloseNotify()
+	return c.rw.(http.CloseNotifier).CloseNotify() // nolint:staticcheck
 }

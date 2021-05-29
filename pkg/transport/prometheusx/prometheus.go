@@ -40,6 +40,7 @@ func New(ctx context.Context, host string) *prometheusAgent {
 		ctx: ctx,
 	}
 }
+
 func (p *prometheusAgent) Name() string {
 	return "PrometheusAgent"
 }

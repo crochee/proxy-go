@@ -25,14 +25,14 @@ func New(next http.Handler) http.Handler {
 
 func (re *recovery) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	defer func() {
-		if err := recover(); err != nil {
+		if r := recover(); r != nil {
 			log := logger.FromContext(req.Context())
-			if err == http.ErrAbortHandler {
-				log.Debugf("Request has been aborted [%s - %s]: %v", req.RemoteAddr, req.URL, err)
+			if r == http.ErrAbortHandler { // nolint:errorlint
+				log.Debugf("Request has been aborted [%s - %s]: %v", req.RemoteAddr, req.URL, r)
 				return
 			}
 			log.Errorf("[Recovery] from panic in HTTP handler [%s - %s]: %+v\nStack:\n%s",
-				req.RemoteAddr, req.URL, err, debug.Stack())
+				req.RemoteAddr, req.URL, r, debug.Stack())
 
 			http.Error(rw, internal.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}

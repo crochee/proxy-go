@@ -20,6 +20,7 @@ import (
 // Name sets the name of this tracer.
 const Name = "jaeger"
 
+// nolint:lll
 // Config provides configuration settings for a jaeger tracer.
 type Config struct {
 	SamplingServerURL          string     `description:"Set the sampling server url." json:"samplingServerURL,omitempty" toml:"samplingServerURL,omitempty" yaml:"samplingServerURL,omitempty"`

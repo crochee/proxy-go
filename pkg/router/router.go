@@ -25,25 +25,11 @@ import (
 	"github.com/crochee/proxy-go/version"
 )
 
+// nolint:gocognit
+// Handler composes http.Handler chain
 func Handler(cfg *config.Spec) http.Handler {
-	var proxyOption []httpx.ProxyOption
-	if cfg.Proxy != nil {
-		if cfg.Proxy.Tls != nil {
-			tlsConfig, err := tlsx.TlsConfig(tls.RequireAndVerifyClientCert,
-				cfg.Proxy.Tls.Ca, cfg.Proxy.Tls.Cert, cfg.Proxy.Tls.Key)
-			if err == nil {
-				proxyOption = append(proxyOption, httpx.TlsConfig(tlsConfig))
-			} else {
-				logger.Warnf("proxy form https to http.Cause:%v", err)
-			}
-		}
-		if cfg.Proxy.ProxyLog != nil {
-			proxyOption = append(proxyOption, httpx.ProxyLog(logger.NewLogger(logger.Path(cfg.Proxy.ProxyLog.Path),
-				logger.Level(cfg.Proxy.ProxyLog.Level))))
-		}
-	}
 	// 配置proxy
-	handler := httpx.New(proxyOption...)
+	handler := proxyHandler(cfg.Proxy)
 	// 中间件组合
 	if cfg.Middleware != nil {
 		if cfg.Middleware.CrossDomain {
@@ -95,4 +81,24 @@ func Handler(cfg *config.Spec) http.Handler {
 		}
 	}
 	return handler
+}
+
+func proxyHandler(cfg *config.Proxy) http.Handler {
+	var proxyOption []httpx.ProxyOption
+	if cfg != nil {
+		if cfg.Tls != nil {
+			tlsConfig, err := tlsx.TlsConfig(tls.RequireAndVerifyClientCert,
+				cfg.Tls.Ca, cfg.Tls.Cert, cfg.Tls.Key)
+			if err == nil {
+				proxyOption = append(proxyOption, httpx.TlsConfig(tlsConfig))
+			} else {
+				logger.Warnf("proxy form https to http.Cause:%v", err)
+			}
+		}
+		if cfg.ProxyLog != nil {
+			proxyOption = append(proxyOption, httpx.ProxyLog(logger.NewLogger(logger.Path(cfg.ProxyLog.Path),
+				logger.Level(cfg.ProxyLog.Level))))
+		}
+	}
+	return httpx.New(proxyOption...)
 }

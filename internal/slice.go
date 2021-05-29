@@ -31,5 +31,5 @@ func (b *bufferPool) Get() []byte {
 }
 
 func (b *bufferPool) Put(bytes []byte) {
-	b.pool.Put(bytes)
+	b.pool.Put(bytes[:0]) // nolint:staticcheck // it's a slice,can't be point
 }

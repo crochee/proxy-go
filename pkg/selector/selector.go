@@ -6,10 +6,10 @@ package selector
 
 import (
 	"container/heap"
+	"crypto/rand"
 	"errors"
-	"math/rand"
+	"math/big"
 	"sync"
-	"time"
 )
 
 type Node struct {
@@ -20,10 +20,6 @@ type Node struct {
 }
 
 var ErrNoneAvailable = errors.New("none available")
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
 
 // selector strategy algorithm
 type Selector interface {
@@ -51,8 +47,11 @@ func (r *Random) Next() (*Node, error) {
 	if length == 0 {
 		return nil, ErrNoneAvailable
 	}
-	i := rand.Int() % length
-	return r.list[i], nil
+	bInt, err := rand.Int(rand.Reader, big.NewInt(int64(length)))
+	if err != nil {
+		return nil, err
+	}
+	return r.list[bInt.Int64()], nil
 }
 
 type RoundRobin struct {
@@ -62,8 +61,12 @@ type RoundRobin struct {
 }
 
 func NewRoundRobin() *RoundRobin {
+	bInt, err := rand.Prime(rand.Reader, 32)
+	if err != nil {
+		bInt = new(big.Int)
+	}
 	return &RoundRobin{
-		randIndex: rand.Int(),
+		randIndex: int(bInt.Int64()),
 		list:      make([]*Node, 0, 4),
 	}
 }

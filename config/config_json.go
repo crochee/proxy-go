@@ -21,7 +21,9 @@ func (j Json) Decode() (*Spec, error) {
 	}
 	defer file.Close()
 	var config Spec
-	if err = jsoniter.ConfigFastest.NewDecoder(file).Decode(&config); err != nil {
+	dec := jsoniter.ConfigCompatibleWithStandardLibrary.NewDecoder(file)
+	dec.UseNumber() // 解决json 将int当成float的情况
+	if err = dec.Decode(&config); err != nil {
 		return nil, err
 	}
 	return &config, nil
@@ -33,5 +35,5 @@ func (j Json) Encode(c *Spec) error {
 		return err
 	}
 	defer file.Close()
-	return jsoniter.ConfigFastest.NewEncoder(file).Encode(c)
+	return jsoniter.ConfigCompatibleWithStandardLibrary.NewEncoder(file).Encode(c)
 }

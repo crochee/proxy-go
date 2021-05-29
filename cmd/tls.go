@@ -47,7 +47,7 @@ func TlsTool(cmd *cobra.Command, _ []string) error {
 	}
 	var certFile *os.File
 	if certFile, err = os.Create(certPath); err != nil {
-		return nil
+		return err
 	}
 	defer certFile.Close()
 	if _, err = certFile.Write(cert); err != nil {

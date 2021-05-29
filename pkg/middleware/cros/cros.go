@@ -86,11 +86,6 @@ func New(next http.Handler, options Options) http.Handler {
 		maxAge:                 options.MaxAge,
 		optionPassthrough:      options.OptionsPassthrough,
 	}
-
-	// Normalize options
-	// Note: for origins and methods matching, the spec requires a case-sensitive matching.
-	// As it may error prone, we chose to ignore the spec here.
-
 	// Allowed Origins
 	if len(options.AllowedOrigins) == 0 {
 		if options.AllowOriginFunc == nil && options.AllowOriginRequestFunc == nil {
@@ -118,7 +113,6 @@ func New(next http.Handler, options Options) http.Handler {
 			}
 		}
 	}
-
 	// Allowed Headers
 	if len(options.AllowedHeaders) == 0 {
 		// Use sensible defaults
@@ -134,7 +128,6 @@ func New(next http.Handler, options Options) http.Handler {
 			}
 		}
 	}
-
 	// Allowed Methods
 	if len(options.AllowedMethods) == 0 {
 		// Default is spec's "simple" methods
