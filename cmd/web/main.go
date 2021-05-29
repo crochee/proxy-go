@@ -37,7 +37,11 @@ func mainFunc() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel() // 全局取消
 
-	httpSrv, err := httpx.New(ctx, *host, simplehttp.New(*host, *mode))
+	wd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	httpSrv, err := httpx.New(ctx, *host, simplehttp.New(wd, *mode))
 	if err != nil {
 		return err
 	}
