@@ -64,6 +64,7 @@ func New(ctx context.Context, host string, handler http.Handler, opts ...func(*o
 			return logger.Context(ctx, srv.requestLog)
 		}
 	}
+	logger.Infof("listen srv %s", host)
 	return srv, nil
 }
 

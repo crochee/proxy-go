@@ -18,12 +18,12 @@ func (f FileOrContent) IsPath() bool {
 	return err == nil
 }
 
+// Read output content
 func (f FileOrContent) Read() ([]byte, error) {
 	var content []byte
 	if f.IsPath() {
 		var err error
-		content, err = os.ReadFile(f.String())
-		if err != nil {
+		if content, err = os.ReadFile(f.String()); err != nil {
 			return nil, err
 		}
 	} else {

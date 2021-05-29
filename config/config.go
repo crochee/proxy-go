@@ -17,7 +17,7 @@ import (
 type Spec struct {
 	Medata         *Medata         `json:"medata" yaml:"medata"`
 	Middleware     *dynamic.Config `json:"middleware,omitempty" yaml:"middleware,omitempty"`
-	Proxy          *TlsConfig      `json:"proxy,omitempty" yaml:"proxy,omitempty"`
+	Proxy          *Proxy          `json:"proxy,omitempty" yaml:"proxy,omitempty"`
 	PrometheusHost string          `json:"prometheus_agent,omitempty" yaml:"prometheus_agent,omitempty"`
 }
 

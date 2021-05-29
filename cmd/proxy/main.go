@@ -20,7 +20,7 @@ import (
 
 func main() {
 	rootCmd := &cobra.Command{
-		Short:   "proxy tools",
+		Short:   version.ServiceName,
 		Version: version.Version,
 	}
 

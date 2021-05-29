@@ -55,7 +55,8 @@ func NewLogger(opts ...func(*option)) *Logger {
 	} else {
 		encode = zapcore.NewJSONEncoder
 	}
-	l.Logger = newZap(l.option.level, encode, l.option.skip, setLoggerWriter(l.option.path))
+	l.Logger = newZap(l.option.level, encode, l.option.skip,
+		setLoggerWriter(l.option.path), l.fields...)
 	l.LoggerSugar = l.Logger.Sugar()
 
 	return l

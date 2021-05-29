@@ -17,19 +17,17 @@ import (
 )
 
 type accessLog struct {
-	next        http.Handler
-	log         logger.Builder
-	serviceName string
+	next http.Handler
+	log  logger.Builder
 }
 
-func New(serviceName string, log logger.Builder, next http.Handler) http.Handler {
+func New(log logger.Builder, next http.Handler) http.Handler {
 	if log == nil {
 		log = logger.NoLogger{}
 	}
 	return &accessLog{
-		next:        next,
-		log:         log,
-		serviceName: serviceName,
+		next: next,
+		log:  log,
 	}
 }
 
@@ -66,9 +64,7 @@ func (l *accessLog) ServeHTTP(rw http.ResponseWriter, request *http.Request) {
 		// Truncate in a golang < 1.8 safe way
 		param.Last = param.Last - param.Last%time.Second
 	}
-	buf.WriteByte('[')
-	buf.WriteString(l.serviceName)
-	buf.WriteString("] ")
+	buf.WriteString("[ACCESS_LOG]")
 	buf.WriteString(param.Now.Format("2006/01/02 - 15:04:05"))
 	buf.WriteString(" | ")
 	buf.WriteString(strconv.Itoa(param.Status))

@@ -39,7 +39,11 @@ middleware:
     recovery: true
     metric: true
 proxy:
-    ca: ./build/package/proxy/cert/ca.pem
-    cert: ./build/package/proxy/cert/proxy.pem
-    key: ./build/package/proxy/cert/proxy-key.pem
+    request_log:
+        path: ""
+        level: INFO
+    tls:
+        ca: ./build/package/proxy/cert/ca.pem
+        cert: ./build/package/proxy/cert/proxy.pem
+        key: ./build/package/proxy/cert/proxy-key.pem
 prometheus_agent: :8190

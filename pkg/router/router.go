@@ -5,6 +5,7 @@
 package router
 
 import (
+	"crypto/tls"
 	"net/http"
 
 	"github.com/crochee/proxy-go/config"
@@ -19,12 +20,30 @@ import (
 	"github.com/crochee/proxy-go/pkg/middleware/recovery"
 	"github.com/crochee/proxy-go/pkg/middleware/trace"
 	"github.com/crochee/proxy-go/pkg/proxy/httpx"
+	"github.com/crochee/proxy-go/pkg/tlsx"
 	"github.com/crochee/proxy-go/pkg/tracex"
 	"github.com/crochee/proxy-go/version"
 )
 
 func Handler(cfg *config.Spec) http.Handler {
-	handler := httpx.New(cfg.Proxy)
+	var proxyOption []httpx.ProxyOption
+	if cfg.Proxy != nil {
+		if cfg.Proxy.Tls != nil {
+			tlsConfig, err := tlsx.TlsConfig(tls.RequireAndVerifyClientCert,
+				cfg.Proxy.Tls.Ca, cfg.Proxy.Tls.Cert, cfg.Proxy.Tls.Key)
+			if err == nil {
+				proxyOption = append(proxyOption, httpx.TlsConfig(tlsConfig))
+			} else {
+				logger.Warnf("proxy form https to http.Cause:%v", err)
+			}
+		}
+		if cfg.Proxy.ProxyLog != nil {
+			proxyOption = append(proxyOption, httpx.ProxyLog(logger.NewLogger(logger.Path(cfg.Proxy.ProxyLog.Path),
+				logger.Level(cfg.Proxy.ProxyLog.Level))))
+		}
+	}
+	// 配置proxy
+	handler := httpx.New(proxyOption...)
 	// 中间件组合
 	if cfg.Middleware != nil {
 		if cfg.Middleware.CrossDomain {
@@ -47,7 +66,7 @@ func Handler(cfg *config.Spec) http.Handler {
 			if err == nil {
 				handler = trace.NewTraceEntryPoint(t, version.ServiceName, handler)
 			} else {
-				logger.Errorf("new trace failed.Error:%v", err)
+				logger.Warnf("new trace failed.Error:%v", err)
 			}
 		}
 		if cfg.Middleware.Balance != nil {
@@ -66,7 +85,7 @@ func Handler(cfg *config.Spec) http.Handler {
 		if cfg.Middleware.CircuitBreaker != nil {
 			cb, err := circuitbreaker.New(*cfg.Middleware.CircuitBreaker, handler)
 			if err != nil {
-				logger.Errorf("new circuitbreaker failed.Error:%v", err)
+				logger.Warnf("new circuitbreaker failed.Error:%v", err)
 			} else {
 				handler = cb
 			}

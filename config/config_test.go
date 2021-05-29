@@ -78,10 +78,16 @@ func TestInitConfig(t *testing.T) {
 			CircuitBreaker: nil,
 			Metric:         true,
 		},
-		Proxy: &TlsConfig{
-			Ca:   "./build/package/proxy/cert/ca.pem",
-			Cert: "./build/package/proxy/cert/proxy.pem",
-			Key:  "./build/package/proxy/cert/proxy-key.pem",
+		Proxy: &Proxy{
+			ProxyLog: &dynamic.LogInfo{
+				Path:  "",
+				Level: "INFO",
+			},
+			Tls: &TlsConfig{
+				Ca:   "./build/package/proxy/cert/ca.pem",
+				Cert: "./build/package/proxy/cert/proxy.pem",
+				Key:  "./build/package/proxy/cert/proxy-key.pem",
+			},
 		},
 		PrometheusHost: ":8190",
 	}
