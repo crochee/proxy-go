@@ -7,12 +7,20 @@
 package metrics
 
 import (
-	"github.com/prometheus/client_golang/prometheus"
-
 	"github.com/crochee/proxy-go/version"
+	"github.com/prometheus/client_golang/prometheus"
+	"sync/atomic"
 )
 
 var (
+	Enable              atomic.Value
+	ReqDurHistogramVec  *prometheus.HistogramVec
+	ReqCodeTotalCounter *prometheus.CounterVec
+)
+
+// DefineMetrics init metrics
+func DefineMetrics() {
+	Enable.Store(true)
 	ReqDurHistogramVec = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: version.ServiceName,
 		Subsystem: "requests",
@@ -26,4 +34,4 @@ var (
 		Name:      "code_total",
 		Help:      "http server requests error count.",
 	}, []string{"protocol", "method", "path", "code"})
-)
+}

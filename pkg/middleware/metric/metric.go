@@ -7,6 +7,7 @@
 package metric
 
 import (
+	"github.com/crochee/proxy-go/pkg/metrics"
 	"net/http"
 	"strconv"
 	"strings"
@@ -17,22 +18,24 @@ import (
 	"github.com/crochee/proxy-go/pkg/writer"
 )
 
-type metrics struct {
+type metric struct {
 	next         http.Handler
 	reqDur       *prometheus.HistogramVec
 	reqCodeTotal *prometheus.CounterVec
 }
 
-func New(next http.Handler, reqDur *prometheus.HistogramVec, reqCodeTotal *prometheus.CounterVec) *metrics {
-	return &metrics{
-		next:         next,
-		reqDur:       reqDur,
-		reqCodeTotal: reqCodeTotal,
+// New create metric http.Handler
+func New(next http.Handler) *metric {
+	return &metric{
+		next: next,
 	}
 }
 
-func (m *metrics) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-
+func (m *metric) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	if metrics.Enable.Load() == true {
+		m.next.ServeHTTP(rw, req)
+		return
+	}
 	var labels []string
 	labels = append(labels, getRequestProtocol(req), req.Method, req.URL.Path)
 

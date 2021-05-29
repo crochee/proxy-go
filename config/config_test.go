@@ -76,7 +76,6 @@ func TestInitConfig(t *testing.T) {
 			Recovery:       true,
 			CrossDomain:    false,
 			CircuitBreaker: nil,
-			Metric:         true,
 		},
 		Proxy: &Proxy{
 			ProxyLog: &dynamic.LogInfo{

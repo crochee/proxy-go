@@ -10,7 +10,6 @@ import (
 
 	"github.com/crochee/proxy-go/config"
 	"github.com/crochee/proxy-go/pkg/logger"
-	"github.com/crochee/proxy-go/pkg/metrics"
 	"github.com/crochee/proxy-go/pkg/middleware/accesslog"
 	"github.com/crochee/proxy-go/pkg/middleware/balance"
 	"github.com/crochee/proxy-go/pkg/middleware/circuitbreaker"
@@ -76,9 +75,7 @@ func Handler(cfg *config.Spec) http.Handler {
 				handler = cb
 			}
 		}
-		if cfg.Middleware.Metric {
-			handler = metric.New(handler, metrics.ReqDurHistogramVec, metrics.ReqCodeTotalCounter)
-		}
+		handler = metric.New(handler)
 	}
 	return handler
 }

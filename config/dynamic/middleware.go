@@ -12,5 +12,4 @@ type Config struct {
 	Recovery       bool            `json:"recovery,omitempty" yaml:"recovery,omitempty"`
 	CrossDomain    bool            `json:"cross_domain,omitempty" yaml:"cross_domain,omitempty"`
 	CircuitBreaker *CircuitBreaker `json:"circuit_breaker,omitempty" yaml:"circuit_breaker,omitempty"`
-	Metric         bool            `json:"metric,omitempty" yaml:"metric,omitempty"`
 }
