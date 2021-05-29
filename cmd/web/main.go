@@ -3,7 +3,6 @@
 // Author: licongfu
 // Create: 2021/5/28
 
-// Package main
 package main
 
 import (
@@ -36,12 +35,11 @@ func mainFunc() error {
 	flag.Parse()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel() // 全局取消
-
 	wd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
-	httpSrv, err := httpx.New(ctx, *host, simplehttp.New(wd, *mode))
+	httpSrv, err := httpx.New(ctx, *host, simplehttp.New(wd+"/website", *mode))
 	if err != nil {
 		return err
 	}
