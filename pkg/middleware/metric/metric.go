@@ -32,7 +32,7 @@ func New(next http.Handler) *metric {
 }
 
 func (m *metric) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	if metrics.Enable.Load() == true {
+	if metrics.Enable.Load() != true {
 		m.next.ServeHTTP(rw, req)
 		return
 	}
