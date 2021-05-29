@@ -2,7 +2,7 @@
 // Author: crochee
 // Date: 2021/5/4
 
-package main
+package cmd
 
 import (
 	"net"
@@ -13,7 +13,7 @@ import (
 	"github.com/crochee/proxy-go/internal"
 )
 
-func tlsTool(cmd *cobra.Command, _ []string) error {
+func TlsTool(cmd *cobra.Command, _ []string) error {
 	flag := cmd.Flags()
 	host, err := flag.GetString("ip")
 	if err != nil {

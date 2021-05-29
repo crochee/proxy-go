@@ -4,13 +4,15 @@
 // Create: 2021/5/29
 
 // Package main
-package main
+package proxy_go
 
 import (
 	"bytes"
 	"testing"
 
 	"github.com/spf13/cobra"
+
+	"github.com/crochee/proxy-go/cmd"
 )
 
 func TestServer(t *testing.T) {
@@ -18,10 +20,10 @@ func TestServer(t *testing.T) {
 		Use:    "server",
 		Short:  "start server",
 		Long:   "start multi server",
-		RunE:   server,
+		RunE:   cmd.Server,
 		Hidden: true,
 	}
-	serverCmd.Flags().StringP("config", "c", "../../conf/config.yml", "")
+	serverCmd.Flags().StringP("config", "c", "./conf/config.yml", "")
 	serverCmd.SetErr(bytes.NewBuffer(nil))
 	if err := serverCmd.Execute(); err != nil {
 		t.Log(err)

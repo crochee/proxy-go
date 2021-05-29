@@ -2,7 +2,7 @@
 // Author: crochee
 // Date: 2021/1/18
 
-package main
+package cmd
 
 import (
 	"context"
@@ -19,7 +19,7 @@ import (
 	"github.com/crochee/proxy-go/pkg/transport/prometheusx"
 )
 
-func server(cmd *cobra.Command, _ []string) error {
+func Server(cmd *cobra.Command, _ []string) error {
 	ctx, cancel := context.WithCancel(cmd.Context())
 	defer cancel() // 全局取消
 	// 初始化配置

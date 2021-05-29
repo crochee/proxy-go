@@ -7,7 +7,6 @@ package router
 import (
 	"net/http"
 
-	"github.com/crochee/proxy-go/cmd"
 	"github.com/crochee/proxy-go/config"
 	"github.com/crochee/proxy-go/pkg/logger"
 	"github.com/crochee/proxy-go/pkg/metrics"
@@ -21,6 +20,7 @@ import (
 	"github.com/crochee/proxy-go/pkg/middleware/trace"
 	"github.com/crochee/proxy-go/pkg/proxy/httpx"
 	"github.com/crochee/proxy-go/pkg/tracex"
+	"github.com/crochee/proxy-go/version"
 )
 
 func Handler(cfg *config.Spec) http.Handler {
@@ -38,14 +38,14 @@ func Handler(cfg *config.Spec) http.Handler {
 			})
 		}
 		if cfg.Middleware.AccessLog != nil {
-			handler = accesslog.New(cmd.ServiceName, logger.NewLogger(
+			handler = accesslog.New(version.ServiceName, logger.NewLogger(
 				logger.Path(cfg.Middleware.AccessLog.Path),
 				logger.Level(cfg.Middleware.AccessLog.Level)), handler)
 		}
 		if cfg.Middleware.Trace != nil && cfg.Middleware.Trace.Jaeger != nil {
-			t, err := tracex.NewTracer(cmd.ServiceName, 20, cfg.Middleware.Trace.Jaeger)
+			t, err := tracex.NewTracer(version.ServiceName, 20, cfg.Middleware.Trace.Jaeger)
 			if err == nil {
-				handler = trace.NewTraceEntryPoint(t, cmd.ServiceName, handler)
+				handler = trace.NewTraceEntryPoint(t, version.ServiceName, handler)
 			} else {
 				logger.Errorf("new trace failed.Error:%v", err)
 			}

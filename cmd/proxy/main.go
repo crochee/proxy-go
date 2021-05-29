@@ -15,19 +15,20 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/crochee/proxy-go/cmd"
+	"github.com/crochee/proxy-go/version"
 )
 
 func main() {
 	rootCmd := &cobra.Command{
 		Short:   "proxy tools",
-		Version: cmd.Version,
+		Version: version.Version,
 	}
 
 	serverCmd := &cobra.Command{
 		Use:    "server",
 		Short:  "start server",
 		Long:   "start multi server",
-		RunE:   server,
+		RunE:   cmd.Server,
 		Hidden: true,
 	}
 	serverCmd.Flags().StringP("config", "c", "./conf/config.yml", "")
@@ -36,7 +37,7 @@ func main() {
 		Use:   "tls",
 		Short: "generate tls file",
 		Long:  "generate self tls file",
-		RunE:  tlsTool,
+		RunE:  cmd.TlsTool,
 	}
 	tlsCmd.Flags().StringP("ip", "i", "127.0.0.1", "")
 	tlsCmd.Flags().StringP("domain", "d", "localhost", "")
