@@ -38,17 +38,20 @@ func server(cmd *cobra.Command, _ []string) error {
 		config.Cfg.Medata.Tls.Cert, config.Cfg.Medata.Tls.Key); err != nil {
 		return err
 	}
+	var serverList []transport.AppServer
 	httpSrv, err := httpx.New(ctx, config.Cfg.Medata.Host, router.Handler(config.Cfg),
-		httpx.TlsConfig(tlsConfig))
+		httpx.TlsConfig(tlsConfig), httpx.RequestLog(logger.NewLogger(logger.Path(config.Cfg.Medata.RequestLog.Path),
+			logger.Level(config.Cfg.Medata.RequestLog.Level))))
 	if err != nil {
 		return err
 	}
+	serverList = append(serverList, httpSrv)
+	if config.Cfg.PrometheusHost != "" {
+		serverList = append(serverList, prometheusx.New(ctx, config.Cfg.PrometheusHost))
+	}
 	app := transport.NewApp(
 		transport.Context(ctx),
-		transport.Servers(
-			httpSrv,
-			prometheusx.New(ctx, config.Cfg.PrometheusHost),
-		),
+		transport.Servers(serverList...),
 	)
 	if err = app.Run(); err != nil {
 		return err
