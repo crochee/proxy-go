@@ -56,6 +56,9 @@ func Server(cmd *cobra.Command, _ []string) error {
 	if err = app.Run(); err != nil {
 		return err
 	}
-	logger.Exit("server exit!")
+	for _, srv := range serverList {
+		logger.Infof("server %s stop", srv.Name())
+	}
+	logger.Exit("proxy exit!")
 	return nil
 }

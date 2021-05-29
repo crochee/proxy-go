@@ -57,7 +57,7 @@ func Handler(cfg *config.Spec) http.Handler {
 			})
 		}
 		if cfg.Middleware.AccessLog != nil {
-			handler = accesslog.New(version.ServiceName, logger.NewLogger(
+			handler = accesslog.New(logger.NewLogger(
 				logger.Path(cfg.Middleware.AccessLog.Path),
 				logger.Level(cfg.Middleware.AccessLog.Level)), handler)
 		}

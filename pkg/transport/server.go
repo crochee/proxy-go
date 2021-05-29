@@ -15,6 +15,7 @@ import (
 )
 
 type AppServer interface {
+	Name() string
 	Start() error
 	Stop() error
 }

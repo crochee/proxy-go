@@ -67,6 +67,9 @@ func New(ctx context.Context, host string, handler http.Handler, opts ...func(*o
 	logger.Infof("listen srv %s", host)
 	return srv, nil
 }
+func (h *httpServer) Name() string {
+	return "HTTP(S)"
+}
 
 func (h *httpServer) Start() error {
 	return h.Serve(h.Listener)
