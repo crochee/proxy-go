@@ -75,9 +75,8 @@ func Handler(cfg *config.Spec) http.Handler {
 				handler = cb
 			}
 		}
-		handler = metric.New(handler)
 	}
-	return handler
+	return metric.New(handler)
 }
 
 func proxyHandler(cfg *config.Proxy) http.Handler {
