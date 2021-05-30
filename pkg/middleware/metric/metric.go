@@ -7,21 +7,17 @@
 package metric
 
 import (
-	"github.com/crochee/proxy-go/pkg/metrics"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus"
-
+	"github.com/crochee/proxy-go/pkg/metrics"
 	"github.com/crochee/proxy-go/pkg/writer"
 )
 
 type metric struct {
-	next         http.Handler
-	reqDur       *prometheus.HistogramVec
-	reqCodeTotal *prometheus.CounterVec
+	next http.Handler
 }
 
 // New create metric http.Handler
@@ -47,10 +43,10 @@ func (m *metric) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	labels = append(labels, strconv.Itoa(crw.Status()))
 
-	m.reqDur.WithLabelValues(labels...).Observe(float64(time.Since(start).Nanoseconds()))
+	metrics.ReqDurHistogramVec.WithLabelValues(labels...).Observe(float64(time.Since(start).Nanoseconds()))
 
 	if crw.Status()/100 != 2 {
-		m.reqCodeTotal.WithLabelValues(labels...).Inc()
+		metrics.ReqCodeTotalCounter.WithLabelValues(labels...).Inc()
 	}
 }
 
