@@ -45,8 +45,9 @@ func New(ctx context.Context, host string) *pprofAgent {
 	logger.Infof("listen %s,host %s", p.Name(), host)
 	return p
 }
+
 func (p *pprofAgent) Name() string {
-	return "PPROF"
+	return "PPROF_AGENT"
 }
 
 func (p *pprofAgent) Start() error {

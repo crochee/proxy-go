@@ -44,7 +44,7 @@ func New(ctx context.Context, host string) *prometheusAgent {
 }
 
 func (p *prometheusAgent) Name() string {
-	return "PrometheusAgent"
+	return "PROMETHEUS_AGENT"
 }
 
 func (p *prometheusAgent) Start() error {
