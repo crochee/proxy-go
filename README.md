@@ -3,8 +3,6 @@
 The goal is to build a high-performance general-purpose gateway
 
 ## 目录结构
-├─.idea
-│  └─inspectionProfiles
 ├─asset
 ├─build
 │  ├─ci
@@ -12,38 +10,45 @@ The goal is to build a high-performance general-purpose gateway
 │      └─proxy
 │          └─cert
 ├─cmd
-│  └─proxy
+│  ├─proxy
+│  └─web
 ├─conf
 ├─config
 │  └─dynamic
 ├─deployment
 ├─docs
 ├─internal
-│  └─tlsx
 ├─log
-├─logger
-├─middleware
-│  ├─accesslog
-│  ├─balance
-│  ├─circuitbreaker
-│  ├─cros
-│  ├─ratelimit
-│  ├─recovery
-│  ├─retry
-│  └─trace
 ├─pkg
+│  ├─filecontent
+│  ├─logger
+│  ├─metrics
+│  ├─middleware
+│  │  ├─accesslog
+│  │  ├─balance
+│  │  ├─circuitbreaker
+│  │  ├─cros
+│  │  ├─metric
+│  │  ├─ratelimit
+│  │  ├─recovery
+│  │  ├─retry
+│  │  └─trace
 │  ├─proxy
 │  │  ├─httpx
 │  │  └─tcpx
-│  ├─safe
+│  ├─router
+│  ├─routine
 │  ├─selector
+│  ├─tlsx
 │  ├─tracex
 │  │  └─jaeger
 │  ├─transport
-│  │  └─httpx
+│  │  ├─httpx
+│  │  ├─pprofx
+│  │  └─prometheusx
 │  └─writer
-├─router
 ├─script
 ├─test
 │  └─data
+├─version
 └─website
