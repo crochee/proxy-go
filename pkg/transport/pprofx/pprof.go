@@ -21,17 +21,17 @@ type pprofAgent struct {
 // New create pprof server
 func New(ctx context.Context, host string) *pprofAgent {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", pprof.Index)
-	mux.HandleFunc("/cmdline", pprof.Cmdline)
-	mux.HandleFunc("/profile", pprof.Profile)
-	mux.HandleFunc("/symbol", pprof.Symbol)
-	mux.HandleFunc("/trace", pprof.Trace)
-	mux.HandleFunc("/allocs", pprof.Handler("allocs").ServeHTTP)
-	mux.HandleFunc("/block", pprof.Handler("block").ServeHTTP)
-	mux.HandleFunc("/goroutine", pprof.Handler("goroutine").ServeHTTP)
-	mux.HandleFunc("/heap", pprof.Handler("heap").ServeHTTP)
-	mux.HandleFunc("/mutex", pprof.Handler("mutex").ServeHTTP)
-	mux.HandleFunc("/threadcreate", pprof.Handler("threadcreate").ServeHTTP)
+	mux.HandleFunc("/debug/", pprof.Index)
+	mux.HandleFunc("/debug/cmdline", pprof.Cmdline)
+	mux.HandleFunc("/debug/profile", pprof.Profile)
+	mux.HandleFunc("/debug/symbol", pprof.Symbol)
+	mux.HandleFunc("/debug/trace", pprof.Trace)
+	mux.HandleFunc("/debug/allocs", pprof.Handler("allocs").ServeHTTP)
+	mux.HandleFunc("/debug/block", pprof.Handler("block").ServeHTTP)
+	mux.HandleFunc("/debug/goroutine", pprof.Handler("goroutine").ServeHTTP)
+	mux.HandleFunc("/debug/heap", pprof.Handler("heap").ServeHTTP)
+	mux.HandleFunc("/debug/mutex", pprof.Handler("mutex").ServeHTTP)
+	mux.HandleFunc("/debug/threadcreate", pprof.Handler("threadcreate").ServeHTTP)
 	p := &pprofAgent{
 		Server: &http.Server{
 			Addr:    host,
