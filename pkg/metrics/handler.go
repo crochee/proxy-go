@@ -7,9 +7,11 @@
 package metrics
 
 import (
-	"github.com/crochee/proxy-go/version"
-	"github.com/prometheus/client_golang/prometheus"
 	"sync/atomic"
+
+	"github.com/prometheus/client_golang/prometheus"
+
+	"github.com/crochee/proxy-go/version"
 )
 
 var (
