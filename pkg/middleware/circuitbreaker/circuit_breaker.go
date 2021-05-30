@@ -33,7 +33,7 @@ func (c *circuitBreaker) ServeHTTP(writer http.ResponseWriter, request *http.Req
 	c.circuitBreaker.ServeHTTP(writer, request)
 }
 
-// NewCircuitBreakerOptions returns a new CircuitBreakerOption.
+// createCircuitBreakerOptions returns a new cbreaker.CircuitBreakerOption.
 func createCircuitBreakerOptions(expression string) cbreaker.CircuitBreakerOption {
 	return cbreaker.Fallback(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		tracex.SetErrorWithEvent(req, "blocked by circuit-breaker (%q)", expression)
