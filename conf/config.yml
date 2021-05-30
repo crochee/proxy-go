@@ -37,6 +37,8 @@ middleware:
         burst: 2000
         mode: 1
     recovery: true
+    circuit_breaker:
+        expression: NetworkErrorRatio() > 0.5
 proxy:
     request_log:
         path: ""

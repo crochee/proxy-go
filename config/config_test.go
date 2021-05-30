@@ -75,7 +75,7 @@ func TestInitConfig(t *testing.T) {
 			},
 			Recovery:       true,
 			CrossDomain:    false,
-			CircuitBreaker: nil,
+			CircuitBreaker: &dynamic.CircuitBreaker{Expression: "NetworkErrorRatio() > 0.5"},
 		},
 		Proxy: &Proxy{
 			ProxyLog: &dynamic.LogInfo{

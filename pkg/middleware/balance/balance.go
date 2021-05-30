@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"sync"
 
 	"github.com/crochee/proxy-go/config/dynamic"
 	"github.com/crochee/proxy-go/internal"
@@ -28,7 +27,6 @@ type Balancer struct {
 	serviceApi map[string]map[string]string
 	// service selector
 	NameSelector map[string]*SelectorInfo
-	rw           sync.RWMutex
 	hostName     string
 }
 
@@ -69,9 +67,7 @@ func (b *Balancer) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 		http.Error(writer, internal.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
 		return
 	}
-	b.rw.RLock()
 	s, ok := b.NameSelector[serviceName]
-	b.rw.RUnlock()
 	if !ok {
 		http.Error(writer, internal.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
 		return

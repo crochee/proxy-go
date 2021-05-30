@@ -28,6 +28,7 @@ func New(cfg dynamic.CircuitBreaker, next http.Handler) (http.Handler, error) {
 		circuitBreaker: oxyCircuitBreaker,
 	}, nil
 }
+
 func (c *circuitBreaker) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	c.circuitBreaker.ServeHTTP(writer, request)
 }
@@ -38,7 +39,7 @@ func createCircuitBreakerOptions(expression string) cbreaker.CircuitBreakerOptio
 		tracex.SetErrorWithEvent(req, "blocked by circuit-breaker (%q)", expression)
 		rw.WriteHeader(http.StatusServiceUnavailable)
 
-		if _, err := rw.Write([]byte(internal.StatusText(http.StatusServiceUnavailable))); err != nil {
+		if _, err := rw.Write(internal.Bytes(internal.StatusText(http.StatusServiceUnavailable))); err != nil {
 			logger.FromContext(req.Context()).Error(err.Error())
 		}
 	}))
