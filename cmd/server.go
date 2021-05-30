@@ -16,6 +16,7 @@ import (
 	"github.com/crochee/proxy-go/pkg/tlsx"
 	"github.com/crochee/proxy-go/pkg/transport"
 	"github.com/crochee/proxy-go/pkg/transport/httpx"
+	"github.com/crochee/proxy-go/pkg/transport/pprofx"
 	"github.com/crochee/proxy-go/pkg/transport/prometheusx"
 )
 
@@ -46,8 +47,11 @@ func Server(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 	serverList = append(serverList, httpSrv)
-	if config.Cfg.PrometheusHost != "" {
-		serverList = append(serverList, prometheusx.New(ctx, config.Cfg.PrometheusHost))
+	if config.Cfg.PrometheusAgent != "" {
+		serverList = append(serverList, prometheusx.New(ctx, config.Cfg.PrometheusAgent))
+	}
+	if config.Cfg.PprofAgent != "" {
+		serverList = append(serverList, pprofx.New(ctx, config.Cfg.PprofAgent))
 	}
 	app := transport.NewApp(
 		transport.Context(ctx),

@@ -17,6 +17,7 @@ import (
 	"github.com/crochee/proxy-go/pkg/middleware/metric"
 	"github.com/crochee/proxy-go/pkg/middleware/ratelimit"
 	"github.com/crochee/proxy-go/pkg/middleware/recovery"
+	"github.com/crochee/proxy-go/pkg/middleware/retry"
 	"github.com/crochee/proxy-go/pkg/middleware/trace"
 	"github.com/crochee/proxy-go/pkg/proxy/httpx"
 	"github.com/crochee/proxy-go/pkg/tlsx"
@@ -31,6 +32,9 @@ func Handler(cfg *config.Spec) http.Handler {
 	handler := proxyHandler(cfg.Proxy)
 	// 中间件组合
 	if cfg.Middleware != nil {
+		if cfg.Middleware.Retry != nil {
+			handler = retry.New(handler, *cfg.Middleware.Retry)
+		}
 		if cfg.Middleware.CrossDomain {
 			handler = cros.New(handler, cros.Options{
 				AllowedOrigins: []string{"*"},
@@ -64,9 +68,6 @@ func Handler(cfg *config.Spec) http.Handler {
 				ratelimit.Every(cfg.Middleware.RateLimit.Every),
 				ratelimit.Mode(cfg.Middleware.RateLimit.Mode))
 		}
-		if cfg.Middleware.Recovery {
-			handler = recovery.New(handler)
-		}
 		if cfg.Middleware.CircuitBreaker != nil {
 			cb, err := circuitbreaker.New(*cfg.Middleware.CircuitBreaker, handler)
 			if err != nil {
@@ -74,6 +75,9 @@ func Handler(cfg *config.Spec) http.Handler {
 			} else {
 				handler = cb
 			}
+		}
+		if cfg.Middleware.Recovery {
+			handler = recovery.New(handler)
 		}
 	}
 	return metric.New(handler)

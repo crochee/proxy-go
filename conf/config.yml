@@ -13,6 +13,9 @@ medata:
         path: ./log/proxy-req.log
         level: DEBUG
 middleware:
+    retry:
+        attempts: 10
+        initialInterval: 5s
     access_log:
         path: ""
         level: INFO
@@ -36,9 +39,9 @@ middleware:
         every: 1s
         burst: 2000
         mode: 1
-    recovery: true
     circuit_breaker:
         expression: NetworkErrorRatio() > 0.5
+    recovery: true
 proxy:
     request_log:
         path: ""
@@ -48,3 +51,4 @@ proxy:
         cert: ./build/package/proxy/cert/proxy.pem
         key: ./build/package/proxy/cert/proxy-key.pem
 prometheus_agent: :8190
+pprof_agent: :8191

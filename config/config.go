@@ -15,10 +15,11 @@ import (
 )
 
 type Spec struct {
-	Medata         *Medata         `json:"medata" yaml:"medata"`
-	Middleware     *dynamic.Config `json:"middleware,omitempty" yaml:"middleware,omitempty"`
-	Proxy          *Proxy          `json:"proxy,omitempty" yaml:"proxy,omitempty"`
-	PrometheusHost string          `json:"prometheus_agent,omitempty" yaml:"prometheus_agent,omitempty"`
+	Medata          *Medata         `json:"medata" yaml:"medata"`
+	Middleware      *dynamic.Config `json:"middleware,omitempty" yaml:"middleware,omitempty"`
+	Proxy           *Proxy          `json:"proxy,omitempty" yaml:"proxy,omitempty"`
+	PrometheusAgent string          `json:"prometheus_agent,omitempty" yaml:"prometheus_agent,omitempty"`
+	PprofAgent      string          `json:"pprof_agent,omitempty" yaml:"pprof_agent,omitempty"`
 }
 
 type Medata struct {

@@ -32,6 +32,10 @@ func TestInitConfig(t *testing.T) {
 			},
 		},
 		Middleware: &dynamic.Config{
+			Retry: &dynamic.Retry{
+				Attempts:        10,
+				InitialInterval: 5 * time.Second,
+			},
 			AccessLog: &dynamic.LogInfo{
 				Path:  "",
 				Level: "INFO",
@@ -73,9 +77,9 @@ func TestInitConfig(t *testing.T) {
 				Burst: 2000,
 				Mode:  1,
 			},
-			Recovery:       true,
 			CrossDomain:    false,
 			CircuitBreaker: &dynamic.CircuitBreaker{Expression: "NetworkErrorRatio() > 0.5"},
+			Recovery:       true,
 		},
 		Proxy: &Proxy{
 			ProxyLog: &dynamic.LogInfo{
@@ -88,7 +92,8 @@ func TestInitConfig(t *testing.T) {
 				Key:  "./build/package/proxy/cert/proxy-key.pem",
 			},
 		},
-		PrometheusHost: ":8190",
+		PrometheusAgent: ":8190",
+		PprofAgent:      ":8191",
 	}
 	y := Yml{path: "../conf/config.yml"}
 	if err := y.Encode(cf); err != nil {

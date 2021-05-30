@@ -24,7 +24,7 @@ func newResponseWriter(rw http.ResponseWriter, shouldRetry bool) responseWriter 
 		headers:        make(http.Header),
 		shouldRetry:    shouldRetry,
 	}
-	if _, ok := rw.(http.CloseNotifier); ok {
+	if _, ok := rw.(http.CloseNotifier); ok { // nolint:staticcheck
 		return &responseWriterWithCloseNotify{
 			responseWriterWithoutCloseNotify: retryRw,
 		}
@@ -102,5 +102,5 @@ type responseWriterWithCloseNotify struct {
 }
 
 func (r *responseWriterWithCloseNotify) CloseNotify() <-chan bool {
-	return r.responseWriter.(http.CloseNotifier).CloseNotify()
+	return r.responseWriter.(http.CloseNotifier).CloseNotify() // nolint:staticcheck
 }
