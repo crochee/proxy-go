@@ -56,7 +56,7 @@ func TestInitConfig(t *testing.T) {
 							Selector: "wrr",
 							Nodes: []*dynamic.Node{
 								{
-									Scheme:   "http",
+									Scheme:   "https",
 									Host:     "127.0.0.1:8121",
 									Metadata: nil,
 									Weight:   1.0,

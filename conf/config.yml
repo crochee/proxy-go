@@ -29,7 +29,7 @@ middleware:
               balance:
                 selector: wrr
                 nodes:
-                    - scheme: http
+                    - scheme: https
                       host: 127.0.0.1:8121
                       weight: 1
                     - scheme: http
