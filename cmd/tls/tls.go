@@ -2,7 +2,7 @@
 // Author: crochee
 // Date: 2021/5/4
 
-package cmd
+package main
 
 import (
 	"net"

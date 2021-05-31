@@ -10,16 +10,22 @@ RUN go install github.com/tianon/gosu &&\
 
 
 FROM centos:latest
-WORKDIR /opt/cloud/proxy-go
-RUN mkdir -p /opt/cloud/proxy-go/conf
+WORKDIR /opt/cloud/proxy
+RUN groupadd -r -g 1000 service && useradd -r -g service -u 1000 serviceUser
+RUN mkdir -p /opt/cloud/proxy/conf /opt/cloud/proxy/data
 COPY --from=builder /opt/cloud/proxy-go/proxy .
 COPY --from=builder /opt/cloud/proxy-go/conf ./conf
 COPY --from=builder /opt/cloud/proxy-go/gosu .
 COPY --from=builder /opt/cloud/proxy-go/build/package/proxy/entrypoint.sh .
 
-ENV PATH=/opt/cloud/proxy-go:$PATH
-RUN chmod +x gosu proxy entrypoint.sh
-VOLUME /proxy
+# 加入用户组
+RUN chown -R service:serviceUser .
+# 更改权限
+RUN chmod a-rwx,u+rx ./proxy ./gosu ./entrypoint.sh &&\
+    chmod -R a-rwx,u+r ./conf &&\
+    chmod -R a-rwx,u+rw ./data
+
+VOLUME /opt/cloud/proxy/data
 
 EXPOSE 8120
 STOPSIGNAL SIGINT

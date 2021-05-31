@@ -1,55 +1,78 @@
 // Copyright (c) Huawei Technologies Co., Ltd. 2021-2021. All rights reserved.
 // Description:
 // Author: licongfu
-// Create: 2021/5/10
+// Create: 2021/5/31
 
 package main
 
 import (
-	"bytes"
 	"context"
-	"errors"
+	"crypto/tls"
+	"flag"
 	"fmt"
 	"os"
 
-	"github.com/spf13/cobra"
-
-	"github.com/crochee/proxy-go/cmd"
-	"github.com/crochee/proxy-go/version"
+	"github.com/crochee/proxy-go/config"
+	"github.com/crochee/proxy-go/pkg/logger"
+	"github.com/crochee/proxy-go/pkg/router"
+	"github.com/crochee/proxy-go/pkg/tlsx"
+	"github.com/crochee/proxy-go/pkg/transport"
+	"github.com/crochee/proxy-go/pkg/transport/httpx"
+	"github.com/crochee/proxy-go/pkg/transport/pprofx"
+	"github.com/crochee/proxy-go/pkg/transport/prometheusx"
 )
 
+var configFile = flag.String("config", "./conf/config.yml", "")
+
 func main() {
-	rootCmd := &cobra.Command{
-		Short:   version.ServiceName,
-		Version: version.Version,
-	}
-
-	serverCmd := &cobra.Command{
-		Use:    "server",
-		Short:  "start server",
-		Long:   "start multi server",
-		RunE:   cmd.Server,
-		Hidden: true,
-	}
-	serverCmd.Flags().StringP("config", "c", "./conf/config.yml", "")
-
-	tlsCmd := &cobra.Command{
-		Use:   "tls",
-		Short: "generate tls file",
-		Long:  "generate self tls file",
-		RunE:  cmd.TlsTool,
-	}
-	tlsCmd.Flags().StringP("ip", "i", "127.0.0.1", "")
-	tlsCmd.Flags().StringP("domain", "d", "localhost", "")
-	tlsCmd.Flags().StringP("cert", "c", "./conf/cert.pem", "")
-	tlsCmd.Flags().StringP("key", "k", "./conf/key.pem", "")
-
-	rootCmd.AddCommand(tlsCmd, serverCmd)
-	rootCmd.SetErr(bytes.NewBuffer(nil))
-
-	if err := rootCmd.Execute(); err != nil && !errors.Is(err, context.Canceled) {
+	if err := server(); err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 	os.Exit(0)
+}
+
+func server() error {
+	flag.Parse()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel() // 全局取消
+	// 初始化配置
+	config.InitConfig(*configFile)
+	// 初始化系统日志
+	if config.Cfg.Medata.SystemLog != nil {
+		logger.InitSystemLogger(logger.Path(config.Cfg.Medata.SystemLog.Path),
+			logger.Level(config.Cfg.Medata.SystemLog.Level))
+	}
+
+	tlsConfig, err := tlsx.TlsConfig(tls.NoClientCert, config.Cfg.Medata.Tls.Ca,
+		config.Cfg.Medata.Tls.Cert, config.Cfg.Medata.Tls.Key)
+	if err != nil {
+		return err
+	}
+	var serverList []transport.AppServer
+	httpSrv, err := httpx.New(ctx, config.Cfg.Medata.Host, router.Handler(config.Cfg),
+		httpx.TlsConfig(tlsConfig), httpx.RequestLog(logger.NewLogger(logger.Path(config.Cfg.Medata.RequestLog.Path),
+			logger.Level(config.Cfg.Medata.RequestLog.Level))))
+	if err != nil {
+		return err
+	}
+	serverList = append(serverList, httpSrv)
+	if config.Cfg.PrometheusAgent != "" {
+		serverList = append(serverList, prometheusx.New(ctx, config.Cfg.PrometheusAgent))
+	}
+	if config.Cfg.PprofAgent != "" {
+		serverList = append(serverList, pprofx.New(ctx, config.Cfg.PprofAgent))
+	}
+	app := transport.NewApp(
+		transport.Context(ctx),
+		transport.Servers(serverList...),
+	)
+	if err = app.Run(); err != nil {
+		return err
+	}
+	for _, srv := range serverList {
+		logger.Infof("server %s stop", srv.Name())
+	}
+	logger.Exit("proxy exit!")
+	return nil
 }
