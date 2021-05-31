@@ -10,18 +10,20 @@ import (
 	"github.com/crochee/proxy-go/pkg/logger"
 )
 
+type Option func(*option)
+
 type option struct {
 	tlsConfig  *tls.Config
 	requestLog logger.Builder
 }
 
 // TlsConfig
-func TlsConfig(cfg *tls.Config) func(*option) {
+func TlsConfig(cfg *tls.Config) Option {
 	return func(o *option) { o.tlsConfig = cfg }
 }
 
 // RequestLog
-func RequestLog(log logger.Builder) func(*option) {
+func RequestLog(log logger.Builder) Option {
 	return func(o *option) { o.requestLog = log }
 }
 
@@ -33,7 +35,7 @@ type httpServer struct {
 }
 
 // New new http AppServer
-func New(ctx context.Context, host string, handler http.Handler, opts ...func(*option)) (*httpServer, error) {
+func New(ctx context.Context, host string, handler http.Handler, opts ...Option) (*httpServer, error) {
 	srv := &httpServer{
 		Server: &http.Server{
 			Handler: handler,

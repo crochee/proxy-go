@@ -7,17 +7,17 @@ medata:
     scheme: https
     host: :8120
     system_log:
-        path: ./log/proxy-sys.log
+        path: ./log/sys.log
         level: DEBUG
     request_log:
-        path: ./log/proxy-req.log
+        path: ./log/req.log
         level: DEBUG
 middleware:
     retry:
         attempts: 10
         initialInterval: 5s
     access_log:
-        path: ""
+        path: ./log/access.log
         level: INFO
     balance:
         register_apis:
@@ -44,7 +44,7 @@ middleware:
     recovery: true
 proxy:
     request_log:
-        path: ""
+        path: ./log/proxy.log
         level: INFO
     tls:
         ca: ./build/package/proxy/cert/ca.pem

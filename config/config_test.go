@@ -19,11 +19,11 @@ func TestInitConfig(t *testing.T) {
 			Scheme:       "https",
 			Host:         ":8120",
 			SystemLog: &dynamic.LogInfo{
-				Path:  "./log/proxy-sys.log",
+				Path:  "./log/sys.log",
 				Level: "DEBUG",
 			},
 			RequestLog: &dynamic.LogInfo{
-				Path:  "./log/proxy-req.log",
+				Path:  "./log/req.log",
 				Level: "DEBUG",
 			},
 		},
@@ -33,7 +33,7 @@ func TestInitConfig(t *testing.T) {
 				InitialInterval: 5 * time.Second,
 			},
 			AccessLog: &dynamic.LogInfo{
-				Path:  "",
+				Path:  "./log/access.log",
 				Level: "INFO",
 			},
 			Trace: nil,
@@ -79,7 +79,7 @@ func TestInitConfig(t *testing.T) {
 		},
 		Proxy: &Proxy{
 			ProxyLog: &dynamic.LogInfo{
-				Path:  "",
+				Path:  "./log/proxy.log",
 				Level: "INFO",
 			},
 			Tls: &TlsConfig{
