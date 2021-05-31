@@ -1,7 +1,3 @@
-// Copyright 2021, The Go Authors. All rights reserved.
-// Author: crochee
-// Date: 2021/3/25
-
 package proxy_go
 
 // 火焰图

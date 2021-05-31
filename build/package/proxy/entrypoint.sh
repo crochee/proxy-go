@@ -13,9 +13,8 @@ fi
 #   set -- "$@" --ip "${ETH_0_IP}"
 # fi
 
-if [[ "$1" = 'proxy' ]] ; then
+if [[ "$1" == 'proxy' ]]; then
   if [ "$(id -u)" = '0' ]; then
-    echo "start with service"
     exec gosu serviceUser "$0" "$@"
   fi
 fi

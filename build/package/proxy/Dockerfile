@@ -27,8 +27,8 @@ RUN chmod a-rwx,u+rx ./proxy ./gosu ./entrypoint.sh &&\
 
 VOLUME /opt/cloud/proxy/data
 
+ENTRYPOINT ["entrypoint.sh"]
+
 EXPOSE 8120
 STOPSIGNAL SIGINT
-
-ENTRYPOINT ["entrypoint.sh"]
-CMD ["proxy","server"]
+CMD ["proxy"]
