@@ -88,8 +88,6 @@ func TestInitConfig(t *testing.T) {
 				Key:  "./build/package/proxy/cert/proxy-key.pem",
 			},
 		},
-		PrometheusAgent: ":8190",
-		PprofAgent:      ":8191",
 	}
 	y := Yml{path: "../conf/config.yml"}
 	if err := y.Encode(cf); err != nil {

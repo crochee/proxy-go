@@ -22,8 +22,8 @@ import (
 )
 
 // nolint:gocognit
-// Handler composes http.Handler chain
-func Handler(cfg *config.Spec) http.Handler {
+// ProxyHandler composes http.ProxyHandler chain
+func ProxyHandler(cfg *config.Spec) http.Handler {
 	// 配置proxy
 	handler := proxyHandler(cfg.Proxy)
 	// 中间件组合

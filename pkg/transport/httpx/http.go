@@ -10,23 +10,6 @@ import (
 	"github.com/crochee/proxy-go/pkg/logger"
 )
 
-type Option func(*option)
-
-type option struct {
-	tlsConfig  *tls.Config
-	requestLog logger.Builder
-}
-
-// TlsConfig
-func TlsConfig(cfg *tls.Config) Option {
-	return func(o *option) { o.tlsConfig = cfg }
-}
-
-// RequestLog
-func RequestLog(log logger.Builder) Option {
-	return func(o *option) { o.requestLog = log }
-}
-
 type httpServer struct {
 	*http.Server
 	net.Listener
@@ -64,14 +47,41 @@ func New(ctx context.Context, host string, handler http.Handler, opts ...Option)
 	logger.Infof("listen srv %s", host)
 	return srv, nil
 }
+
 func (h *httpServer) Name() string {
 	return "HTTP(S)"
 }
 
 func (h *httpServer) Start() error {
-	return h.Serve(h.Listener)
+	for _, f := range h.beforeStart {
+		if err := f(); err != nil {
+			return err
+		}
+	}
+	if err := h.Serve(h.Listener); err != nil {
+		return err
+	}
+	for _, f := range h.afterStart {
+		if err := f(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (h *httpServer) Stop() error {
-	return h.Shutdown(h.ctx)
+	for _, f := range h.beforeStop {
+		if err := f(); err != nil {
+			return err
+		}
+	}
+	if err := h.Shutdown(h.ctx); err != nil {
+		return err
+	}
+	for _, f := range h.afterStop {
+		if err := f(); err != nil {
+			return err
+		}
+	}
+	return nil
 }

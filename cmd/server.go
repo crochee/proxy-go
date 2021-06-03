@@ -4,21 +4,28 @@ package cmd
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"flag"
+	"net/http"
+
+	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/crochee/proxy-go/config"
 	"github.com/crochee/proxy-go/pkg/logger"
+	"github.com/crochee/proxy-go/pkg/metrics"
 	"github.com/crochee/proxy-go/pkg/router"
 	"github.com/crochee/proxy-go/pkg/tlsx"
 	"github.com/crochee/proxy-go/pkg/transport"
 	"github.com/crochee/proxy-go/pkg/transport/httpx"
-	"github.com/crochee/proxy-go/pkg/transport/pprofx"
-	"github.com/crochee/proxy-go/pkg/transport/prometheusx"
 )
 
-func Server() error {
-	var configFile = flag.String("config", "./conf/config.yml", "")
+var configFile = flag.String("config", "./conf/config.yml", "")
+
+func init() {
 	flag.Parse()
+}
+
+func Server() error {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel() // 全局取消
@@ -31,32 +38,32 @@ func Server() error {
 			logger.Level(config.Cfg.Medata.SystemLog.Level))
 	}
 
-	var opts []httpx.Option
-	if config.Cfg.Medata.Tls != nil {
-		tlsConfig, err := tlsx.TlsConfig(tls.NoClientCert, config.Cfg.Medata.Tls.Ca,
-			config.Cfg.Medata.Tls.Cert, config.Cfg.Medata.Tls.Key)
-		if err != nil {
-			return err
-		}
-		opts = append(opts, httpx.TlsConfig(tlsConfig))
-	}
-	if config.Cfg.Medata.RequestLog != nil {
-		opts = append(opts, httpx.RequestLog(logger.NewLogger(logger.Path(config.Cfg.Medata.RequestLog.Path),
-			logger.Level(config.Cfg.Medata.RequestLog.Level))))
-	}
-
 	var serverList []transport.AppServer
-	httpSrv, err := httpx.New(ctx, config.Cfg.Medata.Host, router.Handler(config.Cfg), opts...)
+	proxyHttp, err := httpAppServer(ctx, config.Cfg.Medata, router.ProxyHandler(config.Cfg))
 	if err != nil {
 		return err
 	}
-	serverList = append(serverList, httpSrv)
-	if config.Cfg.PrometheusAgent != "" {
-		serverList = append(serverList, prometheusx.New(ctx, config.Cfg.PrometheusAgent))
+	serverList = append(serverList, proxyHttp)
+
+	var opts []httpx.Option
+	opts = append(opts, httpx.BeforeStart(func() error {
+		// 注册普罗米修斯
+		metrics.DefineMetrics()
+		prometheus.MustRegister(metrics.ReqDurHistogramVec, metrics.ReqCodeTotalCounter)
+		return nil
+	}))
+	opts = append(opts, httpx.AfterStop(func() error {
+		// 卸载普罗米修斯
+		prometheus.Unregister(metrics.ReqDurHistogramVec)
+		prometheus.Unregister(metrics.ReqCodeTotalCounter)
+		return nil
+	}))
+	var serverHttp transport.AppServer
+	if serverHttp, err = httpAppServer(ctx, config.Cfg.Server, router.ApiHandler(), opts...); err != nil {
+		return err
 	}
-	if config.Cfg.PprofAgent != "" {
-		serverList = append(serverList, pprofx.New(ctx, config.Cfg.PprofAgent))
-	}
+	serverList = append(serverList, serverHttp)
+
 	app := transport.NewApp(
 		transport.Context(ctx),
 		transport.Servers(serverList...),
@@ -67,6 +74,25 @@ func Server() error {
 	for _, srv := range serverList {
 		logger.Infof("server %s stop", srv.Name())
 	}
-	logger.Exit("proxy exit!")
+	logger.Exit("system exit!")
 	return nil
+}
+
+func httpAppServer(ctx context.Context, medata *config.Medata, handler http.Handler, opts ...httpx.Option) (transport.AppServer, error) {
+	if medata == nil {
+		return nil, errors.New("proxy medata is nil")
+	}
+	if medata.Tls != nil {
+		tlsConfig, err := tlsx.TlsConfig(tls.NoClientCert, medata.Tls.Ca,
+			medata.Tls.Cert, medata.Tls.Key)
+		if err != nil {
+			return nil, err
+		}
+		opts = append(opts, httpx.TlsConfig(tlsConfig))
+	}
+	if medata.RequestLog != nil {
+		opts = append(opts, httpx.RequestLog(logger.NewLogger(logger.Path(medata.RequestLog.Path),
+			logger.Level(medata.RequestLog.Level))))
+	}
+	return httpx.New(ctx, medata.Host, handler, opts...)
 }
