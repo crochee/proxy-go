@@ -9,9 +9,6 @@ medata:
     system_log:
         path: ./log/sys.log
         level: DEBUG
-    request_log:
-        path: ./log/req.log
-        level: DEBUG
 middleware:
     retry:
         attempts: 10
@@ -48,7 +45,16 @@ proxy:
         level: INFO
     tls:
         ca: ./build/package/proxy/cert/ca.pem
-        cert: ./build/package/proxy/cert/proxy.pem
-        key: ./build/package/proxy/cert/proxy-key.pem
-prometheus_agent: :8190
-pprof_agent: :8191
+        cert: ./build/package/proxy/cert/client.pem
+        key: ./build/package/proxy/cert/client-key.pem
+server:
+    tls:
+        ca: ./build/package/proxy/cert/ca.pem
+        cert: ./build/package/proxy/cert/server.pem
+        key: ./build/package/proxy/cert/server-key.pem
+    grace_time_out: 5s
+    scheme: https
+    host: :8121
+    request_log:
+        path: ./log/proxy.log
+        level: INFO

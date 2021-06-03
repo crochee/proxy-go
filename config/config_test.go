@@ -22,10 +22,6 @@ func TestInitConfig(t *testing.T) {
 				Path:  "./log/sys.log",
 				Level: "DEBUG",
 			},
-			RequestLog: &dynamic.LogInfo{
-				Path:  "./log/req.log",
-				Level: "DEBUG",
-			},
 		},
 		Middleware: &dynamic.Config{
 			Retry: &dynamic.Retry{
@@ -84,8 +80,22 @@ func TestInitConfig(t *testing.T) {
 			},
 			Tls: &TlsConfig{
 				Ca:   "./build/package/proxy/cert/ca.pem",
-				Cert: "./build/package/proxy/cert/proxy.pem",
-				Key:  "./build/package/proxy/cert/proxy-key.pem",
+				Cert: "./build/package/proxy/cert/client.pem",
+				Key:  "./build/package/proxy/cert/client-key.pem",
+			},
+		},
+		Server: &Medata{
+			Tls: &TlsConfig{
+				Ca:   "./build/package/proxy/cert/ca.pem",
+				Cert: "./build/package/proxy/cert/server.pem",
+				Key:  "./build/package/proxy/cert/server-key.pem",
+			},
+			GraceTimeOut: 5 * time.Second,
+			Scheme:       "https",
+			Host:         ":8121",
+			RequestLog: &dynamic.LogInfo{
+				Path:  "./log/proxy.log",
+				Level: "INFO",
 			},
 		},
 	}

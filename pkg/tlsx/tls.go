@@ -5,6 +5,8 @@ import (
 	"crypto/x509"
 	"errors"
 
+	"github.com/gin-gonic/gin"
+
 	"github.com/crochee/proxy-go/pkg/filecontent"
 )
 
@@ -32,11 +34,12 @@ func TlsConfig(clientAuth tls.ClientAuthType, ca, cert, key filecontent.FileOrCo
 	}
 
 	return &tls.Config{
-		Certificates: []tls.Certificate{certificate},
-		ClientAuth:   clientAuth, // 服务端认证客户端
-		ClientCAs:    pool,       // 服务端认证客户端
-		CipherSuites: []uint16{tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256},
-		MinVersion:   tls.VersionTLS12,
-		RootCAs:      pool, // 客户端认证服务端
+		Certificates:       []tls.Certificate{certificate},
+		ClientAuth:         clientAuth, // 服务端认证客户端
+		ClientCAs:          pool,       // 服务端认证客户端
+		CipherSuites:       []uint16{tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256},
+		MinVersion:         tls.VersionTLS12,
+		RootCAs:            pool, // 客户端认证服务端
+		InsecureSkipVerify: gin.Mode() == gin.DebugMode,
 	}, nil
 }

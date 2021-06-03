@@ -19,13 +19,9 @@ import (
 	"github.com/crochee/proxy-go/pkg/transport/httpx"
 )
 
-var configFile = flag.String("config", "./conf/config.yml", "")
-
-func init() {
-	flag.Parse()
-}
-
 func Server() error {
+	var configFile = flag.String("config", "./conf/config.yml", "")
+	flag.Parse()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel() // 全局取消
@@ -81,7 +77,7 @@ func Server() error {
 func httpAppServer(ctx context.Context, medata *config.Medata,
 	handler http.Handler, opts ...httpx.Option) (transport.AppServer, error) {
 	if medata == nil {
-		return nil, errors.New("proxy medata is nil")
+		return nil, errors.New("medata is nil")
 	}
 	if medata.Tls != nil {
 		tlsConfig, err := tlsx.TlsConfig(tls.NoClientCert, medata.Tls.Ca,

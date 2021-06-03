@@ -1,0 +1,10 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a server API.",
+        "title": "PROXY Swagger API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "paths": {}
+}
