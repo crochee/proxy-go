@@ -23,7 +23,71 @@ var doc = `{
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
-    "paths": {}
+    "paths": {
+        "/v1/nodes": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "获取负载节点",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Balance"
+                ],
+                "summary": "GetBalanceNode",
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/e.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/e.Response"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "e.Response": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "extra": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "X-Auth-Token",
+            "in": "header"
+        }
+    }
 }`
 
 type swaggerInfo struct {

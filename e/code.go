@@ -7,6 +7,7 @@ type Code interface {
 	Status() int
 	English() string
 	Chinese() string
+
 	String() string
 }
 

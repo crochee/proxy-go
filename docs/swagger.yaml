@@ -1,7 +1,47 @@
+definitions:
+  e.Response:
+    properties:
+      code:
+        type: string
+      extra:
+        type: string
+      message:
+        type: string
+    type: object
 info:
   contact: {}
   description: This is a server API.
   title: PROXY Swagger API
   version: "1.0"
-paths: {}
+paths:
+  /v1/nodes:
+    get:
+      consumes:
+      - application/json
+      description: 获取负载节点
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/e.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/e.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: GetBalanceNode
+      tags:
+      - Balance
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: X-Auth-Token
+    type: apiKey
 swagger: "2.0"
