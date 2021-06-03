@@ -78,7 +78,8 @@ func Server() error {
 	return nil
 }
 
-func httpAppServer(ctx context.Context, medata *config.Medata, handler http.Handler, opts ...httpx.Option) (transport.AppServer, error) {
+func httpAppServer(ctx context.Context, medata *config.Medata,
+	handler http.Handler, opts ...httpx.Option) (transport.AppServer, error) {
 	if medata == nil {
 		return nil, errors.New("proxy medata is nil")
 	}
