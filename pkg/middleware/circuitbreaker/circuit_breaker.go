@@ -11,21 +11,41 @@ import (
 	"github.com/crochee/proxy-go/pkg/tracex"
 )
 
+func New(cfg dynamic.CircuitBreaker) http.Handler {
+	return &circuitBreaker{
+		expression: cfg.Expression,
+	}
+}
+
 type circuitBreaker struct {
+	expression     string
+	next           http.Handler
 	circuitBreaker *cbreaker.CircuitBreaker
 }
 
-func New(cfg dynamic.CircuitBreaker, next http.Handler) (http.Handler, error) {
-	oxyCircuitBreaker, err := cbreaker.New(next, cfg.Expression, createCircuitBreakerOptions(cfg.Expression))
+func (c *circuitBreaker) Name() string {
+	return "CIRCUIT_BREAKER"
+}
+
+func (c *circuitBreaker) Level() int {
+	return 2
+}
+
+func (c *circuitBreaker) Next(handler http.Handler) {
+	c.next = handler
+	oxyCircuitBreaker, err := cbreaker.New(c.next, c.expression, createCircuitBreakerOptions(c.expression))
 	if err != nil {
-		return nil, err
+		logger.Error(err.Error())
+		return
 	}
-	return &circuitBreaker{
-		circuitBreaker: oxyCircuitBreaker,
-	}, nil
+	c.circuitBreaker = oxyCircuitBreaker
 }
 
 func (c *circuitBreaker) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	if c.circuitBreaker == nil {
+		c.next.ServeHTTP(writer, request)
+		return
+	}
 	c.circuitBreaker.ServeHTTP(writer, request)
 }
 

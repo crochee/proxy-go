@@ -17,6 +17,14 @@ type nexter interface {
 	NextBackOff() time.Duration
 }
 
+// New create a middleware that retries requests.
+func New(rt dynamic.Retry) *retry {
+	return &retry{
+		initialInterval: rt.InitialInterval,
+		attempts:        rt.Attempts,
+	}
+}
+
 // retry is a middleware that retries requests.
 type retry struct {
 	next            http.Handler
@@ -24,13 +32,16 @@ type retry struct {
 	attempts        int
 }
 
-// New create a middleware that retries requests.
-func New(next http.Handler, rt dynamic.Retry) *retry {
-	return &retry{
-		next:            next,
-		initialInterval: rt.InitialInterval,
-		attempts:        rt.Attempts,
-	}
+func (r *retry) Name() string {
+	return "RETRY"
+}
+
+func (r *retry) Level() int {
+	return 1
+}
+
+func (r *retry) Next(handler http.Handler) {
+	r.next = handler
 }
 
 func (r *retry) ServeHTTP(rw http.ResponseWriter, req *http.Request) {

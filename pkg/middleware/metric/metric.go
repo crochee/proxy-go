@@ -11,15 +11,25 @@ import (
 	"github.com/crochee/proxy-go/pkg/writer"
 )
 
+// New create metric http.Handler
+func New() *metric {
+	return &metric{}
+}
+
 type metric struct {
 	next http.Handler
 }
 
-// New create metric http.Handler
-func New(next http.Handler) *metric {
-	return &metric{
-		next: next,
-	}
+func (m *metric) Name() string {
+	return "METRICS"
+}
+
+func (m *metric) Level() int {
+	return 4
+}
+
+func (m *metric) Next(handler http.Handler) {
+	m.next = handler
 }
 
 func (m *metric) ServeHTTP(rw http.ResponseWriter, req *http.Request) {

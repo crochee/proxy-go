@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"flag"
+	"github.com/crochee/proxy-go/pkg/middleware"
 	"net/http"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -35,7 +36,7 @@ func Server() error {
 	}
 
 	var serverList []transport.AppServer
-	proxyHttp, err := httpAppServer(ctx, config.Cfg.Medata, router.ProxyHandler(config.Cfg))
+	proxyHttp, err := httpAppServer(ctx, config.Cfg.Medata, middleware.Load(ctx))
 	if err != nil {
 		return err
 	}

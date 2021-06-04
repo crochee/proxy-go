@@ -47,34 +47,8 @@ type Options struct {
 	OptionsPassthrough bool
 }
 
-type crossDomain struct {
-	next http.Handler
-	// Normalized list of plain allowed origins
-	allowedOrigins []string
-	// List of allowed origins containing wildcards
-	allowedWOrigins []wildcard
-	// Optional origin validator function
-	allowOriginFunc func(origin string) bool
-	// Optional origin validator (with request) function
-	allowOriginRequestFunc func(r *http.Request, origin string) bool
-	// Normalized list of allowed headers
-	allowedHeaders []string
-	// Normalized list of allowed methods
-	allowedMethods []string
-	// Normalized list of exposed headers
-	exposedHeaders []string
-	maxAge         int
-	// Set to true when allowed origins contains a "*"
-	allowedOriginsAll bool
-	// Set to true when allowed headers contains a "*"
-	allowedHeadersAll bool
-	allowCredentials  bool
-	optionPassthrough bool
-}
-
-func New(next http.Handler, options Options) http.Handler {
+func New(options Options) http.Handler {
 	c := &crossDomain{
-		next:                   next,
 		exposedHeaders:         convert(options.ExposedHeaders, http.CanonicalHeaderKey),
 		allowOriginFunc:        options.AllowOriginFunc,
 		allowOriginRequestFunc: options.AllowOriginRequestFunc,
@@ -132,6 +106,43 @@ func New(next http.Handler, options Options) http.Handler {
 		c.allowedMethods = convert(options.AllowedMethods, strings.ToUpper)
 	}
 	return c
+}
+
+type crossDomain struct {
+	next http.Handler
+	// Normalized list of plain allowed origins
+	allowedOrigins []string
+	// List of allowed origins containing wildcards
+	allowedWOrigins []wildcard
+	// Optional origin validator function
+	allowOriginFunc func(origin string) bool
+	// Optional origin validator (with request) function
+	allowOriginRequestFunc func(r *http.Request, origin string) bool
+	// Normalized list of allowed headers
+	allowedHeaders []string
+	// Normalized list of allowed methods
+	allowedMethods []string
+	// Normalized list of exposed headers
+	exposedHeaders []string
+	maxAge         int
+	// Set to true when allowed origins contains a "*"
+	allowedOriginsAll bool
+	// Set to true when allowed headers contains a "*"
+	allowedHeadersAll bool
+	allowCredentials  bool
+	optionPassthrough bool
+}
+
+func (c *crossDomain) Name() string {
+	return "CROSS_DOMAIN"
+}
+
+func (c *crossDomain) Level() int {
+	return 5
+}
+
+func (c *crossDomain) Next(handler http.Handler) {
+	c.next = handler
 }
 
 func (c *crossDomain) ServeHTTP(writer http.ResponseWriter, request *http.Request) {

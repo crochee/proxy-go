@@ -12,45 +12,56 @@ import (
 	"github.com/crochee/proxy-go/pkg/writer"
 )
 
+func New(log logger.Builder) http.Handler {
+	if log == nil {
+		log = logger.NoLogger{}
+	}
+	return &accessLog{
+		log: log,
+	}
+}
+
 type accessLog struct {
 	next http.Handler
 	log  logger.Builder
 }
 
-func New(log logger.Builder, next http.Handler) http.Handler {
-	if log == nil {
-		log = logger.NoLogger{}
-	}
-	return &accessLog{
-		next: next,
-		log:  log,
-	}
+func (l *accessLog) Name() string {
+	return "ACCESS_LOG"
 }
 
-func (l *accessLog) ServeHTTP(rw http.ResponseWriter, request *http.Request) {
+func (l *accessLog) Level() int {
+	return 4
+}
+
+func (l *accessLog) Next(handler http.Handler) {
+	l.next = handler
+}
+
+func (l *accessLog) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	start := time.Now().Local()
 	param := &LogFormatterParams{
 		Scheme:   "HTTP",
-		Proto:    request.Proto,
-		ClientIp: clientIp(request),
-		Method:   request.Method,
-		Path:     request.URL.Path,
+		Proto:    req.Proto,
+		ClientIp: clientIp(req),
+		Method:   req.Method,
+		Path:     req.URL.Path,
 	}
-	if request.TLS != nil {
+	if req.TLS != nil {
 		param.Scheme = "HTTPS"
 	}
 	var buf strings.Builder
-	if request.URL.RawQuery != "" {
+	if req.URL.RawQuery != "" {
 		buf.WriteString(param.Path)
 		buf.WriteByte('?')
-		buf.WriteString(request.URL.RawQuery)
+		buf.WriteString(req.URL.RawQuery)
 		param.Path = buf.String()
 		buf.Reset()
 	}
 
 	crw := writer.NewCaptureResponseWriter(rw)
 
-	l.next.ServeHTTP(crw, request)
+	l.next.ServeHTTP(crw, req)
 
 	param.Status = crw.Status()
 	param.Size = crw.Size()

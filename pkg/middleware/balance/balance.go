@@ -12,27 +12,12 @@ import (
 	"github.com/crochee/proxy-go/pkg/selector"
 )
 
-type SelectorInfo struct {
-	*dynamic.Balance
-	selector.Selector
-}
-
-type Balancer struct {
-	next http.Handler
-	// path method service
-	serviceApi map[string]map[string]string
-	// service selector
-	NameSelector map[string]*SelectorInfo
-	hostName     string
-}
-
-func New(cfg dynamic.BalanceConfig, next http.Handler) http.Handler {
+func New(cfg dynamic.BalanceConfig) http.Handler {
 	hostname, err := os.Hostname()
 	if err != nil {
 		hostname = "localhost"
 	}
-	b := &Balancer{
-		next:         next,
+	b := &balancer{
 		serviceApi:   make(map[string]map[string]string),
 		NameSelector: make(map[string]*SelectorInfo),
 		hostName:     hostname,
@@ -52,7 +37,33 @@ func New(cfg dynamic.BalanceConfig, next http.Handler) http.Handler {
 	return b
 }
 
-func (b *Balancer) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+type SelectorInfo struct {
+	*dynamic.Balance
+	selector.Selector
+}
+
+type balancer struct {
+	next http.Handler
+	// path method service
+	serviceApi map[string]map[string]string
+	// service selector
+	NameSelector map[string]*SelectorInfo
+	hostName     string
+}
+
+func (b *balancer) Name() string {
+	return "BALANCE"
+}
+
+func (b *balancer) Level() int {
+	return 1
+}
+
+func (b *balancer) Next(handler http.Handler) {
+	b.next = handler
+}
+
+func (b *balancer) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	apis, ok := b.serviceApi[request.URL.Path]
 	if !ok {
 		http.Error(writer, internal.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
@@ -84,7 +95,7 @@ func (b *Balancer) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 	b.next.ServeHTTP(writer, request)
 }
 
-func (b *Balancer) rewrite(request *http.Request) {
+func (b *balancer) rewrite(request *http.Request) {
 	if clientIP, _, err := net.SplitHostPort(request.RemoteAddr); err == nil {
 		clientIP = removeIPv6Zone(clientIP)
 

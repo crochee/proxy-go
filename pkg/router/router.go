@@ -1,8 +1,12 @@
 package router
 
 import (
+	"context"
 	"crypto/tls"
+	"github.com/crochee/proxy-go/config/dynamic"
+	"github.com/crochee/proxy-go/pkg/middleware"
 	"net/http"
+	"sync/atomic"
 
 	"github.com/crochee/proxy-go/config"
 	"github.com/crochee/proxy-go/pkg/logger"
@@ -79,7 +83,7 @@ func ProxyHandler(cfg *config.Spec) http.Handler {
 	return metric.New(handler)
 }
 
-func proxyHandler(cfg *config.Proxy) http.Handler {
+func proxyHandler(cfg *dynamic.Proxy) http.Handler {
 	var proxyOption []httpx.ProxyOption
 	if cfg != nil {
 		if cfg.Tls != nil {

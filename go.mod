@@ -13,7 +13,6 @@ require (
 	github.com/prometheus/client_golang v1.10.0
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.7.0
-	github.com/swaggo/files v0.0.0-20190704085106-630677cd5c14
 	github.com/swaggo/gin-swagger v1.3.0
 	github.com/swaggo/swag v1.7.0
 	github.com/uber/jaeger-client-go v2.28.0+incompatible

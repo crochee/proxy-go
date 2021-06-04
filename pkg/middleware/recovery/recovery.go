@@ -8,18 +8,28 @@ import (
 	"github.com/crochee/proxy-go/pkg/logger"
 )
 
+// New creates recovery middleware
+func New() http.Handler {
+	return &recovery{}
+}
+
 type recovery struct {
 	next http.Handler
 }
 
-// New creates recovery middleware
-func New(next http.Handler) http.Handler {
-	return &recovery{
-		next: next,
-	}
+func (r *recovery) Name() string {
+	return "RECOVERY"
 }
 
-func (re *recovery) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+func (r *recovery) Level() int {
+	return 5
+}
+
+func (r *recovery) Next(handler http.Handler) {
+	r.next = handler
+}
+
+func (r *recovery) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	defer func() {
 		if r := recover(); r != nil {
 			log := logger.FromContext(req.Context())
@@ -33,5 +43,5 @@ func (re *recovery) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			http.Error(rw, internal.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
 	}()
-	re.next.ServeHTTP(rw, req)
+	r.next.ServeHTTP(rw, req)
 }

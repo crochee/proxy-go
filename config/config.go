@@ -2,23 +2,21 @@ package config
 
 import (
 	"fmt"
+	"github.com/crochee/proxy-go/pkg/tlsx"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/crochee/proxy-go/config/dynamic"
-	"github.com/crochee/proxy-go/pkg/filecontent"
 )
 
 type Spec struct {
-	Medata     *Medata         `json:"medata" yaml:"medata"`
-	Middleware *dynamic.Config `json:"middleware,omitempty" yaml:"middleware,omitempty"`
-	Proxy      *Proxy          `json:"proxy,omitempty" yaml:"proxy,omitempty"`
-	Server     *Medata         `json:"server" yaml:"server"`
+	Medata *Medata `json:"medata" yaml:"medata"`
+	Server *Medata `json:"server" yaml:"server"`
 }
 
 type Medata struct {
-	Tls          *TlsConfig    `json:"tls,omitempty" yaml:"tls,omitempty"`
+	Tls          *tlsx.Config  `json:"tls,omitempty" yaml:"tls,omitempty"`
 	GraceTimeOut time.Duration `json:"grace_time_out,omitempty" yaml:"grace_time_out,omitempty"`
 
 	Scheme string `json:"scheme,omitempty" yaml:"scheme,omitempty"`
@@ -26,12 +24,6 @@ type Medata struct {
 
 	SystemLog  *dynamic.LogInfo `json:"system_log,omitempty" yaml:"system_log,omitempty"`
 	RequestLog *dynamic.LogInfo `json:"request_log,omitempty" yaml:"request_log,omitempty"`
-}
-
-type TlsConfig struct {
-	Ca   filecontent.FileOrContent `json:"ca" yaml:"ca"`
-	Cert filecontent.FileOrContent `json:"cert" yaml:"cert"`
-	Key  filecontent.FileOrContent `json:"key" yaml:"key"`
 }
 
 var Cfg *Spec

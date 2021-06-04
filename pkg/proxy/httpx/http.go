@@ -14,7 +14,26 @@ import (
 	"github.com/crochee/proxy-go/pkg/logger"
 )
 
-func New(opts ...ProxyOption) http.Handler {
+type proxy struct {
+	reverseProxy *httputil.ReverseProxy
+}
+
+func (p *proxy) Name() string {
+	return "HTTP(S)_PROXY"
+}
+
+func (p *proxy) Level() int {
+	return 0
+}
+
+func (p *proxy) Next(handler http.Handler) {
+}
+
+func (p *proxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	p.reverseProxy.ServeHTTP(rw, req)
+}
+
+func New(opts ...ProxyOption) *proxy {
 	var o option
 	for _, opt := range opts {
 		opt(&o)
@@ -32,7 +51,7 @@ func New(opts ...ProxyOption) http.Handler {
 		ExpectContinueTimeout: 1 * time.Second,
 		ForceAttemptHTTP2:     true,
 	}
-	return &httputil.ReverseProxy{
+	return &proxy{reverseProxy: &httputil.ReverseProxy{
 		Director: func(request *http.Request) {
 			request.RequestURI = "" // Outgoing request should not have RequestURI
 
@@ -53,7 +72,7 @@ func New(opts ...ProxyOption) http.Handler {
 		ErrorHandler: func(rw http.ResponseWriter, req *http.Request, err error) {
 			errHandler(o.proxyLog, rw, req, err)
 		},
-	}
+	}}
 }
 
 func errHandler(log logger.Builder, rw http.ResponseWriter, req *http.Request, err error) {

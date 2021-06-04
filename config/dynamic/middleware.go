@@ -1,6 +1,11 @@
 package dynamic
 
 type Config struct {
+	Middleware *Middleware `json:"middleware,omitempty" yaml:"middleware,omitempty"`
+	Proxy      *Proxy      `json:"proxy,omitempty" yaml:"proxy,omitempty"`
+}
+
+type Middleware struct {
 	Retry          *Retry          `json:"retry,omitempty" yaml:"retry,omitempty"`
 	AccessLog      *LogInfo        `json:"access_log,omitempty" yaml:"access_log,omitempty"`
 	Trace          *TraceInfo      `json:"trace,omitempty" yaml:"trace,omitempty"`

@@ -10,18 +10,24 @@ import (
 	"github.com/crochee/proxy-go/pkg/filecontent"
 )
 
+type Config struct {
+	Ca   filecontent.FileOrContent `json:"ca" yaml:"ca"`
+	Cert filecontent.FileOrContent `json:"cert" yaml:"cert"`
+	Key  filecontent.FileOrContent `json:"key" yaml:"key"`
+}
+
 // TlsConfig output tls
-func TlsConfig(clientAuth tls.ClientAuthType, ca, cert, key filecontent.FileOrContent) (*tls.Config, error) {
-	caPEMBlock, err := ca.Read()
+func TlsConfig(clientAuth tls.ClientAuthType, cfg Config) (*tls.Config, error) {
+	caPEMBlock, err := cfg.Ca.Read()
 	if err != nil {
 		return nil, err
 	}
 	var certPEMBlock []byte
-	if certPEMBlock, err = cert.Read(); err != nil {
+	if certPEMBlock, err = cfg.Cert.Read(); err != nil {
 		return nil, err
 	}
 	var keyPEMBlock []byte
-	if keyPEMBlock, err = key.Read(); err != nil {
+	if keyPEMBlock, err = cfg.Key.Read(); err != nil {
 		return nil, err
 	}
 	pool := x509.NewCertPool()
