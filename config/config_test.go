@@ -5,12 +5,13 @@ import (
 	"time"
 
 	"github.com/crochee/proxy-go/config/dynamic"
+	"github.com/crochee/proxy-go/pkg/tlsx"
 )
 
 func TestInitConfig(t *testing.T) {
 	cf := &Spec{
 		Medata: &Medata{
-			Tls: &TlsConfig{
+			Tls: &tlsx.Config{
 				Ca:   "./build/package/proxy/cert/ca.pem",
 				Cert: "./build/package/proxy/cert/proxy.pem",
 				Key:  "./build/package/proxy/cert/proxy-key.pem",
@@ -24,7 +25,7 @@ func TestInitConfig(t *testing.T) {
 			},
 		},
 		Server: &Medata{
-			Tls: &TlsConfig{
+			Tls: &tlsx.Config{
 				Ca:   "./build/package/proxy/cert/ca.pem",
 				Cert: "./build/package/proxy/cert/server.pem",
 				Key:  "./build/package/proxy/cert/server-key.pem",

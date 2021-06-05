@@ -2,12 +2,12 @@ package config
 
 import (
 	"fmt"
-	"github.com/crochee/proxy-go/pkg/tlsx"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/crochee/proxy-go/config/dynamic"
+	"github.com/crochee/proxy-go/pkg/tlsx"
 )
 
 type Spec struct {

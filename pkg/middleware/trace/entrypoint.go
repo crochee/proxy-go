@@ -7,23 +7,36 @@ import (
 	"github.com/opentracing/opentracing-go/ext"
 
 	"github.com/crochee/proxy-go/pkg/logger"
+	"github.com/crochee/proxy-go/pkg/middleware"
 	"github.com/crochee/proxy-go/pkg/tracex"
 	"github.com/crochee/proxy-go/pkg/writer"
 )
 
-type entryPoint struct {
-	*tracex.Tracer
-	entryPoint string
-	next       http.Handler
-}
-
 // NewEntryPoint creates a new middleware that the incoming request.
-func NewTraceEntryPoint(t *tracex.Tracer, entryPointName string, next http.Handler) http.Handler {
+func NewTraceEntryPoint(t *tracex.Tracer, entryPointName string) *entryPoint {
 	return &entryPoint{
 		Tracer:     t,
 		entryPoint: entryPointName,
-		next:       next,
 	}
+}
+
+type entryPoint struct {
+	*tracex.Tracer
+	next       middleware.Handler
+	entryPoint string
+}
+
+func (e *entryPoint) Name() string {
+	return "TRACE"
+}
+
+func (e *entryPoint) Level() int {
+	return 3
+}
+
+func (e *entryPoint) Next(handler middleware.Handler) middleware.Handler {
+	e.next = handler
+	return e
 }
 
 func (e *entryPoint) ServeHTTP(rw http.ResponseWriter, request *http.Request) {

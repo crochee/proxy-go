@@ -38,7 +38,7 @@ func ApiHandler() http.Handler {
 
 	v1router := router.Group("/v1")
 	{
-		v1router.GET("/nodes", api.GetBalanceNode)
+		v1router.POST("/handlers", api.Handlers)
 	}
 	return router
 }

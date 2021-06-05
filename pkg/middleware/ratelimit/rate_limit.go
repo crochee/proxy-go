@@ -9,6 +9,7 @@ import (
 
 	"github.com/crochee/proxy-go/internal"
 	"github.com/crochee/proxy-go/pkg/logger"
+	"github.com/crochee/proxy-go/pkg/middleware"
 )
 
 type option struct {
@@ -30,7 +31,7 @@ func Mode(mode int) func(*option) {
 }
 
 // New returns a rate limiter middleware.
-func New(opts ...func(*option)) http.Handler {
+func New(opts ...func(*option)) *rateLimiter {
 	l := &rateLimiter{
 		option: option{
 			every: 500 * time.Millisecond,
@@ -53,7 +54,7 @@ func New(opts ...func(*option)) http.Handler {
 
 type rateLimiter struct {
 	limiter *rate.Limiter
-	next    http.Handler
+	next    middleware.Handler
 	option
 	maxDelay time.Duration
 }
@@ -66,8 +67,9 @@ func (rl *rateLimiter) Level() int {
 	return 5
 }
 
-func (rl *rateLimiter) Next(handler http.Handler) {
+func (rl *rateLimiter) Next(handler middleware.Handler) middleware.Handler {
 	rl.next = handler
+	return rl
 }
 
 func (rl *rateLimiter) ServeHTTP(rw http.ResponseWriter, req *http.Request) {

@@ -10,6 +10,7 @@ import (
 	"github.com/cenkalti/backoff/v4"
 
 	"github.com/crochee/proxy-go/config/dynamic"
+	"github.com/crochee/proxy-go/pkg/middleware"
 )
 
 // nexter returns the duration to wait before retrying the operation.
@@ -27,7 +28,7 @@ func New(rt dynamic.Retry) *retry {
 
 // retry is a middleware that retries requests.
 type retry struct {
-	next            http.Handler
+	next            middleware.Handler
 	initialInterval time.Duration
 	attempts        int
 }
@@ -40,8 +41,9 @@ func (r *retry) Level() int {
 	return 1
 }
 
-func (r *retry) Next(handler http.Handler) {
+func (r *retry) Next(handler middleware.Handler) middleware.Handler {
 	r.next = handler
+	return r
 }
 
 func (r *retry) ServeHTTP(rw http.ResponseWriter, req *http.Request) {

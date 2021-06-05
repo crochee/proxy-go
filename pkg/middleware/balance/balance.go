@@ -9,10 +9,11 @@ import (
 	"github.com/crochee/proxy-go/config/dynamic"
 	"github.com/crochee/proxy-go/internal"
 	"github.com/crochee/proxy-go/pkg/logger"
+	"github.com/crochee/proxy-go/pkg/middleware"
 	"github.com/crochee/proxy-go/pkg/selector"
 )
 
-func New(cfg dynamic.BalanceConfig) http.Handler {
+func New(cfg dynamic.BalanceConfig) *balancer {
 	hostname, err := os.Hostname()
 	if err != nil {
 		hostname = "localhost"
@@ -43,7 +44,7 @@ type SelectorInfo struct {
 }
 
 type balancer struct {
-	next http.Handler
+	next middleware.Handler
 	// path method service
 	serviceApi map[string]map[string]string
 	// service selector
@@ -59,8 +60,9 @@ func (b *balancer) Level() int {
 	return 1
 }
 
-func (b *balancer) Next(handler http.Handler) {
+func (b *balancer) Next(handler middleware.Handler) middleware.Handler {
 	b.next = handler
+	return b
 }
 
 func (b *balancer) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
@@ -91,7 +93,6 @@ func (b *balancer) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 	request.Header.Add(internal.XForwardedHost, request.Host)
 	request.URL.Scheme = node.Scheme
 	request.URL.Host = node.Host
-
 	b.next.ServeHTTP(writer, request)
 }
 

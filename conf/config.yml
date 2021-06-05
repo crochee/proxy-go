@@ -9,44 +9,6 @@ medata:
     system_log:
         path: ./log/sys.log
         level: DEBUG
-middleware:
-    retry:
-        attempts: 10
-        initialInterval: 5s
-    access_log:
-        path: ./log/access.log
-        level: INFO
-    balance:
-        register_apis:
-            - service_name: OBS
-              path: /proxy
-              method: POST
-        transfers:
-            - service_name: OBS
-              balance:
-                selector: wrr
-                nodes:
-                    - scheme: https
-                      host: 127.0.0.1:8121
-                      weight: 1
-                    - scheme: http
-                      host: 127.0.0.1:8122
-                      weight: 2
-    rate_limit:
-        every: 1s
-        burst: 2000
-        mode: 1
-    circuit_breaker:
-        expression: NetworkErrorRatio() > 0.5
-    recovery: true
-proxy:
-    request_log:
-        path: ./log/proxy.log
-        level: INFO
-    tls:
-        ca: ./build/package/proxy/cert/ca.pem
-        cert: ./build/package/proxy/cert/client.pem
-        key: ./build/package/proxy/cert/client-key.pem
 server:
     tls:
         ca: ./build/package/proxy/cert/ca.pem

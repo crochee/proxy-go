@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/crochee/proxy-go/pkg/metrics"
+	"github.com/crochee/proxy-go/pkg/middleware"
 	"github.com/crochee/proxy-go/pkg/writer"
 )
 
@@ -17,7 +18,7 @@ func New() *metric {
 }
 
 type metric struct {
-	next http.Handler
+	next middleware.Handler
 }
 
 func (m *metric) Name() string {
@@ -28,8 +29,9 @@ func (m *metric) Level() int {
 	return 4
 }
 
-func (m *metric) Next(handler http.Handler) {
+func (m *metric) Next(handler middleware.Handler) middleware.Handler {
 	m.next = handler
+	return m
 }
 
 func (m *metric) ServeHTTP(rw http.ResponseWriter, req *http.Request) {

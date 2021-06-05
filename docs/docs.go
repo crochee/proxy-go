@@ -24,14 +24,14 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/v1/nodes": {
-            "get": {
+        "/v1/handlers": {
+            "post": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "获取负载节点",
+                "description": "更新中间件",
                 "consumes": [
                     "application/json"
                 ],
@@ -39,15 +39,12 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Balance"
+                    "Handler"
                 ],
-                "summary": "GetBalanceNode",
+                "summary": "Handlers",
                 "responses": {
                     "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
-                        }
+                        "description": ""
                     },
                     "400": {
                         "description": "Bad Request",

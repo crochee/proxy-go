@@ -12,6 +12,7 @@ import (
 
 	"github.com/crochee/proxy-go/internal"
 	"github.com/crochee/proxy-go/pkg/logger"
+	"github.com/crochee/proxy-go/pkg/middleware"
 )
 
 type proxy struct {
@@ -26,7 +27,8 @@ func (p *proxy) Level() int {
 	return 0
 }
 
-func (p *proxy) Next(handler http.Handler) {
+func (p *proxy) Next(_ middleware.Handler) middleware.Handler {
+	return p
 }
 
 func (p *proxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
@@ -76,7 +78,7 @@ func New(opts ...ProxyOption) *proxy {
 }
 
 func errHandler(log logger.Builder, rw http.ResponseWriter, req *http.Request, err error) {
-	var statusCode int
+	statusCode := http.StatusInternalServerError
 	switch {
 	case errors.Is(err, io.EOF):
 		statusCode = http.StatusBadGateway

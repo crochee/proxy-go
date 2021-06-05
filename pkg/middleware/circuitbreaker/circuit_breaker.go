@@ -8,10 +8,11 @@ import (
 	"github.com/crochee/proxy-go/config/dynamic"
 	"github.com/crochee/proxy-go/internal"
 	"github.com/crochee/proxy-go/pkg/logger"
+	"github.com/crochee/proxy-go/pkg/middleware"
 	"github.com/crochee/proxy-go/pkg/tracex"
 )
 
-func New(cfg dynamic.CircuitBreaker) http.Handler {
+func New(cfg dynamic.CircuitBreaker) *circuitBreaker {
 	return &circuitBreaker{
 		expression: cfg.Expression,
 	}
@@ -19,7 +20,7 @@ func New(cfg dynamic.CircuitBreaker) http.Handler {
 
 type circuitBreaker struct {
 	expression     string
-	next           http.Handler
+	next           middleware.Handler
 	circuitBreaker *cbreaker.CircuitBreaker
 }
 
@@ -31,14 +32,15 @@ func (c *circuitBreaker) Level() int {
 	return 2
 }
 
-func (c *circuitBreaker) Next(handler http.Handler) {
+func (c *circuitBreaker) Next(handler middleware.Handler) middleware.Handler {
 	c.next = handler
 	oxyCircuitBreaker, err := cbreaker.New(c.next, c.expression, createCircuitBreakerOptions(c.expression))
 	if err != nil {
 		logger.Error(err.Error())
-		return
+		return c
 	}
 	c.circuitBreaker = oxyCircuitBreaker
+	return c
 }
 
 func (c *circuitBreaker) ServeHTTP(writer http.ResponseWriter, request *http.Request) {

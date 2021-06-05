@@ -16,14 +16,17 @@ var GHandlerChan = make(chan handlerList)
 type Handler interface {
 	Name() string
 	Level() int
-	Next(http.Handler)
+	Next(Handler) Handler
 	http.Handler
 }
 
 // Register
-func Register(handlers ...Handler) {
-	if len(handlers) > 0 {
-		GHandlerChan <- handlers
+func Register(ctx context.Context, handlers ...Handler) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case GHandlerChan <- handlers:
+		return nil
 	}
 }
 
@@ -36,15 +39,12 @@ func Load(ctx context.Context) http.Handler {
 			case handlers, ok := <-GHandlerChan:
 				if ok && len(handlers) > 0 {
 					sort.Sort(handlers)
-					if handlers[len(handlers)-1].Level() != 0 {
+					if handlers[0].Level() != 0 {
 						continue
 					}
 					temp := handlers[0]
-					for index := range handlers {
-						if index == 0 {
-							continue
-						}
-						temp.Next(handlers[index])
+					for index := 1; index < len(handlers); index++ {
+						temp = handlers[index].Next(temp)
 					}
 					httpHandler.value.Store(temp)
 				}
@@ -61,13 +61,12 @@ type handler struct {
 }
 
 func (h *handler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	value := h.value.Load()
-	srv, ok := value.(http.Handler)
+	value, ok := h.value.Load().(Handler)
 	if !ok {
 		http.NotFound(rw, req)
 		return
 	}
-	srv.ServeHTTP(rw, req)
+	value.ServeHTTP(rw, req)
 }
 
 type handlerList []Handler
@@ -77,7 +76,7 @@ func (h handlerList) Len() int {
 }
 
 func (h handlerList) Less(i, j int) bool {
-	return h[i].Level() > h[j].Level()
+	return h[i].Level() < h[j].Level()
 }
 
 func (h handlerList) Swap(i, j int) {

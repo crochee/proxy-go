@@ -6,15 +6,16 @@ import (
 
 	"github.com/crochee/proxy-go/internal"
 	"github.com/crochee/proxy-go/pkg/logger"
+	"github.com/crochee/proxy-go/pkg/middleware"
 )
 
 // New creates recovery middleware
-func New() http.Handler {
+func New() *recovery {
 	return &recovery{}
 }
 
 type recovery struct {
-	next http.Handler
+	next middleware.Handler
 }
 
 func (r *recovery) Name() string {
@@ -25,8 +26,9 @@ func (r *recovery) Level() int {
 	return 5
 }
 
-func (r *recovery) Next(handler http.Handler) {
+func (r *recovery) Next(handler middleware.Handler) middleware.Handler {
 	r.next = handler
+	return r
 }
 
 func (r *recovery) ServeHTTP(rw http.ResponseWriter, req *http.Request) {

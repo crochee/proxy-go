@@ -1,8 +1,6 @@
 package dynamic
 
-import (
-	"time"
-)
+import "time"
 
 // Retry holds the retry configuration.
 type Retry struct {

@@ -14,18 +14,16 @@ info:
   title: PROXY Swagger API
   version: "1.0"
 paths:
-  /v1/nodes:
-    get:
+  /v1/handlers:
+    post:
       consumes:
       - application/json
-      description: 获取负载节点
+      description: 更新中间件
       produces:
       - application/json
       responses:
         "200":
-          description: ok
-          schema:
-            type: string
+          description: ""
         "400":
           description: Bad Request
           schema:
@@ -36,9 +34,9 @@ paths:
             $ref: '#/definitions/e.Response'
       security:
       - ApiKeyAuth: []
-      summary: GetBalanceNode
+      summary: Handlers
       tags:
-      - Balance
+      - Handler
 securityDefinitions:
   ApiKeyAuth:
     in: header

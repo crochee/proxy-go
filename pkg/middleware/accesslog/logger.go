@@ -9,10 +9,11 @@ import (
 
 	"github.com/crochee/proxy-go/internal"
 	"github.com/crochee/proxy-go/pkg/logger"
+	"github.com/crochee/proxy-go/pkg/middleware"
 	"github.com/crochee/proxy-go/pkg/writer"
 )
 
-func New(log logger.Builder) http.Handler {
+func New(log logger.Builder) *accessLog {
 	if log == nil {
 		log = logger.NoLogger{}
 	}
@@ -22,7 +23,7 @@ func New(log logger.Builder) http.Handler {
 }
 
 type accessLog struct {
-	next http.Handler
+	next middleware.Handler
 	log  logger.Builder
 }
 
@@ -34,8 +35,9 @@ func (l *accessLog) Level() int {
 	return 4
 }
 
-func (l *accessLog) Next(handler http.Handler) {
+func (l *accessLog) Next(handler middleware.Handler) middleware.Handler {
 	l.next = handler
+	return l
 }
 
 func (l *accessLog) ServeHTTP(rw http.ResponseWriter, req *http.Request) {

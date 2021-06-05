@@ -81,8 +81,7 @@ func httpAppServer(ctx context.Context, medata *config.Medata,
 		return nil, errors.New("medata is nil")
 	}
 	if medata.Tls != nil {
-		tlsConfig, err := tlsx.TlsConfig(tls.NoClientCert, medata.Tls.Ca,
-			medata.Tls.Cert, medata.Tls.Key)
+		tlsConfig, err := tlsx.TlsConfig(tls.NoClientCert, *medata.Tls)
 		if err != nil {
 			return nil, err
 		}
