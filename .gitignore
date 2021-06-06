@@ -5,4 +5,5 @@ proxy-go.exe
 proxy.exe
 profil*
 target
-ui/Cargo.lock
+Cargo.lock
+dist
