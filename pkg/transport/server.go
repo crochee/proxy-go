@@ -56,7 +56,6 @@ func (a *app) Run() error {
 		for {
 			select {
 			case <-ctx.Done():
-				close(quit)
 				return ctx.Err()
 			case <-quit:
 				a.cancel()
