@@ -20,8 +20,9 @@ import (
 	"github.com/crochee/proxy-go/pkg/transport/httpx"
 )
 
+var configFile = flag.String("c", "./conf/config.yml", "")
+
 func Server() error {
-	var configFile = flag.String("config", "./conf/config.yml", "")
 	flag.Parse()
 
 	ctx, cancel := context.WithCancel(context.Background())
