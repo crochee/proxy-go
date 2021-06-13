@@ -9,3 +9,6 @@ edition = "2018"
 [dependencies]
 yew = "0.18.0"
 yew-router = "0.15.0"
+yew-router-macro="0.15.0"
+wasm-logger = "0.2"
+log = "0.4.14"
