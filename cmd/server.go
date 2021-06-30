@@ -5,8 +5,6 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
-	"flag"
-	"github.com/crochee/proxy-go/pkg/middleware"
 	"net/http"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -14,6 +12,7 @@ import (
 	"github.com/crochee/proxy-go/config"
 	"github.com/crochee/proxy-go/pkg/logger"
 	"github.com/crochee/proxy-go/pkg/metrics"
+	"github.com/crochee/proxy-go/pkg/middleware"
 	"github.com/crochee/proxy-go/pkg/router"
 	"github.com/crochee/proxy-go/pkg/tlsx"
 	"github.com/crochee/proxy-go/pkg/transport"
@@ -21,13 +20,8 @@ import (
 )
 
 func Server() error {
-	var configFile = flag.String("config", "./conf/config.yml", "")
-	flag.Parse()
-
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel() // 全局取消
-	// 初始化配置
-	config.InitConfig(*configFile)
 
 	// 初始化系统日志
 	if config.Cfg.Medata.SystemLog != nil {

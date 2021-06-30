@@ -29,12 +29,13 @@ type Medata struct {
 var Cfg *Spec
 
 // InitConfig init Config
-func InitConfig(path string) {
+func InitConfig(path string) error {
 	config, err := loadConfig(path)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	Cfg = config
+	return nil
 }
 
 type LoadConfig interface {
