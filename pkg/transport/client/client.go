@@ -7,21 +7,17 @@
 package client
 
 import (
-	"bytes"
-	"context"
 	"crypto/tls"
-	"errors"
 	"net"
 	"net/http"
-	"net/url"
 	"time"
 )
+
+//go:generate mockgen -destination client_mock.go -package client -source client.go
 
 type Client interface {
 	Do(req *http.Request) (*http.Response, error)
 }
-
-var defaultClient Client
 
 type Option func(*option)
 
@@ -37,11 +33,6 @@ func TlsConfig(cfg *tls.Config) Option {
 // Timeout
 func Timeout(t time.Duration) Option {
 	return func(o *option) { o.t.ResponseHeaderTimeout = t }
-}
-
-// DefaultClient
-func DefaultClient(opts ...Option) {
-	defaultClient = NewStandardClient(opts...)
 }
 
 func NewStandardClient(opts ...Option) *standardClient {
@@ -69,40 +60,4 @@ type standardClient struct {
 
 func (s *standardClient) Do(req *http.Request) (*http.Response, error) {
 	return s.client.Do(req)
-}
-
-// Send
-func Send(ctx context.Context, method string, uri string,
-	body []byte, headers map[string]string) (*http.Response, error) {
-	req, err := NewRequest(ctx, method, uri, body, headers)
-	if err != nil {
-		return nil, err
-	}
-	return Do(req)
-}
-
-// Do
-func Do(req *http.Request) (*http.Response, error) {
-	return defaultClient.Do(req)
-}
-
-// NewRequest
-func NewRequest(ctx context.Context, method string, uri string,
-	body []byte, headers map[string]string) (*http.Request, error) {
-	tempUri, err := url.Parse(uri)
-	if err != nil {
-		return nil, err
-	}
-	if tempUri.Hostname() == "" {
-		return nil, errors.New("the url hasn't ip or domain name")
-	}
-	tempUri.RawQuery = tempUri.Query().Encode()
-	var req *http.Request
-	if req, err = http.NewRequestWithContext(ctx, method, tempUri.String(), bytes.NewReader(body)); err != nil {
-		return nil, err
-	}
-	for key, value := range headers {
-		req.Header.Add(key, value)
-	}
-	return req, nil
 }

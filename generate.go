@@ -11,3 +11,6 @@ package proxy_go
 // 火焰图
 //go:generate go get -u github.com/google/pprof
 //go:generate pprof -http=:8080 cpu.prof
+
+// mock
+//go:generate go get -u github.com/golang/mock/mockgen
