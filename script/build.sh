@@ -1,3 +1,3 @@
 #!bin/bash
 set -ex
-go build -o proxy ./cmd/proxy
+go build -trimpath -ldflags="-s -w" -o proxy ./cmd/proxy
