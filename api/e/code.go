@@ -1,56 +1,45 @@
 package e
 
-import "net/http"
+import (
+	"fmt"
+	"strconv"
+)
 
 type Code interface {
-	Code() string
 	Status() int
 	English() string
 	Chinese() string
-
-	String() string
+	ErrorCode() string
 }
 
-type success struct{}
+type ErrorCode string
 
-func (s success) Code() string {
-	return "CPTS.CPTS-BUILD.000000"
+func (e ErrorCode) Status() int {
+	status, err := strconv.Atoi(string(e)[6:8])
+	if err != nil {
+		panic(err)
+	}
+	return status
 }
 
-func (s success) String() string {
-	return s.English()
+func (e ErrorCode) English() string {
+	return e.detail().E
 }
 
-func (s success) Status() int {
-	return http.StatusOK
+func (e ErrorCode) Chinese() string {
+	return e.detail().C
 }
 
-func (s success) English() string {
-	return "success"
+func (e ErrorCode) ErrorCode() string {
+	return string(e)
 }
 
-func (s success) Chinese() string {
-	return "成功"
-}
-
-type unknown struct{}
-
-func (u unknown) Code() string {
-	return "CPTS.CPTS-BUILD.000001"
-}
-
-func (u unknown) String() string {
-	return u.English()
-}
-
-func (u unknown) Status() int {
-	return http.StatusInternalServerError
-}
-
-func (u unknown) English() string {
-	return "An unknown error occurred"
-}
-
-func (u unknown) Chinese() string {
-	return "发生未知错误"
+func (e ErrorCode) detail() Detail {
+	msg, ok := errorList[e]
+	if !ok {
+		if msg, ok = errorList[Unknown]; !ok {
+			panic(fmt.Sprintf("not define %s", e))
+		}
+	}
+	return msg
 }

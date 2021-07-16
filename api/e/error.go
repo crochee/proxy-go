@@ -1,26 +1,30 @@
 package e
 
-type serviceError struct {
+import "fmt"
+
+type ResponseError struct {
 	Code
 	Message string
 }
 
-func (s *serviceError) Error() string {
+func (s *ResponseError) Error() string {
 	if s.Message != "" {
 		return s.Message
 	}
-	return s.Code.String()
+	return s.Code.English()
 }
 
-func New(code Code, message string) error {
-	return &serviceError{
+func NewMsg(code Code, message string) error {
+	return &ResponseError{
 		Code:    code,
 		Message: message,
 	}
 }
 
-func NewCode(code Code) error {
-	return &serviceError{
-		Code: code,
-	}
+func New(code Code) error {
+	return NewMsg(code, "")
+}
+
+func NewMsgFormat(code Code, format string, v ...interface{}) error {
+	return NewMsg(code, fmt.Sprintf(format, v...))
 }

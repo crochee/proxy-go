@@ -19,7 +19,7 @@ type Response struct {
 // WithCodeMessage gin Response with with Code and message
 func WithCodeMessage(ctx *gin.Context, code Code, message string) {
 	resp := &Response{
-		Code:    code.String(),
+		Code:    code.ErrorCode(),
 		Message: code.English(),
 		Extra:   message,
 	}
@@ -34,7 +34,7 @@ func WithCodeMessage(ctx *gin.Context, code Code, message string) {
 // WithCode gin Response with Code
 func WithCode(ctx *gin.Context, code Code) {
 	resp := &Response{
-		Code:    code.String(),
+		Code:    code.ErrorCode(),
 		Message: code.English(),
 	}
 	if strings.Contains(ctx.Request.Header.Get("accept-language"), "zh") {
@@ -75,7 +75,7 @@ func Errors(ctx *gin.Context, err error) {
 		WithCodeMessage(ctx, Success, err.Error())
 		return
 	}
-	var errorCode *serviceError
+	var errorCode *ResponseError
 	if errors.As(errResult, &errorCode) {
 		WithCodeMessage(ctx, errorCode.Code, errorCode.Message)
 		return
@@ -86,7 +86,7 @@ func Errors(ctx *gin.Context, err error) {
 // AbortWith gin Response with with Code and message
 func AbortWith(ctx *gin.Context, code Code, message string) {
 	resp := &Response{
-		Code:    code.String(),
+		Code:    code.ErrorCode(),
 		Message: code.English(),
 		Extra:   message,
 	}
@@ -101,7 +101,7 @@ func AbortWith(ctx *gin.Context, code Code, message string) {
 // Abort gin Response with with Code and message
 func Abort(ctx *gin.Context, code Code) {
 	resp := &Response{
-		Code:    code.String(),
+		Code:    code.ErrorCode(),
 		Message: code.English(),
 	}
 	if strings.Contains(ctx.Request.Header.Get("accept-language"), "zh") {
