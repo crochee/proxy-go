@@ -25,6 +25,6 @@ func New(code Code) error {
 	return NewMsg(code, "")
 }
 
-func NewMsgFormat(code Code, format string, v ...interface{}) error {
+func NewFormat(code Code, format string, v ...interface{}) error {
 	return NewMsg(code, fmt.Sprintf(format, v...))
 }
