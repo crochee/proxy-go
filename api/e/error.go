@@ -11,7 +11,7 @@ func (s *ResponseError) Error() string {
 	if s.Message != "" {
 		return s.Message
 	}
-	return s.Code.English()
+	return s.Code.Detail()
 }
 
 func NewMsg(code Code, message string) error {
