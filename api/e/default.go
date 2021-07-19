@@ -6,6 +6,11 @@
 // Package e
 package e
 
+type Detail struct {
+	E string
+	C string
+}
+
 const (
 	Success ErrorCode = "PROXY.2000000"
 
@@ -16,10 +21,10 @@ const (
 	UserNotLogin ErrorCode = "PROXY.4012000"
 )
 
-var errorList = map[ErrorCode]string{
-	Success: "Success",
+var errorList = map[ErrorCode]Detail{
+	Success: {E: "Success", C: "成功"},
 
-	Unknown: "Unknown error",
+	Unknown: {E: "Unknown error", C: "未知错误"},
 
-	UserNotLogin: "User isn't login",
+	UserNotLogin: {E: "User isn't login", C: "用户未登录"},
 }

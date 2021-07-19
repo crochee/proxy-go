@@ -10,7 +10,6 @@ require (
 	github.com/gin-gonic/gin v1.7.2
 	github.com/golang/mock v1.6.0
 	github.com/json-iterator/go v1.1.11
-	github.com/nicksnyder/go-i18n/v2 v2.1.2
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/prometheus/client_golang v1.10.0
 	github.com/spf13/cobra v1.1.3

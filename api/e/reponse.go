@@ -2,24 +2,12 @@ package e
 
 import (
 	"errors"
+
 	"github.com/gin-gonic/gin"
-	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
 
 	"github.com/crochee/proxy-go/pkg/logger"
 )
-
-var (
-	bundle   *i18n.Bundle
-	messages = &i18n.Message{
-		Description: "The content of the error message",
-		Other:       "{{.}}",
-	}
-)
-
-func init() {
-	bundle = i18n.NewBundle(language.English)
-}
 
 // 封装成统一的字段给前端处理
 type Response struct {
@@ -101,27 +89,35 @@ func respWithCode(ctx *gin.Context, code Code) *Response {
 	resp := &Response{
 		Code: code.ErrorCode(),
 	}
-	resp.Message = i18n.NewLocalizer(bundle, ctx.Request.Header.Get("Accept-Language")).
-		MustLocalize(&i18n.LocalizeConfig{
-			TemplateData:   code.Detail(),
-			DefaultMessage: messages,
-		})
+	tags, _, err := language.ParseAcceptLanguage(ctx.Request.Header.Get("Accept-Language"))
+	if err != nil {
+		panic(err)
+	}
+	for _, tag := range tags {
+		if tag.String() == language.Chinese.String() {
+			resp.Message = code.Chinese()
+			return resp
+		}
+	}
+	resp.Message = code.English()
 	return resp
 }
 
 func respWith(ctx *gin.Context, code Code, message string) *Response {
 	resp := &Response{
-		Code: code.ErrorCode(),
+		Code:  code.ErrorCode(),
+		Extra: message,
 	}
-	loc := i18n.NewLocalizer(bundle, ctx.Request.Header.Get("Accept-Language"))
-	// Message
-	cfg := &i18n.LocalizeConfig{
-		TemplateData:   code.Detail(),
-		DefaultMessage: messages,
+	tags, _, err := language.ParseAcceptLanguage(ctx.Request.Header.Get("Accept-Language"))
+	if err != nil {
+		panic(err)
 	}
-	resp.Message = loc.MustLocalize(cfg)
-	// Extra
-	cfg.TemplateData = message
-	resp.Extra = loc.MustLocalize(cfg)
+	for _, tag := range tags {
+		if tag.String() == language.SimplifiedChinese.String() {
+			resp.Message = code.Chinese()
+			return resp
+		}
+	}
+	resp.Message = code.English()
 	return resp
 }

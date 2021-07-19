@@ -7,7 +7,8 @@ import (
 
 type Code interface {
 	Status() int
-	Detail() string
+	English() string
+	Chinese() string
 	ErrorCode() string
 }
 
@@ -21,11 +22,19 @@ func (e ErrorCode) Status() int {
 	return status
 }
 
+func (e ErrorCode) English() string {
+	return e.detail().E
+}
+
+func (e ErrorCode) Chinese() string {
+	return e.detail().C
+}
+
 func (e ErrorCode) ErrorCode() string {
 	return string(e)
 }
 
-func (e ErrorCode) Detail() string {
+func (e ErrorCode) detail() Detail {
 	msg, ok := errorList[e]
 	if !ok {
 		if msg, ok = errorList[Unknown]; !ok {
