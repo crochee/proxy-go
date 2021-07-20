@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/crochee/proxy-go/pkg/filecontent"
+	"github.com/crochee/proxy-go/internal/filecontent"
 )
 
 type Config struct {

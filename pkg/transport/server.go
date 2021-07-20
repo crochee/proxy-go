@@ -7,7 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/crochee/proxy-go/pkg/routine"
+	"github.com/crochee/proxy-go/internal/routine"
 )
 
 type AppServer interface {

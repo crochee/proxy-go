@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/crochee/proxy-go/internal/writer"
 	"github.com/crochee/proxy-go/pkg/metrics"
 	"github.com/crochee/proxy-go/pkg/middleware"
-	"github.com/crochee/proxy-go/pkg/writer"
 )
 
 // New create metric http.Handler

@@ -8,9 +8,9 @@ import (
 
 	"github.com/crochee/proxy-go/config/dynamic"
 	"github.com/crochee/proxy-go/internal"
+	"github.com/crochee/proxy-go/internal/selector"
 	"github.com/crochee/proxy-go/pkg/logger"
 	"github.com/crochee/proxy-go/pkg/middleware"
-	"github.com/crochee/proxy-go/pkg/selector"
 )
 
 func New(cfg dynamic.BalanceConfig) *balancer {

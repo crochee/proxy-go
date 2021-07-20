@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/crochee/proxy-go/internal"
+	"github.com/crochee/proxy-go/internal/writer"
 	"github.com/crochee/proxy-go/pkg/logger"
 	"github.com/crochee/proxy-go/pkg/middleware"
-	"github.com/crochee/proxy-go/pkg/writer"
 )
 
 func New(log logger.Builder) *accessLog {
