@@ -1,14 +1,12 @@
-// Package main
+// Package proxy_go
 package proxy_go
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/crochee/proxy-go/cmd"
 )
 
 func TestServer(t *testing.T) {
-	assert.NoError(t, cmd.Server())
+	assert.NoError(t, Server())
 }

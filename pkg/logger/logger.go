@@ -25,7 +25,7 @@ func setLoggerWriter(path string) io.Writer {
 		MaxSize:    DefaultLogSizeM, //单个日志文件最大MaxSize*M大小 // megabytes
 		MaxAge:     MaxLogDays,      //days
 		MaxBackups: DefaultMaxZip,   //备份数量
-		Compress:   false,           //不压缩
+		Compress:   true,            //不压缩
 		LocalTime:  true,            //备份名采用本地时间
 	}
 }

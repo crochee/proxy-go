@@ -1,5 +1,5 @@
-// Package cmd
-package cmd
+// Package proxy_go
+package proxy_go
 
 import (
 	"context"

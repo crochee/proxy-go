@@ -4,7 +4,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/crochee/proxy-go/cmd"
+	"github.com/crochee/proxy-go"
 	"github.com/crochee/proxy-go/config"
 	"github.com/crochee/proxy-go/pkg/logger"
 )
@@ -22,7 +22,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := cmd.Server(); err != nil {
+	if err := proxy_go.Server(); err != nil {
 		logger.Fatal(err.Error())
 	}
 
