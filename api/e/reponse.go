@@ -41,9 +41,9 @@ func Unwrap(err error) error {
 	}
 
 	for err != nil {
-		unwrap, ok := err.(unwrap)
+		unwrapHandler, ok := err.(unwrap)
 		if ok {
-			err = unwrap.Unwrap()
+			err = unwrapHandler.Unwrap()
 			continue
 		}
 		cause, ok := err.(causer)

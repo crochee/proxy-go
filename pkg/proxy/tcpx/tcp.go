@@ -31,7 +31,7 @@ func New(log logger.Builder, cfg *dynamic.Config) Handler {
 		TargetSelector:   make(map[string]selector.Selector),
 		terminationDelay: 0,
 	}
-	for _, balance := range cfg.Balance.Transfers {
+	for _, balance := range cfg.Middleware.Balance.Transfers {
 		p.TargetSelector[balance.ServiceName] = createSelector(&balance.Balance)
 	}
 	return p
@@ -41,7 +41,7 @@ func (p *Proxy) ServeTCP(conn WriteCloser) {
 	p.log.Debugf("Handling connection from %s", conn.RemoteAddr())
 
 	// needed because of e.g. server.trackedConnection
-	defer conn.Close()
+	defer internal.Close(conn)
 
 	connBackend, err := p.dialBackend(conn.RemoteAddr().String())
 	if err != nil {
@@ -50,7 +50,7 @@ func (p *Proxy) ServeTCP(conn WriteCloser) {
 	}
 
 	// maybe not needed, but just in case
-	defer connBackend.Close()
+	defer internal.Close(connBackend)
 	errChan := make(chan error)
 
 	go p.connCopy(conn, connBackend, errChan)

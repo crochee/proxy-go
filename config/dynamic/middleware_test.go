@@ -8,6 +8,7 @@ import (
 	"github.com/json-iterator/go"
 	"github.com/stretchr/testify/require"
 
+	"github.com/crochee/proxy-go/internal"
 	"github.com/crochee/proxy-go/pkg/tlsx"
 )
 
@@ -77,7 +78,7 @@ func TestNew(t *testing.T) {
 	}
 	file, err := os.Create("../../conf/config.json")
 	require.NoError(t, err)
-	defer file.Close()
+	defer internal.Close(file)
 	err = jsoniter.ConfigCompatibleWithStandardLibrary.NewEncoder(file).Encode(cf)
 	require.NoError(t, err)
 }

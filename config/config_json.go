@@ -4,6 +4,8 @@ import (
 	"os"
 
 	"github.com/json-iterator/go"
+
+	"github.com/crochee/proxy-go/internal"
 )
 
 type Json struct {
@@ -15,7 +17,7 @@ func (j Json) Decode() (*Spec, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer internal.Close(file)
 	var config Spec
 	dec := jsoniter.ConfigCompatibleWithStandardLibrary.NewDecoder(file)
 	dec.UseNumber() // 解决json 将int当成float的情况
@@ -30,6 +32,6 @@ func (j Json) Encode(c *Spec) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer internal.Close(file)
 	return jsoniter.ConfigCompatibleWithStandardLibrary.NewEncoder(file).Encode(c)
 }

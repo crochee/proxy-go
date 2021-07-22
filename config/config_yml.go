@@ -4,6 +4,8 @@ import (
 	"os"
 
 	"gopkg.in/yaml.v3"
+
+	"github.com/crochee/proxy-go/internal"
 )
 
 type Yml struct {
@@ -15,7 +17,7 @@ func (y Yml) Decode() (*Spec, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer internal.Close(file)
 	var config Spec
 	if err = yaml.NewDecoder(file).Decode(&config); err != nil {
 		return nil, err
@@ -28,6 +30,6 @@ func (y Yml) Encode(c *Spec) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer internal.Close(file)
 	return yaml.NewEncoder(file).Encode(c)
 }

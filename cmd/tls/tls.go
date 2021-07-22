@@ -45,7 +45,7 @@ func TlsTool(cmd *cobra.Command, _ []string) error {
 	if certFile, err = os.Create(certPath); err != nil {
 		return err
 	}
-	defer certFile.Close()
+	defer internal.Close(certFile)
 	if _, err = certFile.Write(cert); err != nil {
 		return err
 	}
@@ -53,7 +53,7 @@ func TlsTool(cmd *cobra.Command, _ []string) error {
 	if keyFile, err = os.Create(keyPath); err != nil {
 		return err
 	}
-	defer keyFile.Close()
+	defer internal.Close(keyFile)
 	_, err = keyFile.Write(key)
 	return err
 }

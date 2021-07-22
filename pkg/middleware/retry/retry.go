@@ -10,6 +10,7 @@ import (
 	"github.com/cenkalti/backoff/v4"
 
 	"github.com/crochee/proxy-go/config/dynamic"
+	"github.com/crochee/proxy-go/internal"
 	"github.com/crochee/proxy-go/pkg/middleware"
 )
 
@@ -50,7 +51,7 @@ func (r *retry) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	if r.attempts > 1 {
 		// 一般情况发送失败的时候，body会关闭并返回err,导致重试时，数据被破坏
 		body := req.Body
-		defer body.Close()
+		defer internal.Close(body)
 		req.Body = io.NopCloser(body)
 	}
 
