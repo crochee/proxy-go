@@ -1,6 +1,5 @@
 .idea
 log
-go/go.sum
 proxy-go.exe
 proxy.exe
 profil*
