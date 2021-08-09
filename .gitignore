@@ -6,3 +6,4 @@ profil*
 target
 Cargo.lock
 dist
+.vscode
